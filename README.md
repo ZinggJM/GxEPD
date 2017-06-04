@@ -13,4 +13,4 @@ GDEW042T2 4.2 inch 400 x 300 pixel black/white
 
 GDEW075T8 7.5 inch 640 x 384 pixel black/white
 
-These display can be connected using the DESTM32-S1 connection board to power and SPI.
+These display can be connected using the DESTM32-S2 connection board to power and SPI.
