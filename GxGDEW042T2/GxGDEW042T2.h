@@ -66,7 +66,7 @@ class GxGDEW042T2 : public GxEPD
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
     // to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint16_t size);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size);
     // to buffer, may be cropped, drawPixel() used, update needed
     void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
     // GxGDEW042T2 may have 2 channels, commands 0x10 and 0x13, but no grey levels

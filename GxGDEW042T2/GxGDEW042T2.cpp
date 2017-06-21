@@ -162,7 +162,7 @@ void GxGDEW042T2::update(void)
   _sleep();
 }
 
-void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t size)
+void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
   uint32_t i;
   uint8_t data;

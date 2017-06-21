@@ -121,7 +121,7 @@ void GxGDEW075T8::update(void)
   _sleep();
 }
 
-void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t size)
+void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
   Serial.print("drawBitmap "); Serial.println(size);
   _wakeUp(true);
