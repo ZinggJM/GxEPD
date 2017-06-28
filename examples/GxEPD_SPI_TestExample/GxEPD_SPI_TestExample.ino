@@ -32,7 +32,8 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEW042T2/GxGDEW042T2.cpp>
+#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
 
 // uncomment next line for drawBitmap() test, (consumes RAM on ESP8266)

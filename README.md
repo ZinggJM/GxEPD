@@ -14,6 +14,8 @@ GDEW042T2 4.2 inch 400 x 300 pixel black/white
 
 GDEW075T8 7.5 inch 640 x 384 pixel black/white
 
+Added GDEP015OC1 1.54 inch 200 x 200 pixel black/white (initial version, no partial update)
+
 These display can be connected using the DESTM32-S2 connection board to power and SPI.
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
