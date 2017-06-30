@@ -11,6 +11,7 @@
 #define GxEPD_DARKGREY  0x7BEF      /* 128, 128, 128 */
 #define GxEPD_LIGHTGREY 0xC618      /* 192, 192, 192 */
 #define GxEPD_WHITE     0xFFFF
+#define GxEPD_RED       0xF800      /* 255,   0,   0 */
 
 class GxEPD : public Adafruit_GFX
 {

@@ -32,7 +32,8 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+#include <GxGDEW027C44/GxGDEW027C44.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
 
@@ -82,6 +83,12 @@ void loop()
 void showBitmapExample()
 {
 #ifdef _GxBitmapExamples_H_
+#ifdef _GxGDEW027C44_H_
+  // draw black and red bitmap
+  display.drawPicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1));
+  delay(2000);
+  display.setRotation(3);
+#else
   display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
   display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
@@ -94,6 +101,7 @@ void showBitmapExample()
   display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, h, GxEPD_BLACK);
   display.update();
   delay(2000);
+#endif
 #endif
 }
 
@@ -109,6 +117,9 @@ void showFont(const char name[], const GFXfont* f)
   display.println("0123456789:;<=>?");
   display.println("@ABCDEFGHIJKLMNO");
   display.println("PQRSTUVWXYZ[\\]^_");
+#ifdef _GxGDEW027C44_H_
+  display.setTextColor(GxEPD_RED);
+#endif
   display.println("`abcdefghijklmno");
   display.println("pqrstuvwxyz{|}~ ");
   display.update();
