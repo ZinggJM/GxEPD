@@ -30,10 +30,7 @@
 #ifndef _GxGDEP015OC1_H_
 #define _GxGDEP015OC1_H_
 
-
 #include "../GxEPD.h"
-
-//#define WITH_TEST_EXAMPLE
 
 #define GxGDEP015OC1_WIDTH 200
 #define GxGDEP015OC1_HEIGHT 200
@@ -42,25 +39,26 @@
 
 #define EPD_W21_SPI_SPEED 0x02 // 600kHz on Wemos D1 mini
 
+// mapping from DESTM32-S1 evaluation board to Wemos D1 mini
+
 // D10 : MOSI -> D7
 // D8  : CS   -> D8
 // E14 : RST  -> D4
-// E12 : nc?  -> nc?
+// E12 : nc   -> nc
 
 // D9  : CLK  -> D5
 // E15 : DC   -> D3
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
-#define CS  D8
-#define DC  D3
-#define RST D4
-#define BSY D2
-
 class GxGDEP015OC1 : public GxEPD
 {
   public:
-    GxGDEP015OC1(GxIO& io, uint8_t cs = CS, uint8_t dc = DC, uint8_t rst = RST, uint8_t busy = BSY);
+#if defined(ESP8266)
+    GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+#else
+    GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+#endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
@@ -70,6 +68,8 @@ class GxGDEP015OC1 : public GxEPD
     // to buffer, may be cropped, drawPixel() used, update needed
     void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
   private:
+    void _writeData(uint8_t data);
+    void _writeCommand(uint8_t command);
     void _writeCommandData(uint8_t *pCommandData, uint8_t datalen);
     void _SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1);
     void _SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1);
@@ -77,13 +77,12 @@ class GxGDEP015OC1 : public GxEPD
     void _PowerOn(void);
     void _PowerOff(void);
     void _wakeUp();
+    void _waitWhileBusy(const char* comment=0);
   protected:
     uint8_t _buffer[GxGDEP015OC1_BUFFER_SIZE];
 
   private:
     GxIO& IO;
-    uint8_t _cs;
-    uint8_t _dc;
     uint8_t _rst;
     uint8_t _busy;
 };

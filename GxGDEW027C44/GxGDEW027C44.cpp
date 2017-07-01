@@ -218,8 +218,8 @@ void  GxGDEW027C44::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
 
 void GxGDEW027C44::_writeCommand(uint8_t command)
 {
-  //while (!digitalRead(BSY));
-  if (!digitalRead(BSY))
+  //while (!digitalRead(_busy));
+  if (!digitalRead(_busy))
   {
     String str = String("command 0x") + String(command, HEX);
     _waitWhileBusy(str.c_str());
@@ -237,7 +237,7 @@ void GxGDEW027C44::_waitWhileBusy(const char* comment)
   unsigned long start = micros();
   while (1)
   {
-    if (digitalRead(BSY) == 1) break;
+    if (digitalRead(_busy) == 1) break;
     delay(1);
   }
   if (comment)

@@ -38,34 +38,28 @@
 #define GxGDEW027C44_WIDTH 176
 #define GxGDEW027C44_HEIGHT 264
 
-#define WITH_TEST_EXAMPLE
+#define GxGDEW027C44_BUFFER_SIZE GxGDEW027C44_WIDTH * GxGDEW027C44_HEIGHT / 8
 
 // mapping from DESTM32-S1 evaluation board to Wemos D1 mini
 
 // D10 : MOSI -> D7
 // D8  : CS   -> D8
 // E14 : RST  -> D4
-// E12 : nc  -> nc
+// E12 : nc   -> nc
 
 // D9  : CLK  -> D5 SCK
 // E15 : DC   -> D3
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
-#if defined(ESP8266)
-#define RST D4
-#define BSY D2
-#else
-#define RST 9
-#define BSY 7
-#endif
-
-#define GxGDEW027C44_BUFFER_SIZE GxGDEW027C44_WIDTH * GxGDEW027C44_HEIGHT / 8
-
 class GxGDEW027C44 : public GxEPD
 {
   public:
-    GxGDEW027C44(GxIO& io, uint8_t rst = RST, uint8_t busy = BSY);
+#if defined(ESP8266)
+    GxGDEW027C44(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+#else
+    GxGDEW027C44(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+#endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer

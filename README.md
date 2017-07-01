@@ -18,6 +18,8 @@ Added GDEP015OC1 1.54 inch 200 x 200 pixel black/white (initial version, no part
 
 Added GDEW027C44 2.7 inch 176 x 264 pixel black/white/red
 
+Added example IoT_SHT31LP_Example_1.54inchEPD
+
 These display can be connected using the DESTM32-S2 connection board to power and SPI.
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.

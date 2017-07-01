@@ -51,9 +51,9 @@ uint8_t DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
 uint8_t Gatetime[] = {0x3b, 0x08};  // 2us per line
 uint8_t RamDataEntryMode[] = {0x11, 0x01};  // Ram data entry mode
 
-GxGDEP015OC1::GxGDEP015OC1(GxIO& io, uint8_t cs, uint8_t dc, uint8_t rst, uint8_t busy) :
+GxGDEP015OC1::GxGDEP015OC1(GxIO& io, uint8_t rst, uint8_t busy) :
   GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT),
-  IO(io), _cs(cs), _dc(dc), _rst(rst), _busy(busy)
+  IO(io), _rst(rst), _busy(busy)
 {
 }
 
@@ -115,9 +115,7 @@ void GxGDEP015OC1::fillScreen(uint16_t color)
 void GxGDEP015OC1::update(void)
 {
   _wakeUp();
-  while (digitalRead(BSY)); // wait
-
-  IO.writeCommandTransaction(0x24);
+  _writeCommand(0x24);
   for (uint16_t y = 0; y < GxGDEP015OC1_HEIGHT; y++)
   {
     for (uint16_t x = GxGDEP015OC1_WIDTH / 8; x > 0; x--)
@@ -128,31 +126,30 @@ void GxGDEP015OC1::update(void)
       {
         mirror |= ((data >> i) & 0x01) << (7 - i);
       }
-      IO.writeDataTransaction(~mirror);
+      _writeData(~mirror);
     }
   }
   // Update
-  IO.writeCommandTransaction(0x22);
-  IO.writeDataTransaction(0xc7);
-  IO.writeCommandTransaction(0x20);
-  IO.writeCommandTransaction(0xff);
+  _writeCommand(0x22);
+  _writeData(0xc7);
+  _writeCommand(0x20);
+  _writeCommand(0xff);
   _PowerOff();
 }
 
 void GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
   _wakeUp();
-  while (digitalRead(BSY)); // wait
-  IO.writeCommandTransaction(0x24);
+  _writeCommand(0x24);
   for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
   {
-    IO.writeDataTransaction((i < size) ? bitmap[i] : 0x00);
+    _writeData((i < size) ? bitmap[i] : 0x00);
   }
   // Update
-  IO.writeCommandTransaction(0x22);
-  IO.writeDataTransaction(0xc7);
-  IO.writeCommandTransaction(0x20);
-  IO.writeCommandTransaction(0xff);
+  _writeCommand(0x22);
+  _writeData(0xc7);
+  _writeCommand(0x20);
+  _writeCommand(0xff);
   _PowerOff();
 }
 
@@ -169,9 +166,30 @@ void  GxGDEP015OC1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
   }
 }
 
+void GxGDEP015OC1::_writeCommand(uint8_t command)
+{
+  //while (digitalRead(_busy));
+  if (digitalRead(_busy))
+  {
+    String str = String("command 0x") + String(command, HEX);
+    _waitWhileBusy(str.c_str());
+  }
+  IO.writeCommandTransaction(command);
+}
+
+void GxGDEP015OC1::_writeData(uint8_t data)
+{
+  IO.writeDataTransaction(data);
+}
+
 void GxGDEP015OC1::_writeCommandData(uint8_t *pCommandData, uint8_t datalen)
 {
-  while (digitalRead(BSY)); // wait
+  //while (digitalRead(_busy)); // wait
+  if (digitalRead(_busy))
+  {
+    String str = String("command 0x") + String(pCommandData[0], HEX);
+    _waitWhileBusy(str.c_str());
+  }
   IO.startTransaction();
   IO.writeCommand(*pCommandData++);
   for (uint8_t i = 0; i < datalen - 1; i++)	// sub the command
@@ -182,27 +200,44 @@ void GxGDEP015OC1::_writeCommandData(uint8_t *pCommandData, uint8_t datalen)
 
 }
 
+void GxGDEP015OC1::_waitWhileBusy(const char* comment)
+{
+  unsigned long start = micros();
+  while (1)
+  {
+    if (!digitalRead(_busy)) break;
+    delay(1);
+  }
+  if (comment)
+  {
+    unsigned long elapsed = micros() - start;
+    //Serial.print(comment);
+    //Serial.print(" : ");
+    //Serial.println(elapsed);
+  }
+}
+
 void GxGDEP015OC1::_SetRamArea(uint8_t Xstart, uint8_t Xend,
-                               uint8_t Ystart, uint8_t Ystart1, 
+                               uint8_t Ystart, uint8_t Ystart1,
                                uint8_t Yend, uint8_t Yend1)
 {
-  IO.writeCommandTransaction(0x44);
-  IO.writeDataTransaction(Xstart);
-  IO.writeDataTransaction(Xend);
-  IO.writeCommandTransaction(0x45);
-  IO.writeDataTransaction(Ystart);
-  IO.writeDataTransaction(Ystart1);
-  IO.writeDataTransaction(Yend);
-  IO.writeDataTransaction(Yend1);
+  _writeCommand(0x44);
+  _writeData(Xstart);
+  _writeData(Xend);
+  _writeCommand(0x45);
+  _writeData(Ystart);
+  _writeData(Ystart1);
+  _writeData(Yend);
+  _writeData(Yend1);
 }
 
 void GxGDEP015OC1::_SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1)
 {
-  IO.writeCommandTransaction(0x4e);
-  IO.writeDataTransaction(addrX);
-  IO.writeCommandTransaction(0x4f);
-  IO.writeDataTransaction(addrY);
-  IO.writeDataTransaction(addrY1);
+  _writeCommand(0x4e);
+  _writeData(addrX);
+  _writeCommand(0x4f);
+  _writeData(addrY);
+  _writeData(addrY1);
 }
 
 void GxGDEP015OC1::_writeLUT(uint8_t *LUTvalue)
@@ -212,16 +247,16 @@ void GxGDEP015OC1::_writeLUT(uint8_t *LUTvalue)
 
 void GxGDEP015OC1::_PowerOn(void)
 {
-  IO.writeCommandTransaction(0x22);
-  IO.writeDataTransaction(0xc0);
-  IO.writeCommandTransaction(0x20);
+  _writeCommand(0x22);
+  _writeData(0xc0);
+  _writeCommand(0x20);
 }
 
 void GxGDEP015OC1::_PowerOff(void)
 {
-  IO.writeCommandTransaction(0x22);
-  IO.writeDataTransaction(0xc3);
-  IO.writeCommandTransaction(0x20);
+  _writeCommand(0x22);
+  _writeData(0xc3);
+  _writeCommand(0x20);
 }
 
 void GxGDEP015OC1::_wakeUp()
