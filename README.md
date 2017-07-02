@@ -20,9 +20,12 @@ Added GDEW027C44 2.7 inch 176 x 264 pixel black/white/red
 
 Added example IoT_SHT31LP_Example_1.54inchEPD
 
+Added GDE0213B1 2.13 inch 128 x 250 pixel black/white
+
 These display can be connected using the DESTM32-S2 connection board to power and SPI.
 
-The GDEP015OC1 class can also be used with Waveshare 1.54inch e-Paper SPI display.
+The GxGDEP015OC1 class can also be used with Waveshare 1.54inch e-Paper SPI display.
+The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI display.
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
 

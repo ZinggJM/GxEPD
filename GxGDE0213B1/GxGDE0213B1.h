@@ -1,5 +1,5 @@
 /************************************************************************************
-   class GxGDEP015OC1 : Display class example for GDEP015OC1 e-Paper from GoodDisplay.com
+   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from GoodDisplay.com
 
    based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
 
@@ -27,15 +27,15 @@
        |  nc   |o o| BS
        |-------------------------------------------------
 */
-#ifndef _GxGDEP015OC1_H_
-#define _GxGDEP015OC1_H_
+#ifndef _GxGDE0213B1_H_
+#define _GxGDE0213B1_H_
 
 #include "../GxEPD.h"
 
-#define GxGDEP015OC1_WIDTH 200
-#define GxGDEP015OC1_HEIGHT 200
+#define GxGDE0213B1_WIDTH 128
+#define GxGDE0213B1_HEIGHT 250
 
-#define GxGDEP015OC1_BUFFER_SIZE GxGDEP015OC1_WIDTH * GxGDEP015OC1_HEIGHT / 8
+#define GxGDE0213B1_BUFFER_SIZE GxGDE0213B1_WIDTH * GxGDE0213B1_HEIGHT / 8
 
 // mapping from DESTM32-S1 evaluation board to Wemos D1 mini
 
@@ -49,13 +49,13 @@
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
-class GxGDEP015OC1 : public GxEPD
+class GxGDE0213B1 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    GxGDE0213B1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
 #else
-    GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+    GxGDE0213B1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -77,7 +77,7 @@ class GxGDEP015OC1 : public GxEPD
     void _wakeUp();
     void _waitWhileBusy(const char* comment=0);
   protected:
-    uint8_t _buffer[GxGDEP015OC1_BUFFER_SIZE];
+    uint8_t _buffer[GxGDE0213B1_BUFFER_SIZE];
 
   private:
     GxIO& IO;
@@ -87,10 +87,10 @@ class GxGDEP015OC1 : public GxEPD
 
 #endif
 
-#define GxEPD_Class GxGDEP015OC1
+#define GxEPD_Class GxGDE0213B1
 
-#define GxEPD_WIDTH GxGDEP015OC1_WIDTH
-#define GxEPD_HEIGHT GxGDEP015OC1_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEP015OC1/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEP015OC1/BitmapExamples.h"
+#define GxEPD_WIDTH GxGDE0213B1_WIDTH
+#define GxEPD_HEIGHT GxGDE0213B1_HEIGHT
+#define GxEPD_BitmapExamples <GxGDE0213B1/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDE0213B1/BitmapExamples.h"
 
