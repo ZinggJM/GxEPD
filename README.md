@@ -32,6 +32,7 @@ The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI disp
 
 The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI display.
 
+--------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
 
