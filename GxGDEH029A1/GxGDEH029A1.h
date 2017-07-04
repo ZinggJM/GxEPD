@@ -1,5 +1,5 @@
 /************************************************************************************
-   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from GoodDisplay.com
+   class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from GoodDisplay.com
 
    based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
 
@@ -27,20 +27,20 @@
        |  nc   |o o| BS
        |-------------------------------------------------
 */
-#ifndef _GxGDE0213B1_H_
-#define _GxGDE0213B1_H_
+#ifndef _GxGDEH029A1_H_
+#define _GxGDEH029A1_H_
 
 #include "../GxEPD.h"
 
 // the physical number of pixels (for controller parameter)
-#define GxGDE0213B1_X_PIXELS 128
-#define GxGDE0213B1_Y_PIXELS 250
+#define GxGDEH029A1_X_PIXELS 128
+#define GxGDEH029A1_Y_PIXELS 296
 
 // the logical width and height of the display
-#define GxGDE0213B1_WIDTH GxGDE0213B1_X_PIXELS
-#define GxGDE0213B1_HEIGHT GxGDE0213B1_Y_PIXELS
+#define GxGDEH029A1_WIDTH GxGDEH029A1_X_PIXELS
+#define GxGDEH029A1_HEIGHT GxGDEH029A1_Y_PIXELS
 
-#define GxGDE0213B1_BUFFER_SIZE GxGDE0213B1_WIDTH * GxGDE0213B1_HEIGHT / 8
+#define GxGDEH029A1_BUFFER_SIZE GxGDEH029A1_WIDTH * GxGDEH029A1_HEIGHT / 8
 
 // mapping from DESTM32-S1 evaluation board to Wemos D1 mini
 
@@ -54,13 +54,13 @@
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
-class GxGDE0213B1 : public GxEPD
+class GxGDEH029A1 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    GxGDE0213B1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    GxGDEH029A1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
 #else
-    GxGDE0213B1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+    GxGDEH029A1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -82,7 +82,7 @@ class GxGDE0213B1 : public GxEPD
     void _wakeUp();
     void _waitWhileBusy(const char* comment=0);
   protected:
-    uint8_t _buffer[GxGDE0213B1_BUFFER_SIZE];
+    uint8_t _buffer[GxGDEH029A1_BUFFER_SIZE];
 
   private:
     GxIO& IO;
@@ -92,10 +92,10 @@ class GxGDE0213B1 : public GxEPD
 
 #endif
 
-#define GxEPD_Class GxGDE0213B1
+#define GxEPD_Class GxGDEH029A1
 
-#define GxEPD_WIDTH GxGDE0213B1_WIDTH
-#define GxEPD_HEIGHT GxGDE0213B1_HEIGHT
-#define GxEPD_BitmapExamples <GxGDE0213B1/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDE0213B1/BitmapExamples.h"
+#define GxEPD_WIDTH GxGDEH029A1_WIDTH
+#define GxEPD_HEIGHT GxGDEH029A1_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEH029A1/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEH029A1/BitmapExamples.h"
 

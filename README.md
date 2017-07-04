@@ -22,10 +22,16 @@ Added example IoT_SHT31LP_Example_1.54inchEPD
 
 Added GDE0213B1 2.13 inch 128 x 250 pixel black/white
 
+Added GDEH029A1 2.9 inch 128 x 296 pixel black/white
+
 These display can be connected using the DESTM32-S2 connection board to power and SPI.
 
 The GxGDEP015OC1 class can also be used with Waveshare 1.54inch e-Paper SPI display.
+
 The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI display.
+
+The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI display.
+
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
 
@@ -34,4 +40,5 @@ GDE060BA 6 inch 800 x 600 pixel 4 gray level
 GDEW080T5 8 inch 1024 x 768 pixel 4 gray level
 
 These display can be used with the red DESTM32-L evaluation board, it has 1MB FSMC SRAM on board.
+
 The library classes for these display can be used with the STM32GENERIC package for Arduino IDE.

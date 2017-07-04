@@ -33,7 +33,8 @@
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-#include <GxGDE0213B1/GxGDE0213B1.cpp>
+//#include <GxGDE0213B1/GxGDE0213B1.cpp>
+#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
