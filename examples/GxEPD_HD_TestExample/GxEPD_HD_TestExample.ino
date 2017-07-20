@@ -17,8 +17,9 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include "GxGDE060BA/GxGDE060BA.cpp"
-//#include "GxGDEW080T5/GxGDEW080T5.cpp"
+//#include "GxGDE043A2/GxGDE043A2.cpp"
+//#include "GxGDE060BA/GxGDE060BA.cpp"
+#include "GxGDEW080T5/GxGDEW080T5.cpp"
 
 // uncomment next line for drawBitmap() test
 #include GxEPD_BitmapExamples
@@ -53,16 +54,16 @@ void loop()
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
   showFont("FreeMonoBold18pt7b", &FreeMonoBold18pt7b);
   showFont("FreeMonoBold24pt7b", &FreeMonoBold24pt7b);
-  delay(10000);
+  delay(30000);
 }
 
 void showBitmapExample()
 {
 #ifdef _GxBitmapExamples_H_
   display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
-  delay(2000);
+  delay(10000);
   display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
-  delay(2000);
+  delay(10000);
   // the BitmapExamples are 4 gray levels, not b/w, 
   // drawBitmap() to buffer is not useful
 #endif
@@ -83,7 +84,7 @@ void showFont(const char name[], const GFXfont* f)
   display.println("`abcdefghijklmno");
   display.println("pqrstuvwxyz{|}~ ");
   display.update();
-  delay(5000);
+  delay(10000);
 }
 
 

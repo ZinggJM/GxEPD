@@ -23,12 +23,15 @@ class GxIO_DESTM32L
 {
   public:
     GxIO_DESTM32L();
-    void init(void);
+    void init(uint8_t power_on_led = PB12);
     void delay35ns(uint32_t nCount);
     void powerOn(void);
     void powerOff(void);
     void start_scan(void);
-    void send_row(uint8_t row_data[], uint16_t epaper_width);
+    void send_row(uint8_t row_data[], uint16_t row_size, uint32_t delay_time);
+  private:
+    uint8_t _pwr_led;
 };
 
 #endif
+

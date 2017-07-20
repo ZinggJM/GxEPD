@@ -71,11 +71,8 @@
 #define GVDD22_CTR_BIT      (0x1<<8)    //PB8     +22V
 #define GVDD22_CTR_PIN      PB8
 
-#define CL_DLY 16
-#define CLK_DLY 4
-
-#define EPD_CL_H            EPD_CL_PORT->BSRR = EPD_CL_BIT; delay35ns(CL_DLY);
-#define EPD_CL_L            EPD_CL_PORT->BSRR = EPD_CL_BIT<<16; delay35ns(CL_DLY);
+#define EPD_CL_H            EPD_CL_PORT->BSRR = EPD_CL_BIT;     delay35ns(1);
+#define EPD_CL_L            EPD_CL_PORT->BSRR = EPD_CL_BIT<<16; delay35ns(1);
 
 #define EPD_LE_H            EPD_LE_PORT->BSRR = EPD_LE_BIT
 #define EPD_LE_L            EPD_LE_PORT->BSRR = EPD_LE_BIT<<16
@@ -89,15 +86,19 @@
 #define EPD_XSPV_H          EPD_XSPV_PORT->BSRR = EPD_XSPV_BIT
 #define EPD_XSPV_L          EPD_XSPV_PORT->BSRR = EPD_XSPV_BIT<<16
 
-#define EPD_CLK_H           EPD_CLK_PORT->BSRR = EPD_CLK_BIT; delay35ns(CLK_DLY);
-#define EPD_CLK_L           EPD_CLK_PORT->BSRR = EPD_CLK_BIT<<16; delay35ns(CLK_DLY);
+#define EPD_CLK_H           EPD_CLK_PORT->BSRR = EPD_CLK_BIT
+#define EPD_CLK_L           EPD_CLK_PORT->BSRR = EPD_CLK_BIT<<16
 
 GxIO_DESTM32L::GxIO_DESTM32L()
 {
+  _pwr_led = PB12;
 }
 
-void GxIO_DESTM32L::init(void)
+void GxIO_DESTM32L::init(uint8_t power_on_led)
 {
+  if ((power_on_led >= PB12) && (power_on_led <= PB15)) _pwr_led = power_on_led;
+  pinMode(_pwr_led, OUTPUT);
+  digitalWrite(_pwr_led, LOW);
   // FSMC SRAM
   fmsc_sram_init();
   //PORT_B_PINS
@@ -125,20 +126,6 @@ void GxIO_DESTM32L::init(void)
   pinMode(ASW1_CTR_PIN, OUTPUT);
   pinMode(ASW3_CTR_PIN, OUTPUT);
   pinMode(VPOS15_CTR_PIN, OUTPUT);
-  // DIP_Switch_Init
-  pinMode(PB0, INPUT_PULLUP);
-  pinMode(PB5, INPUT_PULLUP);
-  pinMode(PB6, INPUT_PULLUP);
-  // LED_Init(void)
-  pinMode(PB12, OUTPUT);
-  digitalWrite(PB12, HIGH);
-  pinMode(PB13, OUTPUT);
-  digitalWrite(PB13, HIGH);
-  pinMode(PB14, OUTPUT);
-  digitalWrite(PB14, HIGH);
-  pinMode(PB15, OUTPUT);
-  digitalWrite(PB15, HIGH);
-  digitalWrite(PB14, LOW);
   powerOff();
   //EPD_Init(void)
   digitalWrite(EPD_SHR_PIN, LOW);     //Shift direction source driver
@@ -156,6 +143,7 @@ void GxIO_DESTM32L::init(void)
 
 void GxIO_DESTM32L::powerOn(void)
 {
+  digitalWrite(_pwr_led, LOW);
   digitalWrite(VNEGGVEE_CTR_PIN, HIGH);
   delay35ns(0xf);
   digitalWrite(VPOS15_CTR_PIN, HIGH);
@@ -164,7 +152,6 @@ void GxIO_DESTM32L::powerOn(void)
   delay35ns(0xf);
   digitalWrite(VCOM_CTR_PIN, HIGH);
   delay35ns(0xff);
-
 }
 
 void GxIO_DESTM32L::powerOff(void)
@@ -177,7 +164,7 @@ void GxIO_DESTM32L::powerOff(void)
   delay35ns(0x2f);
   digitalWrite(VNEGGVEE_CTR_PIN, LOW);
   delay35ns(0x2ff);
-
+  digitalWrite(_pwr_led, HIGH);
 }
 
 void GxIO_DESTM32L::start_scan(void)
@@ -188,7 +175,9 @@ void GxIO_DESTM32L::start_scan(void)
   while (repeat--)
   {
     EPD_CLK_L;
+    delay35ns(0xf);
     EPD_CLK_H;
+    delay35ns(0xf);
   }
 
   EPD_XSPV_L;
@@ -197,7 +186,9 @@ void GxIO_DESTM32L::start_scan(void)
   while (repeat--)
   {
     EPD_CLK_L;
+    delay35ns(0xf);
     EPD_CLK_H;
+    delay35ns(0xf);
   }
 
   EPD_XSPV_H;
@@ -206,20 +197,19 @@ void GxIO_DESTM32L::start_scan(void)
   while (repeat--)
   {
     EPD_CLK_L;
+    delay35ns(0xf);
     EPD_CLK_H;
+    delay35ns(0xf);
   }
 }
 
-void GxIO_DESTM32L::send_row(uint8_t row_data[], uint16_t epaper_width)
+void GxIO_DESTM32L::send_row(uint8_t row_data[], uint16_t row_size, uint32_t delay_time)
 {
-  uint32_t n = epaper_width / 4;
-
   EPD_LE_H;
   EPD_CL_L;
   EPD_CL_H;
   EPD_CL_L;
   EPD_CL_H;
-
 
   EPD_LE_L;
   EPD_CL_L;
@@ -234,12 +224,14 @@ void GxIO_DESTM32L::send_row(uint8_t row_data[], uint16_t epaper_width)
   EPD_CL_H;
   EPD_SPH_L;
 
-  for (uint32_t column = 0; column < n; column++)
+  for (uint32_t column = 0; column < row_size; column++)
   {
     EPD_DB_PORT->BSRR = 0xFF << 16; // reset data bits
     EPD_DB_PORT->BSRR = (uint16_t)row_data[column]; // set data bits
     EPD_CL_L;
+    delay35ns(delay_time);
     EPD_CL_H;
+    delay35ns(delay_time);
   }
 
   EPD_SPH_H;
@@ -254,8 +246,10 @@ void GxIO_DESTM32L::send_row(uint8_t row_data[], uint16_t epaper_width)
   EPD_CL_H;
   EPD_CL_L;
   EPD_CL_H;
+  delay35ns(delay_time);
 
   EPD_CLK_H;
+  delay35ns(delay_time);
 }
 
 static uint32_t t_delay;
@@ -267,6 +261,5 @@ void GxIO_DESTM32L::delay35ns(uint32_t nCount)
     t_delay += nCount;
   }
 }
-
 
 

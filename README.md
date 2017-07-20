@@ -43,3 +43,5 @@ GDEW080T5 8 inch 1024 x 768 pixel 4 gray level
 These display can be used with the red DESTM32-L evaluation board, it has 1MB FSMC SRAM on board.
 
 The library classes for these display can be used with the STM32GENERIC package for Arduino IDE.
+
+Added GxGDE043A2 4.3 inch 800 x 600 pixel 4 gray level, with unresolved degradation issue

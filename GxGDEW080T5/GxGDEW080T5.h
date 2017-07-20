@@ -27,6 +27,7 @@
 #define GxGDEW080T5_WIDTH 1024
 #define GxGDEW080T5_HEIGHT 768
 #define GxGDEW080T5_BUFFER_SIZE GxGDEW080T5_WIDTH * GxGDEW080T5_HEIGHT / 4 // 2bits per pixel
+#define GxGDEW080T5_CL_DELAY 13 // this value produces the same CL period as the hex demo code
 
 #define GxGDEW080T5_FRAME_BEGIN_SIZE  8
 const unsigned char wave_begin_80[4][GxGDEW080T5_FRAME_BEGIN_SIZE] =
@@ -46,7 +47,9 @@ const unsigned char wave_end_80[4][GxGDEW080T5_FRAME_END_SIZE] =
   0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, //GC3->GC3
 };
 
-// fixed, multiple of 64 and >= GxGDEW080T5_WIDTH / 4
+#define GxGDEW080T5_ROW_BUFFER_SIZE (GxGDEW080T5_WIDTH / 4)
+
+// fixed, multiple of 64 and >= GxGDEW080T5_ROW_BUFFER_SIZE
 #define WAVE_TABLE_SIZE 256
 
 typedef uint8_t epd_buffer_type[GxGDEW080T5_BUFFER_SIZE];
@@ -82,7 +85,7 @@ class GxGDEW080T5 : public GxEPD
   private:
     uint8_t wave_begin_table[WAVE_TABLE_SIZE][GxGDEW080T5_FRAME_BEGIN_SIZE];
     uint8_t wave_end_table[WAVE_TABLE_SIZE][GxGDEW080T5_FRAME_END_SIZE];
-    uint8_t row_buffer[GxGDEW080T5_WIDTH / 4];
+    uint8_t row_buffer[GxGDEW080T5_ROW_BUFFER_SIZE];
     epd_buffer_type* p_active_buffer;
     epd_buffer_type* p_erase_buffer;
     GxIO_DESTM32L& IO;

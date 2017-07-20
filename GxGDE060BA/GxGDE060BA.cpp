@@ -74,7 +74,7 @@ void GxGDE060BA::drawPixel(int16_t x, int16_t y, uint16_t color)
 
 void GxGDE060BA::init(void)
 {
-  IO.init();
+  IO.init(PB14);
   init_wave_table();
 }
 
@@ -108,7 +108,6 @@ void GxGDE060BA::update()
 
 void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
-  uint16_t n = GxGDE060BA_WIDTH / 4;
   IO.powerOn();
   delay(25);
   for (uint16_t frame = 0; frame < GxGDE060BA_FRAME_END_SIZE - 2; frame++)
@@ -116,19 +115,19 @@ void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
     IO.start_scan();
     for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
     {
-      uint32_t x = line * n;
+      uint32_t x = line * GxGDE060BA_ROW_BUFFER_SIZE;
       uint16_t i = 0;
-      for (; (i < n) && (x < size); i++, x++)
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++, x++)
       {
         row_buffer[i] = wave_end_table[bitmap[x]][frame];
       }
-      for (; (i < n); i++)
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
       {
         row_buffer[i] = wave_end_table[0xFF][frame];
       }
-      IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
     }
-    IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
   delay(25);
   IO.powerOff();
@@ -149,7 +148,6 @@ void  GxGDE060BA::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_
 
 void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
 {
-  uint16_t n = GxGDE060BA_WIDTH / 4;
   IO.powerOn();
   delay(25);
   for (uint16_t frame = 0; frame < GxGDE060BA_FRAME_BEGIN_SIZE; frame++)
@@ -157,19 +155,19 @@ void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
     IO.start_scan();
     for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
     {
-      uint32_t x = line * n;
+      uint32_t x = line * GxGDE060BA_ROW_BUFFER_SIZE;
       uint16_t i = 0;
-      for (; (i < n) && (x < size); i++, x++)
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++, x++)
       {
         row_buffer[i] = wave_begin_table[bitmap[x]][frame];
       }
-      for (; (i < n); i++)
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
       {
         row_buffer[i] = wave_begin_table[0xFF][frame];
       }
-      IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
     }
-    IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
   delay(25);
   IO.powerOff();
@@ -246,7 +244,6 @@ void GxGDE060BA::init_wave_table(void)
 
 void GxGDE060BA::DisplayTestPicture(uint8_t nr)
 {
-  uint16_t n = GxGDE060BA_WIDTH / 4;
   unsigned char *ptr;
 
   IO.powerOn();
@@ -258,14 +255,14 @@ void GxGDE060BA::DisplayTestPicture(uint8_t nr)
     IO.start_scan();
     for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
     {
-      uint32_t x = line * n;
-      for (uint16_t i = 0; i < n; i++, x++)
+      uint32_t x = line * GxGDE060BA_ROW_BUFFER_SIZE;
+      for (uint16_t i = 0; i < GxGDE060BA_ROW_BUFFER_SIZE; i++, x++)
       {
         row_buffer[i] = wave_begin_table[ptr[x]][frame];
       }
-      IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
     }
-    IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
 
   delay(25);
@@ -276,14 +273,14 @@ void GxGDE060BA::DisplayTestPicture(uint8_t nr)
     IO.start_scan();
     for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
     {
-      uint32_t x = line * n;
-      for (uint16_t i = 0; i < n; i++, x++)
+      uint32_t x = line * GxGDE060BA_ROW_BUFFER_SIZE;
+      for (uint16_t i = 0; i < GxGDE060BA_ROW_BUFFER_SIZE; i++, x++)
       {
         row_buffer[i] = wave_end_table[ptr[x]][frame];
       }
-      IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
     }
-    IO.send_row(row_buffer, GxGDE060BA_WIDTH);
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
   delay(25);
   IO.powerOff();
