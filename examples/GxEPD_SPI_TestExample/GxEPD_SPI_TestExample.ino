@@ -32,9 +32,9 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
@@ -53,13 +53,33 @@
 #include <GxIO/GxIO.cpp>
 
 #if defined(ESP8266)
+
 //GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, D3, D4);
+GxIO_Class io(SPI, SS, D3, D4); // arbitrary selection of D3, D4 selected for default of GxEPD_Class
+// GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+GxEPD_Class display(io); // default selection of D4, D2
+
+#elif defined(ESP32)
+
+// pins_arduino.h, e.g. LOLIN32
+// static const uint8_t SS    = 5;
+// static const uint8_t MOSI  = 23;
+// static const uint8_t MISO  = 19;
+// static const uint8_t SCK   = 18;
+
+// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
+GxIO_Class io(SPI, SS, 17, 16); // arbitrary selection of 17,16
+// GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+GxEPD_Class display(io, 16, 4); // arbitrary selection of (16), 4
+
 #else
-GxIO_Class io(SPI, SS, 8, 9);
+
+GxIO_Class io(SPI, SS, 8, 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+// GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+GxEPD_Class display(io);
+
 #endif
 
-GxEPD_Class display(io);
 
 void setup()
 {

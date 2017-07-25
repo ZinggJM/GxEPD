@@ -8,7 +8,7 @@
 // needs further investigation
 
 //#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_STM32F1) // not yet ok
-#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM)
+#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ESP32)
 
 #include "GxIO_SPI.h"
 
@@ -63,7 +63,7 @@ void GxIO_SPI::init()
 
 void GxIO_SPI::setFrequency(uint32_t freq)
 {
-#if defined(ESP8266)
+#if defined(ESP8266) || defined(ESP32)
   IOSPI.setFrequency(freq);
 #else
   // some check needed ?
@@ -155,7 +155,7 @@ void GxIO_SPI::writeData(uint8_t d)
 
 void GxIO_SPI::writeData(uint8_t* d, uint32_t num)
 {
-#if defined(ESP8266)
+#if defined(ESP8266) || defined(ESP32)
   IOSPI.writeBytes(d, num);
 #else
   while (num > 0)
@@ -169,7 +169,7 @@ void GxIO_SPI::writeData(uint8_t* d, uint32_t num)
 
 void GxIO_SPI::writeData16(uint16_t d, uint32_t num)
 {
-#if defined(ESP8266)
+#if defined(ESP8266) || defined(ESP32)
   uint8_t b[2] = {d >> 8 , d};
   IOSPI.writePattern(b, 2, num);
 #else
@@ -586,7 +586,7 @@ void GxIO_SPI_USING_TRANSACTION::writeData(uint8_t* d, uint32_t num)
 
 void GxIO_SPI_USING_TRANSACTION::writeData16(uint16_t d, uint32_t num)
 {
-#if defined(ESP8266)
+#if defined(ESP8266) || defined(ESP32)
   uint8_t b[2] = {d >> 8 , d};
   IOSPI.writePattern(b, 2, num);
 #else
