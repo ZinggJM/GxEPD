@@ -66,10 +66,11 @@ class GxGDEH029A1 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
+    void updatePartial(uint16_t y1, uint16_t y2);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
     // to buffer, may be cropped, drawPixel() used, update needed
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
+    void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
@@ -79,7 +80,7 @@ class GxGDEH029A1 : public GxEPD
     void _writeLUT(uint8_t *LUTvalue);
     void _PowerOn(void);
     void _PowerOff(void);
-    void _wakeUp();
+    void _wakeUp(bool fullUpdate = true);
     void _waitWhileBusy(const char* comment=0);
   protected:
     uint8_t _buffer[GxGDEH029A1_BUFFER_SIZE];

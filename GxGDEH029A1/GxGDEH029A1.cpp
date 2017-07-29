@@ -140,6 +140,56 @@ void GxGDEH029A1::update(void)
   _PowerOff();
 }
 
+void GxGDEH029A1::updatePartial(uint16_t y1, uint16_t y2)
+{
+  // Make sure there is actually something meaningful to do
+  if (y1 > y2) {
+    swap(y1, y2);
+  }
+  
+  if (y1 >= height()) {
+    return;
+  }
+  
+  if (y2 >= height()) {
+    y2 = height();
+  }
+  
+  _wakeUp(false);
+  
+  uint16_t y1address = GxGDEH029A1_HEIGHT - y1 - 1;
+  uint16_t y2address = GxGDEH029A1_HEIGHT - y2 - 1;
+  
+  // Xstart, Xend, (Ystart, Ystart1), (Yend, Yend1)
+  _SetRamArea(0x00, xPixelsPar/8, y1address%256, y1address/256, y2address%256, y2address/256);
+  // addrX, (addrY, addrY1)
+  _SetRamPointer(0x00, y1address%256, y1address/256);
+  
+  _writeCommand(0x24);
+  
+  for (uint16_t y = y1; y <= y2; y++)
+  {
+    for (uint16_t x = GxGDEH029A1_WIDTH / 8; x > 0; x--)
+    {
+      uint8_t data = _buffer[y * (GxGDEH029A1_WIDTH / 8) + x - 1];
+      uint8_t mirror = 0x00;
+      for (uint8_t i = 0; i < 8; i++)
+      {
+        mirror |= ((data >> i) & 0x01) << (7 - i);
+      }
+      _writeData(~mirror);
+    }
+  }
+  
+  // Update
+  _writeCommand(0x22);
+  _writeData(0x04);
+  _writeCommand(0x20);
+  _writeCommand(0xff);
+  
+  _PowerOff();
+}
+
 void GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
   _wakeUp();
@@ -262,7 +312,7 @@ void GxGDEH029A1::_PowerOff(void)
   _writeCommand(0x20);
 }
 
-void GxGDEH029A1::_wakeUp()
+void GxGDEH029A1::_wakeUp(bool fullUpdate)
 {
   _writeCommandData(GDOControl, sizeof(GDOControl));  // Pannel configuration, Gate selection
   _writeCommandData(softstart, sizeof(softstart));  // X decrease, Y decrease
@@ -270,9 +320,14 @@ void GxGDEH029A1::_wakeUp()
   _writeCommandData(DummyLine, sizeof(DummyLine));  // dummy line per gate
   _writeCommandData(Gatetime, sizeof(Gatetime));    // Gate time setting
   _writeCommandData(RamDataEntryMode, sizeof(RamDataEntryMode));  // X decrease, Y decrease
-  _SetRamArea(0x00, xPixelsPar/8, yPixelsPar%256, yPixelsPar/256, 0x00, 0x00);  // X-source area,Y-gate area
-  _SetRamPointer(0x00, yPixelsPar%256, yPixelsPar/256); // set ram
-  _writeLUT((uint8_t *)LUTDefault_full);
+  
+  if (fullUpdate) {
+	_SetRamArea(0x00, xPixelsPar/8, yPixelsPar%256, yPixelsPar/256, 0x00, 0x00);  // X-source area,Y-gate area
+	_SetRamPointer(0x00, yPixelsPar%256, yPixelsPar/256); // set ram
+  }
+  
+  _writeLUT(fullUpdate ? (uint8_t *)LUTDefault_full : (uint8_t *)LUTDefault_part);
+  
   _PowerOn();
 }
 
