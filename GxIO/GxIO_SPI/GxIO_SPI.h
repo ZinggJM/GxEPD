@@ -8,9 +8,6 @@
 #include <SPI.h>
 #include "../GxIO.h"
 
-//#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_STM32F1) // not yet ok
-#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ESP32)
-
 #define GxIO_SPI_defaultFrequency 16000000
 
 class GxIO_SPI : public GxIO
@@ -90,7 +87,4 @@ class GxIO_SPI_USING_TRANSACTION : public GxIO
 #endif
 
 #endif
-
-#endif
-
 

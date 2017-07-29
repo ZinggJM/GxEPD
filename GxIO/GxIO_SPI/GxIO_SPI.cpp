@@ -2,13 +2,6 @@
 //
 // License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
 //
-// remark 01.05.2017: ARDUINO_ARCH_STM32F1:
-// does not work with STM32duino.com versions
-// speed issue & wrong colors on STMF1xxBoards Nucleo F103RB version
-// needs further investigation
-
-//#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_STM32F1) // not yet ok
-#if defined(__AVR) || defined(ESP8266) || defined(ARDUINO_ARCH_SAM) || defined(ESP32)
 
 #include "GxIO_SPI.h"
 
@@ -65,9 +58,62 @@ void GxIO_SPI::setFrequency(uint32_t freq)
 {
 #if defined(ESP8266) || defined(ESP32)
   IOSPI.setFrequency(freq);
+#elif defined(SPI_HAS_TRANSACTION)
+  // true also for STM32F1xx Boards
+  SPISettings settings(freq, MSBFIRST, SPI_MODE0);
+  IOSPI.beginTransaction(settings);
+  IOSPI.endTransaction();
+#elif defined(ARDUINO_ARCH_STM32F1)|| defined(ARDUINO_ARCH_STM32F4)
+#if defined(SPI_SPEED_CLOCK_DIV2_MHZ)
+  // STM32F1xx Boards
+  if (freq >= SPI_SPEED_CLOCK_DIV2_MHZ) setClockDivider(SPI_CLOCK_DIV2);
+  else if (freq >= SPI_SPEED_CLOCK_DIV4_MHZ) setClockDivider(SPI_CLOCK_DIV4);
+  else if (freq >= SPI_SPEED_CLOCK_DIV8_MHZ) setClockDivider(SPI_CLOCK_DIV8);
+  else if (freq >= SPI_SPEED_CLOCK_DIV16_MHZ) setClockDivider(SPI_CLOCK_DIV16);
+  else if (freq >= SPI_SPEED_CLOCK_DIV32_MHZ) setClockDivider(SPI_CLOCK_DIV32);
+  else if (freq >= SPI_SPEED_CLOCK_DIV64_MHZ) setClockDivider(SPI_CLOCK_DIV64);
+  else if (freq >= SPI_SPEED_CLOCK_DIV128_MHZ) setClockDivider(SPI_CLOCK_DIV128);
+  else setClockDivider(SPI_CLOCK_DIV128);
+#elif defined(__STM32F1__) || defined(__STM32F4__)
+  // STM32 Boards (STM32duino.com)
+  static const spi_baud_rate baud_rates[8] __FLASH__ = {
+    SPI_BAUD_PCLK_DIV_2,
+    SPI_BAUD_PCLK_DIV_4,
+    SPI_BAUD_PCLK_DIV_8,
+    SPI_BAUD_PCLK_DIV_16,
+    SPI_BAUD_PCLK_DIV_32,
+    SPI_BAUD_PCLK_DIV_64,
+    SPI_BAUD_PCLK_DIV_128,
+    SPI_BAUD_PCLK_DIV_256,
+  };
+  uint32_t clock = STM32_PCLK1 / 2;
+  uint32_t i = 0;
+  while (i < 7 && freq < clock) {
+    clock /= 2;
+    i++;
+  };
+  setClockDivider(baud_rates[i]);
+#endif
+#elif defined(__AVR)
+  uint8_t clockDiv;
+  if (freq >= F_CPU / 2) {
+    clockDiv = SPI_CLOCK_DIV4;
+  } else if (freq >= F_CPU / 4) {
+    clockDiv = SPI_CLOCK_DIV16;
+  } else if (freq >= F_CPU / 8) {
+    clockDiv = SPI_CLOCK_DIV64;
+  } else if (freq >= F_CPU / 16) {
+    clockDiv = SPI_CLOCK_DIV128;
+  } else if (freq >= F_CPU / 32) {
+    clockDiv = SPI_CLOCK_DIV2;
+  } else if (freq >= F_CPU / 64) {
+    clockDiv = SPI_CLOCK_DIV8;
+  } else {
+    clockDiv = SPI_CLOCK_DIV32;
+  }
+  setClockDivider(clockDiv);
 #else
-  // some check needed ?
-  setClockDivider(F_CPU / freq);
+  // keep the SPI default (should be 4MHz)
 #endif
 }
 
@@ -475,8 +521,7 @@ void GxIO_SPI_USING_TRANSACTION::setFrequency(uint32_t freq)
 
 void GxIO_SPI_USING_TRANSACTION::setClockDivider(uint32_t clockDiv)
 {
-  setFrequency(F_CPU / clockDiv);
-  IOSPI.setClockDivider(clockDiv);
+  // does not make sense, clock defined in settings
 }
 
 uint8_t GxIO_SPI_USING_TRANSACTION::transferTransaction(uint8_t d)
@@ -630,7 +675,7 @@ void GxIO_SPI_USING_TRANSACTION::setBackLight(bool lit)
 
 #endif
 
-#endif
+//#endif
 
 
 
