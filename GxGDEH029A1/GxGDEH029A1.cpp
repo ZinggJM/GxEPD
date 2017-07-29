@@ -144,19 +144,18 @@ void GxGDEH029A1::updatePartial(uint16_t y1, uint16_t y2)
 {
   // Make sure there is actually something meaningful to do
   if (y1 > y2) {
-	swap(y1, y2);
+    swap(y1, y2);
   }
   
   if (y1 >= height()) {
-	return;
+    return;
   }
   
   if (y2 >= height()) {
-	y2 = height();
+    y2 = height();
   }
   
   _wakeUp(false);
-
   
   uint16_t y1address = GxGDEH029A1_HEIGHT - y1 - 1;
   uint16_t y2address = GxGDEH029A1_HEIGHT - y2 - 1;

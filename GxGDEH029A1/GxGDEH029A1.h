@@ -66,7 +66,7 @@ class GxGDEH029A1 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
-	void updatePartial(uint16_t y1, uint16_t y2);
+    void updatePartial(uint16_t y1, uint16_t y2);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
     // to buffer, may be cropped, drawPixel() used, update needed
