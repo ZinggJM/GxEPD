@@ -7,7 +7,7 @@
 
    modified by :
 
-   Version : 1.1
+   Version : 2.0
 
    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
@@ -40,7 +40,13 @@
 #define GxGDEH029A1_WIDTH GxGDEH029A1_X_PIXELS
 #define GxGDEH029A1_HEIGHT GxGDEH029A1_Y_PIXELS
 
-#define GxGDEH029A1_BUFFER_SIZE GxGDEH029A1_WIDTH * GxGDEH029A1_HEIGHT / 8
+#define GxGDEH029A1_BUFFER_SIZE (uint32_t(GxGDEH029A1_WIDTH) * uint32_t(GxGDEH029A1_HEIGHT) / 8)
+
+// divisor for AVR, should be factor of GxGDEP015OC1_HEIGHT
+#define GxGDEH029A1_PAGES 4
+
+#define GxGDEH029A1_PAGE_HEIGHT (GxGDEH029A1_HEIGHT / GxGDEH029A1_PAGES)
+#define GxGDEH029A1_PAGE_SIZE (GxGDEH029A1_BUFFER_SIZE / GxGDEH029A1_PAGES)
 
 // mapping from DESTM32-S1 evaluation board to Wemos D1 mini
 
@@ -66,26 +72,42 @@ class GxGDEH029A1 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
+    // to buffer, may be cropped, drawPixel() used, update needed, Adafruit_GFX format
+    void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
-    // to buffer, may be cropped, drawPixel() used, update needed
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update);
+    void eraseDisplay(bool using_partial_update = false);
+    // partial update
+    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEP015OC1_PAGES times
+    // each call of drawCallback() should draw the same
+    void drawPaged(void (*drawCallback)(void));
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
-    void _writeCommandData(uint8_t *pCommandData, uint8_t datalen);
+    void _writeCommandData(const uint8_t* pCommandData, uint8_t datalen);
     void _SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1);
     void _SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1);
-    void _writeLUT(uint8_t *LUTvalue);
     void _PowerOn(void);
     void _PowerOff(void);
-    void _wakeUp();
     void _waitWhileBusy(const char* comment=0);
+    void _InitDisplay(void);
+    void _Init_Full(void);
+    void _Init_Part(void);
+    void _Update_Full(void);
+    void _Update_Part(void);
+    void _drawCurrentPage();
   protected:
+#if defined(__AVR)
+    uint8_t _buffer[GxGDEH029A1_PAGE_SIZE];
+#else
     uint8_t _buffer[GxGDEH029A1_BUFFER_SIZE];
-
+#endif
   private:
     GxIO& IO;
+    int16_t _current_page;
+    bool _using_partial_mode;
     uint8_t _rst;
     uint8_t _busy;
 };

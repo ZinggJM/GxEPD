@@ -1,7 +1,11 @@
 #ifndef _GxBitmapExamples_H_
 #define _GxBitmapExamples_H_
-
+#if defined(__AVR)
+#include <avr/pgmspace.h>
+const unsigned char BitmapExample1[4736] PROGMEM = { /* 0X01,0X01,0X28,0X01,0X80,0X00, */
+#else
 const unsigned char BitmapExample1[4736] = { /* 0X01,0X01,0X28,0X01,0X80,0X00, */
+#endif
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,

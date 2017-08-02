@@ -32,6 +32,10 @@ The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI disp
 
 The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI display.
 
+Preliminary support for partial update and paged drawing (AVR, low RAM), for test.
+To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for code space.
+Only for GxGDEP015OC1 and GxGDEH029A1 for now. More tests to be done; use cases?
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
