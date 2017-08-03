@@ -33,10 +33,11 @@
 //static const uint8_t MISO  = 12;
 //static const uint8_t SCK   = 14;
 // pins_arduino.h
-static const uint8_t D8   = 15;
-static const uint8_t D7   = 13;
-static const uint8_t D6   = 12;
-static const uint8_t D5   = 14;
+//static const uint8_t D8   = 15;
+//static const uint8_t D7   = 13;
+//static const uint8_t D6   = 12;
+//static const uint8_t D5   = 14;
+
 //GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
 GxIO_Class io(SPI, SS, D3, D4);
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
