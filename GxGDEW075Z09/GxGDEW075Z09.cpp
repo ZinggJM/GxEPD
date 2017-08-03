@@ -213,7 +213,7 @@ void  GxGDEW075Z09::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
   {
     for (uint16_t y1 = y; y1 < y + h; y1++)
     {
-      uint16_t i = x1 / 8 + y1 * w / 8;
+      uint32_t i = x1 / 8 + uint32_t(y1) * uint32_t(w) / 8;
       uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? color : GxEPD_WHITE;
       drawPixel(x1, y1, pixelcolor);
     }
