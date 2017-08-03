@@ -154,19 +154,43 @@ void GxGDEH029A1::update(void)
   _PowerOff();
 }
 
-void GxGDEH029A1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+void  GxGDEH029A1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
 {
-  for (uint16_t x1 = x; x1 < x + w; x1++)
+  drawBitmap(bitmap, x, y, w, h, color);
+}
+
+void  GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+{
+  if (mirror)
   {
-    for (uint16_t y1 = y; y1 < y + h; y1++)
+    for (uint16_t x1 = x; x1 < x + w; x1++)
     {
-      uint16_t i = x1 / 8 + y1 * w / 8;
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = (w - x1 - 1) / 8 + uint32_t(y1) * uint32_t(w) / 8;
 #if defined(__AVR)
-      uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << x1 % 8)) ? GxEPD_WHITE  : color;
 #else
-      uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (bitmap[i] & (0x01 << x1 % 8)) ? GxEPD_WHITE  : color;
 #endif
-      drawPixel(x1, y1, pixelcolor);
+        drawPixel(x1, y1, pixelcolor);
+      }
+    }
+  }
+  else
+  {
+    for (uint16_t x1 = x; x1 < x + w; x1++)
+    {
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = x1 / 8 + uint32_t(y1) * uint32_t(w) / 8;
+#if defined(__AVR)
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+#else
+        uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+#endif
+        drawPixel(x1, y1, pixelcolor);
+      }
     }
   }
 }
