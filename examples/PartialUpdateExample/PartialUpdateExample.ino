@@ -182,5 +182,43 @@ void showPartialUpdate()
     display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
     display.updateWindow(box_x, box_y, box_w, box_h, true);
   }
+  // should have checked this, too
+  box_x = GxEPD_HEIGHT - box_x - box_w - 1; // not valid for all corners
+  // should show on right side of long side
+  // reset the background
+  display.setRotation(0);
+  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+  display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
+  // show where the update box is
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_BLACK);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+    delay(1000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
+  // show updates in the update box
+  for (uint16_t r = 0; r < 4; r++) // avoid 
+  {
+    // reset the background
+    display.setRotation(0);
+    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+    display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
+    display.setRotation(r);
+    if (box_x >= display.width()) continue; // avoid delay
+    for (uint16_t i = 1; i <= 10; i++)
+    {
+      display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+      display.setCursor(box_x, cursor_y);
+      display.print(value * i, 2);
+      display.updateWindow(box_x, box_y, box_w, box_h, true);
+      delay(500);
+    }
+    delay(1000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
 }
 

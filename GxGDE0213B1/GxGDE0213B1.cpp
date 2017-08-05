@@ -268,9 +268,6 @@ void GxGDE0213B1::eraseDisplay(bool using_partial_mode)
 
 void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
 {
-  //fillScreen(0x0);
-  if (x >= GxGDE0213B1_WIDTH) return;
-  if (y >= GxGDE0213B1_HEIGHT) return;
   if (using_rotation)
   {
     switch (getRotation())
@@ -291,6 +288,9 @@ void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
         break;
     }
   }
+  //fillScreen(0x0);
+  if (x >= GxGDE0213B1_WIDTH) return;
+  if (y >= GxGDE0213B1_HEIGHT) return;
   uint16_t xe = min(GxGDE0213B1_WIDTH, x + w) - 1;
   uint16_t ye = min(GxGDE0213B1_HEIGHT, y + h) - 1;
   uint16_t xs_bx = x / 8;
