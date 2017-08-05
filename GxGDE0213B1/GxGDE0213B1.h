@@ -81,7 +81,7 @@ class GxGDE0213B1 : public GxEPD
     void drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update);
     void eraseDisplay(bool using_partial_update = false);
     // partial update
-    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
     // paged drawing, for limited RAM, drawCallback() is called GxGDE0213B1_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));

@@ -140,7 +140,8 @@ void GxGDE0213B1::update(void)
   {
     for (uint16_t x = GxGDE0213B1_WIDTH / 8; x > 0; x--)
     {
-      uint8_t data = _buffer[y * (GxGDE0213B1_WIDTH / 8) + x - 1];
+      uint16_t idx = y * (GxGDE0213B1_WIDTH / 8) + x - 1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
       uint8_t mirror = 0x00;
       for (uint8_t i = 0; i < 8; i++)
       {
@@ -166,11 +167,11 @@ void  GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
     {
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
-        uint32_t i = (w - x1 - 1) / 8 + uint32_t(y1) * uint32_t(w) / 8;
+        uint32_t i = (w - (x1 - x)- 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
 #if defined(__AVR)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #else
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #endif
         drawPixel(x1, y1, pixelcolor);
       }
@@ -182,11 +183,11 @@ void  GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
     {
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
-        uint32_t i = x1 / 8 + uint32_t(y1) * uint32_t(w) / 8;
+        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
 #if defined(__AVR)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #else
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #endif
         drawPixel(x1, y1, pixelcolor);
       }
@@ -265,11 +266,31 @@ void GxGDE0213B1::eraseDisplay(bool using_partial_mode)
   }
 }
 
-void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
 {
   //fillScreen(0x0);
   if (x >= GxGDE0213B1_WIDTH) return;
   if (y >= GxGDE0213B1_HEIGHT) return;
+  if (using_rotation)
+  {
+    switch (getRotation())
+    {
+      case 1:
+        swap(x, y);
+        swap(w, h);
+        x = GxGDE0213B1_WIDTH - x - w - 1;
+        break;
+      case 2:
+        x = GxGDE0213B1_WIDTH - x- w - 1;
+        y = GxGDE0213B1_HEIGHT - y - h - 1;
+        break;
+      case 3:
+        swap(x, y);
+        swap(w, h);
+        y = GxGDE0213B1_HEIGHT - y - h - 1;
+        break;
+    }
+  }
   uint16_t xe = min(GxGDE0213B1_WIDTH, x + w) - 1;
   uint16_t ye = min(GxGDE0213B1_HEIGHT, y + h) - 1;
   uint16_t xs_bx = x / 8;
