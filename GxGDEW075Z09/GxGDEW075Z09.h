@@ -5,7 +5,7 @@
 
     Author : J-M Zingg
 
-    modified by : Noobidoo
+    Contributor : Noobidoo
 
     Version : 2.0
 
