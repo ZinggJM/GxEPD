@@ -1,13 +1,13 @@
 /************************************************************************************
-   class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from GoodDisplay.com
+   class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
    modified by :
 
-   Version : 1.1
+   Version : 2.0
 
    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
@@ -64,12 +64,14 @@ class GxGDEW027C44 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
+    // to buffer, may be cropped, drawPixel() used, update needed, old signature kept
+    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
+    // to buffer, may be cropped, drawPixel() used, update needed, new signature, mirror default set for example bitmaps
+    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = false);
     // to full screen, filled with white if size is less, no update needed
     void drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t size);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t* bitmap, uint32_t size);
-    // to buffer, may be cropped, drawPixel() used, update needed
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);

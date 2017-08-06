@@ -1,13 +1,13 @@
 /************************************************************************************
-   class GxGDEW075Z09 : Display class example for GDEW075T8 e-Paper from GoodDisplay.com
+    class GxGDEW075Z09 : Display class example for GDEW075Z09 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+    based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
-   Author : Noobidoo
+    Author : J-M Zingg
 
-   modified by :
+    modified by : Noobidoo
 
-   Version : 1.0
+    Version : 2.0
 
    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
@@ -65,7 +65,7 @@ void GxGDEW075Z09::drawPixel(int16_t x, int16_t y, uint16_t color)
       break;
   }
   uint16_t i = x / 4 + y * GxGDEW075Z09_WIDTH / 4;
-  if(i >= GxGDEW075Z09_BUFFER_SIZE){
+  if (i >= GxGDEW075Z09_BUFFER_SIZE) {
     return;
   }
 
@@ -123,78 +123,31 @@ void GxGDEW075Z09::update(void)
     if ((i % 10000) == 0) yield(); // avoid watchdog reset
 #endif
     uint8_t t1;
-    if(i >= GxGDEW075Z09_BUFFER_SIZE){
+    if (i >= GxGDEW075Z09_BUFFER_SIZE) {
       t1 = 0x55;
-    } else{
+    } else {
       t1 = _buffer[i];
     }
     for (uint8_t j = 0; j < 4; j++)
     {
       uint8_t t2 = t1 & 0xc0;
-      if(t2 == 0xc0)
-				t2 = 0x03; //011
-			else if(t2 == 0x00)
-				t2 = 0x00; //000
-      else if(t2 == 0x40)
+      if (t2 == 0xc0)
+        t2 = 0x03; //011
+      else if (t2 == 0x00)
+        t2 = 0x00; //000
+      else if (t2 == 0x40)
         t2 = 0x04; //100
-			else
-				t2 = 0x03; //011
-      t2 <<= 4;
-      t1 <<= 2;
-      j++;
-      uint8_t t3 = t1 & 0xc0;
-      if(t3 == 0xc0)
-        t2 |= 0x03; //011
-      else if(t3 == 0x00)
-        t2 |= 0x00; //000
-      else if(t3 == 0x40)
-        t2 |= 0x04; //100
       else
-        t2 |= 0x03; //011
-      t1 <<= 2;
-      IO.writeDataTransaction(t2);
-    }
-  }
-  //IO.writeCommandTransaction(0x04);        //POWER ON
-  //_waitWhileBusy();
-  IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("refresh");
-  _sleep();
-}
-
-void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
-{
-  Serial.print("drawBitmap "); Serial.println(size);
-  _wakeUp(true);
-  IO.writeCommandTransaction(0x10);
-  for (uint32_t i = 0; i < GxGDEW075Z09_OUTBUFFER_SIZE; i++)
-  {
-#if defined(ESP8266)
-    // (10000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 200ms
-    // (31000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 600ms is safe
-    if ((i % 10000) == 0) yield(); // avoid watchdog reset
-#endif
-    uint8_t t1 = i < size ? bitmap[i] : 0xFF;
-    for (uint8_t j = 0; j < 4; j++)
-    {
-      uint8_t t2 = t1 & 0xc0;
-      if(t2 == 0xc0)
-				t2 = 0x03; //011
-			else if(t2 == 0x00)
-				t2 = 0x00; //000
-      else if(t2 == 0x40)
-        t2 = 0x04; //100
-			else
-				t2 = 0x03; //011
+        t2 = 0x03; //011
       t2 <<= 4;
       t1 <<= 2;
       j++;
       uint8_t t3 = t1 & 0xc0;
-      if(t3 == 0xc0)
+      if (t3 == 0xc0)
         t2 |= 0x03; //011
-      else if(t3 == 0x00)
+      else if (t3 == 0x00)
         t2 |= 0x00; //000
-      else if(t3 == 0x40)
+      else if (t3 == 0x40)
         t2 |= 0x04; //100
       else
         t2 |= 0x03; //011
@@ -209,15 +162,80 @@ void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
 
 void  GxGDEW075Z09::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
 {
-  for (uint16_t x1 = x; x1 < x + w; x1++)
+  drawBitmap(bitmap, x, y, w, h, color);
+}
+
+void  GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+{
+  if (mirror)
   {
-    for (uint16_t y1 = y; y1 < y + h; y1++)
+    for (uint16_t x1 = x; x1 < x + w; x1++)
     {
-      uint32_t i = x1 / 8 + uint32_t(y1) * uint32_t(w) / 8;
-      uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? color : GxEPD_WHITE;
-      drawPixel(x1, y1, pixelcolor);
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
+        drawPixel(x1, y1, pixelcolor);
+      }
     }
   }
+  else
+  {
+    for (uint16_t x1 = x; x1 < x + w; x1++)
+    {
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
+        drawPixel(x1, y1, pixelcolor);
+      }
+    }
+  }
+}
+
+void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
+{
+  //Serial.print("drawBitmap "); Serial.println(size);
+  _wakeUp(true);
+  IO.writeCommandTransaction(0x10);
+  for (uint32_t i = 0; i < GxGDEW075Z09_OUTBUFFER_SIZE; i++)
+  {
+#if defined(ESP8266)
+    // (10000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 200ms
+    // (31000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 600ms is safe
+    if ((i % 10000) == 0) yield(); // avoid watchdog reset
+#endif
+    uint8_t t1 = i < size ? bitmap[i] : 0xFF;
+    for (uint8_t j = 0; j < 4; j++)
+    {
+      uint8_t t2 = t1 & 0xc0;
+      if (t2 == 0xc0)
+        t2 = 0x03; //011
+      else if (t2 == 0x00)
+        t2 = 0x00; //000
+      else if (t2 == 0x40)
+        t2 = 0x04; //100
+      else
+        t2 = 0x03; //011
+      t2 <<= 4;
+      t1 <<= 2;
+      j++;
+      uint8_t t3 = t1 & 0xc0;
+      if (t3 == 0xc0)
+        t2 |= 0x03; //011
+      else if (t3 == 0x00)
+        t2 |= 0x00; //000
+      else if (t3 == 0x40)
+        t2 |= 0x04; //100
+      else
+        t2 |= 0x03; //011
+      t1 <<= 2;
+      IO.writeDataTransaction(t2);
+    }
+  }
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("refresh");
+  _sleep();
 }
 
 void GxGDEW075Z09::_waitWhileBusy(const char* comment)
@@ -230,10 +248,10 @@ void GxGDEW075Z09::_waitWhileBusy(const char* comment)
   }
   //if (comment)
   {
-        unsigned long elapsed = micros() - start;
-        Serial.print(comment);
-        Serial.print(" : ");
-        Serial.println(elapsed);
+//    unsigned long elapsed = micros() - start;
+//    Serial.print(comment);
+//    Serial.print(" : ");
+//    Serial.println(elapsed);
   }
 }
 

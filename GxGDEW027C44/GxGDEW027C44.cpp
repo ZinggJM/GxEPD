@@ -1,13 +1,13 @@
 /************************************************************************************
-   class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from GoodDisplay.com
+   class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
    modified by :
 
-   Version : 1.1
+   Version : 2.0
 
    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
@@ -28,7 +28,7 @@
        |-------------------------------------------------
 
    note: for correct red color jumper J3 must be set on 0.47 side (towards FCP connector)
-   
+
 */
 #include "GxGDEW027C44.h"
 
@@ -167,6 +167,39 @@ void GxGDEW027C44::update(void)
   drawPicture(_black_buffer, _red_buffer, GxGDEW027C44_BUFFER_SIZE);
 }
 
+void  GxGDEW027C44::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+{
+  drawBitmap(bitmap, x, y, w, h, color);
+}
+
+void  GxGDEW027C44::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+{
+  if (mirror)
+  {
+    for (uint16_t x1 = x; x1 < x + w; x1++)
+    {
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
+        drawPixel(x1, y1, pixelcolor);
+      }
+    }
+  }
+  else
+  {
+    for (uint16_t x1 = x; x1 < x + w; x1++)
+    {
+      for (uint16_t y1 = y; y1 < y + h; y1++)
+      {
+        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
+        drawPixel(x1, y1, pixelcolor);
+      }
+    }
+  }
+}
+
 void GxGDEW027C44::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t size)
 {
   _wakeUp();
@@ -201,19 +234,6 @@ void GxGDEW027C44::drawBitmap(const uint8_t* bitmap, uint32_t size)
   _writeCommand(0x12);      //display refresh
   _waitWhileBusy("update display refresh");
   _sleep();
-}
-
-void  GxGDEW027C44::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
-{
-  for (uint16_t x1 = x; x1 < x + w; x1++)
-  {
-    for (uint16_t y1 = y; y1 < y + h; y1++)
-    {
-      uint32_t i = x1 / 8 + uint32_t(y1) * uint32_t(w) / 8;
-      uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
-      drawPixel(x1, y1, pixelcolor);
-    }
-  }
 }
 
 void GxGDEW027C44::_writeCommand(uint8_t command)
