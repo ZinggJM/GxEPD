@@ -1,13 +1,13 @@
 /************************************************************************************
-   GxEPD_TestExample : test example for e-Paper displays from GoodDisplay.com
+   GxEPD_TestExample : test example for e-Paper displays from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
    modified by :
 
-   Version : 1.1
+   Version : 2.0
 
    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
@@ -15,26 +15,28 @@
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  SS   |o o| D/C
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 
 // include library, include base class, make path known
 #include <GxEPD.h>
 
+#include "IMG_0001.h"
+
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
-//#include <GxGDEH029A1/GxGDEH029A1.cpp>
+#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
@@ -54,28 +56,91 @@
 
 #if defined(ESP8266)
 
-//GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
+// generic/common.h
+//static const uint8_t SS    = 15;
+//static const uint8_t MOSI  = 13;
+//static const uint8_t MISO  = 12;
+//static const uint8_t SCK   = 14;
+// pins_arduino.h
+//static const uint8_t D8   = 15;
+//static const uint8_t D7   = 13;
+//static const uint8_t D6   = 12;
+//static const uint8_t D5   = 14;
+
+// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
 GxIO_Class io(SPI, SS, D3, D4); // arbitrary selection of D3, D4 selected for default of GxEPD_Class
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
 GxEPD_Class display(io); // default selection of D4, D2
+// my IoT connection, busy on MISO
+//GxEPD_Class display(io, D4, D6);
 
 #elif defined(ESP32)
 
 // pins_arduino.h, e.g. LOLIN32
-// static const uint8_t SS    = 5;
-// static const uint8_t MOSI  = 23;
-// static const uint8_t MISO  = 19;
-// static const uint8_t SCK   = 18;
+//static const uint8_t SS    = 5;
+//static const uint8_t MOSI  = 23;
+//static const uint8_t MISO  = 19;
+//static const uint8_t SCK   = 18;
 
 // GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 17, 16); // arbitrary selection of 17,16
+GxIO_Class io(SPI, SS, 17, 16); // arbitrary selection of 17, 16
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
 GxEPD_Class display(io, 16, 4); // arbitrary selection of (16), 4
 
+#elif defined(ARDUINO_ARCH_SAMD)
+
+// variant.h of MKR1000
+//#define PIN_SPI_MISO  (10u)
+//#define PIN_SPI_MOSI  (8u)
+//#define PIN_SPI_SCK   (9u)
+//#define PIN_SPI_SS    (24u) // should be 4?
+// variant.h of MKRZERO
+//#define PIN_SPI_MISO  (10u)
+//#define PIN_SPI_MOSI  (8u)
+//#define PIN_SPI_SCK   (9u)
+//#define PIN_SPI_SS    (4u)
+
+GxIO_Class io(SPI, 4, 7, 6);
+GxEPD_Class display(io, 6, 5);
+
+#elif defined(_BOARD_GENERIC_STM32F103C_H_)
+
+// STM32 Boards (STM32duino.com)
+// Generic STM32F103C series
+// aka BluePill
+// board.h
+//#define BOARD_SPI1_NSS_PIN        PA4
+//#define BOARD_SPI1_MOSI_PIN       PA7
+//#define BOARD_SPI1_MISO_PIN       PA6
+//#define BOARD_SPI1_SCK_PIN        PA5
+//enum {
+//    PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11, PA12, PA13,PA14,PA15,
+//  PB0, PB1, PB2, PB3, PB4, PB5, PB6, PB7, PB8, PB9, PB10, PB11, PB12, PB13,PB14,PB15,
+//  PC13, PC14,PC15
+//};
+// variant.h
+//static const uint8_t SS   = BOARD_SPI1_NSS_PIN;
+//static const uint8_t SS1  = BOARD_SPI2_NSS_PIN;
+//static const uint8_t MOSI = BOARD_SPI1_MOSI_PIN;
+//static const uint8_t MISO = BOARD_SPI1_MISO_PIN;
+//static const uint8_t SCK  = BOARD_SPI1_SCK_PIN;
+
+// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
+GxIO_Class io(SPI, SS, 8, 9);
+// GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+GxEPD_Class display(io, 9, 3);
+
 #else
 
+// pins_arduino.h, e.g. AVR
+//#define PIN_SPI_SS    (10)
+//#define PIN_SPI_MOSI  (11)
+//#define PIN_SPI_MISO  (12)
+//#define PIN_SPI_SCK   (13)
+
 GxIO_Class io(SPI, SS, 8, 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
-// GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+//GxIO_DESTM32L io;
+//GxIO_GreenSTM32F103V io;
 GxEPD_Class display(io);
 
 #endif
@@ -117,12 +182,17 @@ void showBitmapExample()
   delay(2000);
   display.setRotation(2);
   display.fillScreen(GxEPD_WHITE);
-  // bitmap may have been shortened to fit to available RAM
-  uint16_t h = min(GxEPD_HEIGHT, sizeof(BitmapExample1) * 8 / GxEPD_WIDTH);
-  //Serial.println(h);
-  display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, h, GxEPD_BLACK);
+  // display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK); // old signature
+  // to buffer, may be cropped, drawPixel() used, update needed, new signature, mirror default set for example bitmaps (display class dependent)
+  // void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = true);
+  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK); // new signature
   display.update();
-  delay(2000);
+  delay(10000);
+  display.fillScreen(GxEPD_WHITE);
+  // thanks to bytecrusher: http://forum.arduino.cc/index.php?topic=487007.msg3367378#msg3367378
+  display.drawBitmap(gImage_IMG_0001, 50, 50, 64, 180, GxEPD_BLACK); // new signature
+  display.update();
+  delay(10000);
 #endif
 #endif
 }
