@@ -1,7 +1,7 @@
 /************************************************************************************
-   class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from GoodDisplay.com
+   class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
@@ -15,16 +15,16 @@
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 
@@ -37,11 +37,19 @@
 #define xPixelsPar (GxGDEH029A1_X_PIXELS -1 )
 #define yPixelsPar (GxGDEH029A1_Y_PIXELS -1 )
 
-const uint8_t LUTDefault_full[] =
+// old version
+//const uint8_t LUTDefault_full[] =
+//{
+//  0x32,  // command
+//  0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22, 0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99,
+//  0x88, 0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51, 0x35, 0x51, 0x51, 0x19, 0x01, 0x00
+//};
+
+const uint8_t LUTDefault_full[31] = 
 {
-  0x32,  // command
-  0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22, 0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99,
-  0x88, 0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51, 0x35, 0x51, 0x51, 0x19, 0x01, 0x00
+  0x32,  // command //C221 25C Full update waveform
+  0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 const uint8_t LUTDefault_part[] =

@@ -1,7 +1,7 @@
 /************************************************************************************
-   class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from GoodDisplay.com
+   class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
@@ -15,16 +15,16 @@
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 #ifndef _GxGDEH029A1_H_
