@@ -9,9 +9,9 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
@@ -551,4 +551,25 @@ void GxGDEH029A1::drawPaged(void (*drawCallback)(void))
   _current_page = -1;
   _PowerOff();
 }
+
+void GxGDEH029A1::drawCornerTest()
+{
+  _Init_Full();
+  _writeCommand(0x24);
+  for (uint32_t y = 0; y < GxGDEH029A1_HEIGHT; y++)
+  {
+    for (uint32_t x = 0; x < GxGDEH029A1_WIDTH / 8; x++)
+    {
+      uint8_t data = 0xFF;
+      if ((x < 1) && (y < 8)) data = 0x00;
+      if ((x > GxGDEH029A1_WIDTH / 8 - 3) && (y < 16)) data = 0x00;
+      if ((x > GxGDEH029A1_WIDTH / 8 - 4) && (y > GxGDEH029A1_HEIGHT - 25)) data = 0x00;
+      if ((x < 4) && (y > GxGDEH029A1_HEIGHT - 33)) data = 0x00;
+      _writeData(data);
+    }
+  }
+  _Update_Full();
+  _PowerOff();
+}
+
 

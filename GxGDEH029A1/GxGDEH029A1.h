@@ -9,9 +9,9 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
@@ -85,6 +85,7 @@ class GxGDEH029A1 : public GxEPD
     // paged drawing, for limited RAM, drawCallback() is called GxGDEP015OC1_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
+    void drawCornerTest();
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
