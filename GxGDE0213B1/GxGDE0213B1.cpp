@@ -1,7 +1,7 @@
 /************************************************************************************
-   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from GoodDisplay.com
+   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
@@ -9,22 +9,22 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 
@@ -59,7 +59,7 @@ uint8_t Gatetime[] = {0x3b, 0x08};  // 2us per line
 uint8_t RamDataEntryMode[] = {0x11, 0x01};  // Ram data entry mode
 
 GxGDE0213B1::GxGDE0213B1(GxIO& io, uint8_t rst, uint8_t busy) :
-  GxEPD(GxGDE0213B1_WIDTH, GxGDE0213B1_HEIGHT),
+  GxEPD(GxGDE0213B1_VISIBLE_WIDTH, GxGDE0213B1_HEIGHT),
   IO(io), _rst(rst), _busy(busy),
   _current_page(-1), _using_partial_mode(false)
 {
@@ -80,6 +80,9 @@ void GxGDE0213B1::drawPixel(int16_t x, int16_t y, uint16_t color)
   // check rotation, move pixel around if necessary
   switch (getRotation())
   {
+    case 0:
+      x += 6;
+      break;
     case 1:
       swap(x, y);
       x = GxGDE0213B1_WIDTH - x - 1;
@@ -89,6 +92,7 @@ void GxGDE0213B1::drawPixel(int16_t x, int16_t y, uint16_t color)
       y = GxGDE0213B1_HEIGHT - y - 1;
       break;
     case 3:
+      y += 6;
       swap(x, y);
       y = GxGDE0213B1_HEIGHT - y - 1;
       break;
@@ -167,7 +171,7 @@ void  GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
     {
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
-        uint32_t i = (w - (x1 - x)- 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
 #if defined(__AVR)
         uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #else
@@ -278,7 +282,7 @@ void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
         x = GxGDE0213B1_WIDTH - x - w - 1;
         break;
       case 2:
-        x = GxGDE0213B1_WIDTH - x- w - 1;
+        x = GxGDE0213B1_WIDTH - x - w - 1;
         y = GxGDE0213B1_HEIGHT - y - h - 1;
         break;
       case 3:
@@ -541,6 +545,26 @@ void GxGDE0213B1::drawPaged(void (*drawCallback)(void))
     //delay(2000);
   }
   _current_page = -1;
+  _PowerOff();
+}
+
+void GxGDE0213B1::drawCornerTest()
+{
+  _Init_Full();
+  _writeCommand(0x24);
+  for (uint32_t y = 0; y < GxGDE0213B1_HEIGHT; y++)
+  {
+    for (uint32_t x = 0; x < GxGDE0213B1_WIDTH / 8; x++)
+    {
+      uint8_t data = 0xFF;
+      if ((x < 1) && (y < 8)) data = 0x00;
+      if ((x > GxGDE0213B1_WIDTH / 8 - 3) && (y < 16)) data = 0x00;
+      if ((x > GxGDE0213B1_WIDTH / 8 - 4) && (y > GxGDE0213B1_HEIGHT - 25)) data = 0x00;
+      if ((x < 4) && (y > GxGDE0213B1_HEIGHT - 33)) data = 0x00;
+      _writeData(data);
+    }
+  }
+  _Update_Full();
   _PowerOff();
 }
 

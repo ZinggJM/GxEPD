@@ -1,5 +1,5 @@
 /************************************************************************************
-   GxEPD_TestExample : test example for e-Paper displays from Dalian Good Display Co., Ltd.: www.good-display.com
+   GxEPD_SPI_TestExample : test example for e-Paper displays from Dalian Good Display Co., Ltd.: www.good-display.com
 
    based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
@@ -9,9 +9,9 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
@@ -21,8 +21,8 @@
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  SS   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
        |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
@@ -160,6 +160,7 @@ void setup()
 void loop()
 {
   showBitmapExample();
+  //drawCornerTest();
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
   //showFont("FreeMonoBold18pt7b", &FreeMonoBold18pt7b);
@@ -175,6 +176,17 @@ void showBitmapExample()
   display.drawPicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1));
   delay(2000);
   display.setRotation(3);
+#elif defined(_GxGDE0213B1_H_)
+  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(2000);
+  display.drawBitmap(first, sizeof(BitmapExample2));
+  delay(2000);
+  display.drawBitmap(second, sizeof(BitmapExample2));
+  delay(2000);
+  display.drawBitmap(third, sizeof(BitmapExample2));
+  delay(2000);
 #else
   display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
@@ -216,6 +228,25 @@ void showFont(const char name[], const GFXfont* f)
   display.println("pqrstuvwxyz{|}~ ");
   display.update();
   delay(5000);
+}
+
+void drawCornerTest()
+{
+#if defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
+  display.drawCornerTest();
+  delay(5000);
+#endif
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.fillScreen(GxEPD_WHITE);
+    display.fillRect(0, 0, 8, 8, GxEPD_BLACK);
+    display.fillRect(display.width() - 18, 0, 16, 16, GxEPD_BLACK);
+    display.fillRect(display.width() - 25, display.height() - 25, 24, 24, GxEPD_BLACK);
+    display.fillRect(0, display.height() - 33, 32, 32, GxEPD_BLACK);
+    display.update();
+    delay(5000);
+  }
 }
 
 

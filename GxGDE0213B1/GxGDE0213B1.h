@@ -1,7 +1,7 @@
 /************************************************************************************
-   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from GoodDisplay.com
+   class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
@@ -9,22 +9,22 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 #ifndef _GxGDE0213B1_H_
@@ -39,6 +39,9 @@
 // the logical width and height of the display
 #define GxGDE0213B1_WIDTH GxGDE0213B1_X_PIXELS
 #define GxGDE0213B1_HEIGHT GxGDE0213B1_Y_PIXELS
+
+// note: the visible number of display pixels is 122*250, see GDEH0213B1 V3.0 Specification.pdf
+#define GxGDE0213B1_VISIBLE_WIDTH 122
 
 #define GxGDE0213B1_BUFFER_SIZE (uint32_t(GxGDE0213B1_WIDTH) * uint32_t(GxGDE0213B1_HEIGHT) / 8)
 
@@ -85,6 +88,7 @@ class GxGDE0213B1 : public GxEPD
     // paged drawing, for limited RAM, drawCallback() is called GxGDE0213B1_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
+    void drawCornerTest();
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
