@@ -4,7 +4,7 @@
 //
 // The GxGDE060BA class is not board specific, but relies on FMSC SRAM for buffer memory, as available on DESTM32-L,
 // and on a specific IO channel class for parallel connection e-paper displays.
-// 
+//
 // The GxIO_DESTM32L is board specific and serves as IO channel for the display class.
 //
 // These classes can serve as an example for other boards for this e-paper display,
@@ -22,9 +22,9 @@
 #include "BitmapExamples.h"
 
 GxGDE060BA::GxGDE060BA(GxIO_DESTM32L& io)
-  : GxEPD(GxGDE060BA_WIDTH, GxGDE060BA_HEIGHT), IO(io),
+  : GxEPD(GxGDE060BA_WIDTH, GxGDE060BA_HEIGHT),
     p_active_buffer(&FMSC_SRAM->epd_sram_buffer1),
-    p_erase_buffer(&FMSC_SRAM->epd_sram_buffer2)
+    p_erase_buffer(&FMSC_SRAM->epd_sram_buffer2), IO(io)
 {
 }
 
@@ -64,7 +64,7 @@ void GxGDE060BA::drawPixel(int16_t x, int16_t y, uint16_t color)
   else if (color == GxEPD_LIGHTGREY) (*p_active_buffer)[i] = ((*p_active_buffer)[i] | (2 << 2 * (3 - x % 4)));
   else
   {
-    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) & (color & 0x001F);
+    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) + (color & 0x001F);
     if (brightness < 3 * 128 / 2) return; // < 1/2 of 3 * GxEPD_DARKGREY, below middle between black and dark grey
     else if (brightness < 3 * 256 / 2) (*p_active_buffer)[i] = ((*p_active_buffer)[i] | (1 << 2 * (3 - x % 4))); // below middle
     else if (brightness < 3 * 192 / 2) (*p_active_buffer)[i] = ((*p_active_buffer)[i] | (2 << 2 * (3 - x % 4))); // below middle between light grey and white
@@ -87,7 +87,7 @@ void GxGDE060BA::fillScreen(uint16_t color)
   else if (color == GxEPD_LIGHTGREY) data = 0xAA;
   else
   {
-    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) & (color & 0x001F);
+    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) + (color & 0x001F);
     if (brightness < 3 * 128 / 2)  data = 0x00; // < 1/2 of 3 * GxEPD_DARKGREY, below middle between black and dark grey
     else if (brightness < 3 * 256 / 2)  data = 0x55; // below middle
     else if (brightness < 3 * 192 / 2)  data = 0xAA; // below middle between light grey and white
@@ -101,12 +101,45 @@ void GxGDE060BA::fillScreen(uint16_t color)
 
 void GxGDE060BA::update()
 {
-  eraseBitmap(*p_erase_buffer, sizeof(epd_buffer_type));
-  drawBitmap(*p_active_buffer, sizeof(epd_buffer_type));
+  erasePicture(*p_erase_buffer, sizeof(epd_buffer_type));
+  drawPicture(*p_active_buffer, sizeof(epd_buffer_type));
   swap(p_erase_buffer, p_active_buffer);
 }
 
-void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDE060BA::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+{
+  drawBitmap(bitmap, x, y, w, h, color);
+}
+
+void GxGDE060BA::drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m)
+{
+  switch (m)
+  {
+    case bm_flip_h:
+      for (uint16_t x1 = x; x1 < x + w; x1++)
+      {
+        for (uint16_t y1 = y; y1 < y + h; y1++)
+        {
+          uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+          uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+          drawPixel(x1, y1, pixelcolor);
+        }
+      }
+      break;
+    default:
+      for (uint16_t x1 = x; x1 < x + w; x1++)
+      {
+        for (uint16_t y1 = y; y1 < y + h; y1++)
+        {
+          uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+          uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+          drawPixel(x1, y1, pixelcolor);
+        }
+      }
+  }
+}
+
+void GxGDE060BA::drawPicture(const uint8_t *picture, uint32_t size)
 {
   IO.powerOn();
   delay(25);
@@ -119,7 +152,7 @@ void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
       uint16_t i = 0;
       for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++, x++)
       {
-        row_buffer[i] = wave_end_table[bitmap[x]][frame];
+        row_buffer[i] = wave_end_table[picture[x]][frame];
       }
       for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
       {
@@ -133,20 +166,45 @@ void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
   IO.powerOff();
 }
 
-void  GxGDE060BA::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+void GxGDE060BA::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
-  for (uint16_t x1 = x; x1 < x + w; x1++)
+  IO.powerOn();
+  delay(25);
+  clear_display();
+  for (uint16_t frame = 0; frame < GxGDE060BA_FRAME_END_SIZE; frame++)
   {
-    for (uint16_t y1 = y; y1 < y + h; y1++)
+    IO.start_scan();
+    for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
     {
-      uint16_t i = x1 / 8 + y1 * w / 8;
-      uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
-      drawPixel(x1, y1, pixelcolor);
+      uint32_t x = line * (GxGDE060BA_WIDTH / 8);
+      uint16_t i = 0;
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++)
+      {
+        if (0 == i % 2)
+        {
+          uint8_t grey8b = bw2grey[(bitmap[x] & 0xF0) >> 4];
+          row_buffer[i] = wave_end_table[grey8b][frame];
+        }
+        else
+        {
+          uint8_t grey8b = bw2grey[bitmap[x] & 0x0F];
+          row_buffer[i] = wave_end_table[grey8b][frame];
+          x++;
+        }
+      }
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
+      {
+        row_buffer[i] = wave_end_table[0xFF][frame];
+      }
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
     }
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
+  delay(25);
+  IO.powerOff();
 }
 
-void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDE060BA::erasePicture(const uint8_t *picture, uint32_t size)
 {
   IO.powerOn();
   delay(25);
@@ -159,7 +217,7 @@ void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
       uint16_t i = 0;
       for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++, x++)
       {
-        row_buffer[i] = wave_begin_table[bitmap[x]][frame];
+        row_buffer[i] = wave_begin_table[picture[x]][frame];
       }
       for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
       {
@@ -173,9 +231,50 @@ void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
   IO.powerOff();
 }
 
-void GxGDE060BA::eraseDisplay() 
+void GxGDE060BA::eraseBitmap(const uint8_t *bitmap, uint32_t size)
 {
-  eraseBitmap(0, 0);
+  IO.powerOn();
+  delay(25);
+  for (uint16_t frame = 0; frame < GxGDE060BA_FRAME_END_SIZE; frame++)
+  {
+    IO.start_scan();
+    for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
+    {
+      uint32_t x = line * (GxGDE060BA_WIDTH / 8);
+      uint16_t i = 0;
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE) && (x < size); i++)
+      {
+        if (0 == i % 2)
+        {
+          uint8_t grey8b = bw2grey[(bitmap[x] & 0xF0) >> 4];
+          row_buffer[i] = wave_begin_table[grey8b][frame];
+        }
+        else
+        {
+          uint8_t grey8b = bw2grey[bitmap[x] & 0x0F];
+          row_buffer[i] = wave_begin_table[grey8b][frame];
+          x++;
+        }
+      }
+      for (; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
+      {
+        row_buffer[i] = wave_end_table[0x00][frame];
+      }
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
+    }
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
+  }
+  delay(25);
+  IO.powerOff();
+}
+
+void GxGDE060BA::eraseDisplay()
+{
+  IO.powerOn();
+  delay(25);
+  clear_display();
+  delay(25);
+  IO.powerOff();
   fillScreen(GxEPD_WHITE);
 }
 
@@ -239,6 +338,23 @@ void GxGDE060BA::init_wave_table(void)
       value += (tmp >> 6) & 0x03;
       wave_end_table[num][frame] = value;
     }
+  }
+}
+
+void GxGDE060BA::clear_display()
+{
+  for (uint16_t frame = 0; frame < GxGDE060BA_FRAME_BEGIN_SIZE; frame++)
+  {
+    IO.start_scan();
+    for (uint16_t line = 0; line < GxGDE060BA_HEIGHT; line++)
+    {
+      for (uint16_t i = 0; (i < GxGDE060BA_ROW_BUFFER_SIZE); i++)
+      {
+        row_buffer[i] = wave_begin_table[0x00][frame];
+      }
+      IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
+    }
+    IO.send_row(row_buffer, GxGDE060BA_ROW_BUFFER_SIZE, GxGDE060BA_CL_DELAY);
   }
 }
 

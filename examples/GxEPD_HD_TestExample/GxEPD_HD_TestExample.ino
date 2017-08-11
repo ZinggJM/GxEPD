@@ -60,12 +60,21 @@ void loop()
 void showBitmapExample()
 {
 #ifdef _GxBitmapExamples_H_
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.drawPicture(BitmapExample1, sizeof(BitmapExample1));
+  delay(5000);
+  display.erasePicture(BitmapExample1, sizeof(BitmapExample1));
+  display.drawPicture(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+  display.erasePicture(BitmapExample2, sizeof(BitmapExample2));
+  //display.setRotation(2);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawBitmap(bwBitmap640x384_1, (GxEPD_WIDTH - 640) / 2, (GxEPD_HEIGHT - 384) / 2, 640, 384, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawBitmap(bwBitmap640x384_2, (GxEPD_WIDTH - 640) / 2, (GxEPD_HEIGHT - 384) / 2, 640, 384, GxEPD_BLACK, GxEPD::bm_flip_h);
+  display.update();
   delay(10000);
-  display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
-  delay(10000);
-  // the BitmapExamples are 4 gray levels, not b/w, 
-  // drawBitmap() to buffer is not useful
 #endif
 }
 

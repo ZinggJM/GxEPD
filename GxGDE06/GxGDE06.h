@@ -24,8 +24,8 @@
 //
 // Added to my library for reference, completeness and backup, but not recommended for use.
 
-#ifndef _GxGDE06_H
-#define _GxGDE06_H
+#ifndef _GxGDE06_H_
+#define _GxGDE06_H_
 
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
@@ -78,12 +78,14 @@ class GxGDE06 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // to buffer
     void update(void);
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, Adafruit_GFX signature
+    void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
+    // to buffer, may be cropped, drawPixel() used, update needed, new signature, may support some bm_modes
+    void drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m = bm_normal);
     // to full screen, filled with white if size is less, no update needed
     void drawPicture(const uint8_t *picture, uint32_t size); // 4 gray levels
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size); // black/white
-    // to buffer, may be cropped, drawPixel() used, update needed
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
     // undo last drawBitmap to prepare for next drawBitmap (turn display white);
     // any bitmap can be used, but real last bitmap gives slightly better result
     void erasePicture(const uint8_t *picture, uint32_t size);

@@ -65,7 +65,7 @@ void GxGDE06::drawPixel(int16_t x, int16_t y, uint16_t color)
   else if (color == GxEPD_WHITE) epd_buffer[i] = (epd_buffer[i] | (1 << (7 - x % 8)));
   else
   {
-    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) & (color & 0x001F);
+    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) + (color & 0x001F);
     if (brightness < 3 * 128) (epd_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
     else epd_buffer[i] = (epd_buffer[i] | (1 << (7 - x % 8)));
   }
@@ -84,7 +84,7 @@ void GxGDE06::fillScreen(uint16_t color)
   else if (color == GxEPD_WHITE) data = 0xFF;
   else
   {
-    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) & (color & 0x001F);
+    uint16_t brightness = ((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) + (color & 0x001F);
     if (brightness < 3 * 128)  data = 0x00;
     else data = 0xFF;
   }
@@ -97,6 +97,39 @@ void GxGDE06::fillScreen(uint16_t color)
 void GxGDE06::update()
 {
   drawBitmap(epd_buffer, sizeof(epd_buffer_type));
+}
+
+void GxGDE06::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+{
+  drawBitmap(bitmap, x, y, w, h, color);
+}
+
+void GxGDE06::drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m)
+{
+  switch (m)
+  {
+    case bm_flip_h:
+      for (uint16_t x1 = x; x1 < x + w; x1++)
+      {
+        for (uint16_t y1 = y; y1 < y + h; y1++)
+        {
+          uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+          uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+          drawPixel(x1, y1, pixelcolor);
+        }
+      }
+      break;
+    default:
+      for (uint16_t x1 = x; x1 < x + w; x1++)
+      {
+        for (uint16_t y1 = y; y1 < y + h; y1++)
+        {
+          uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+          uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
+          drawPixel(x1, y1, pixelcolor);
+        }
+      }
+  }
 }
 
 void GxGDE06::drawPicture(const uint8_t *picture, uint32_t size)
@@ -163,19 +196,6 @@ void GxGDE06::drawBitmap(const uint8_t *bitmap, uint32_t size)
   }
   delay(25);
   IO.powerOff();
-}
-
-void  GxGDE06::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
-{
-  for (uint16_t x1 = x; x1 < x + w; x1++)
-  {
-    for (uint16_t y1 = y; y1 < y + h; y1++)
-    {
-      uint16_t i = x1 / 8 + y1 * w / 8;
-      uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
-      drawPixel(x1, y1, pixelcolor);
-    }
-  }
 }
 
 void GxGDE06::erasePicture(const uint8_t *picture, uint32_t size)

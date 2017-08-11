@@ -17,8 +17,8 @@
 // http://www.buy-lcd.com/index.php?route=product/product&path=2897_8371&product_id=15441
 // or https://www.aliexpress.com/store/product/GDE080A1-with-demo-8-epaper-display-panel-1024X768-with-demo/600281_32810750410.html
 
-#ifndef _GxGDEW080T5_H
-#define _GxGDEW080T5_H
+#ifndef _GxGDEW080T5_H_
+#define _GxGDEW080T5_H_
 
 #include <Arduino.h>
 #include "../GxEPD.h"
@@ -47,6 +47,13 @@ const unsigned char wave_end_80[4][GxGDEW080T5_FRAME_END_SIZE] =
   0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, //GC3->GC3
 };
 
+const uint8_t bw2grey[] = {
+  0b00000000, 0b00000011, 0b00001100, 0b00001111, 
+  0b00110000, 0b00110011, 0b00111100, 0b00111111,
+  0b11000000, 0b11000011, 0b11001100, 0b11001111,
+  0b11110000, 0b11110011, 0b11111100, 0b11111111,
+};
+
 #define GxGDEW080T5_ROW_BUFFER_SIZE (GxGDEW080T5_WIDTH / 4)
 
 // fixed, multiple of 64 and >= GxGDEW080T5_ROW_BUFFER_SIZE
@@ -70,18 +77,24 @@ class GxGDEW080T5 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // to buffer
     void update(void);
-    // to full screen, filled with white if size is less, no update needed
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, Adafruit_GFX signature
+    void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
+    // to buffer, may be cropped, drawPixel() used, update needed, new signature, may support some bm_modes
+    void drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m = bm_normal);
+    // 4 gray levels to full screen, filled with white if size is less, no update needed
+    void drawPicture(const uint8_t *picture, uint32_t size);
+    // monochrome to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
-    // to buffer, may be cropped, drawPixel() used, update needed
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
     // undo last drawBitmap to prepare for next drawBitmap (turn display white);
     // any bitmap can be used, but real last bitmap gives slightly better result
+    void erasePicture(const uint8_t *picture, uint32_t size);
     void eraseBitmap(const uint8_t *bitmap, uint32_t size);
     void eraseDisplay(); // alternative to eraseBitmap, without bitmap
     void DisplayTestPicture(uint8_t nr);
     void fillScreenTest();
   private:
     void init_wave_table(void);
+    void clear_display();
   private:
     uint8_t wave_begin_table[WAVE_TABLE_SIZE][GxGDEW080T5_FRAME_BEGIN_SIZE];
     uint8_t wave_end_table[WAVE_TABLE_SIZE][GxGDEW080T5_FRAME_END_SIZE];
