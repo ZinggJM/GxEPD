@@ -160,6 +160,7 @@ void setup()
 void loop()
 {
   showBitmapExample();
+  showGridIcons();
   //drawCornerTest();
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
@@ -249,6 +250,43 @@ void drawCornerTest()
   }
 }
 
+#include "imglib/gridicons_add_image.h"
+#include "imglib/gridicons_add_outline.h"
+#include "imglib/gridicons_add.h"
+#include "imglib/gridicons_align_center.h"
+#include "imglib/gridicons_align_image_center.h"
+#include "imglib/gridicons_align_image_left.h"
+#include "imglib/gridicons_align_image_none.h"
+#include "imglib/gridicons_align_image_right.h"
+#include "imglib/gridicons_align_justify.h"
+#include "imglib/gridicons_align_left.h"
+#include "imglib/gridicons_align_right.h"
+#include "imglib/gridicons_arrow_down.h"
+#include "imglib/gridicons_arrow_left.h"
+#include "imglib/gridicons_arrow_right.h"
+#include "imglib/gridicons_arrow_up.h"
+
+void showGridIcons()
+{
+  display.fillScreen(GxEPD_WHITE);
+  display.drawBitmap(0, 0, gridicons_add_image, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(25, 0, gridicons_add_outline, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(50, 0, gridicons_add, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(75, 0, gridicons_align_center, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(0, 25, gridicons_align_image_center, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(25, 25, gridicons_align_image_left, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(50, 25, gridicons_align_image_none, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(75, 25, gridicons_align_image_right, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(0, 50, gridicons_align_justify, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(25, 50, gridicons_align_left, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(50, 50, gridicons_align_right, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(75, 50, gridicons_arrow_down, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(0, 75, gridicons_arrow_left, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(25, 75, gridicons_arrow_right, 24, 24, GxEPD_BLACK);
+  display.drawBitmap(50, 75, gridicons_arrow_up, 24, 24, GxEPD_BLACK);
+  display.update();
+  delay(1000);
+}
 
 
 
