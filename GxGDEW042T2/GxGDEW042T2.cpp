@@ -9,86 +9,36 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 
 #include "GxGDEW042T2.h"
 
-const uint8_t lut_vcom0[] =
-{
-  0x00  , 0x17  , 0x00  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x17  , 0x17  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x0A  , 0x01  , 0x00  , 0x00  , 0x01,
-  0x00  , 0x0E  , 0x0E  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-
-};
-const uint8_t lut_ww[] = {
-  0x40  , 0x17  , 0x00  , 0x00  , 0x00  , 0x02,
-  0x90  , 0x17  , 0x17  , 0x00  , 0x00  , 0x02,
-  0x40  , 0x0A  , 0x01  , 0x00  , 0x00  , 0x01,
-  0xA0  , 0x0E  , 0x0E  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-
-};
-const uint8_t lut_bw[] = {
-  0x40  , 0x17  , 0x00  , 0x00  , 0x00  , 0x02,
-  0x90  , 0x17  , 0x17  , 0x00  , 0x00  , 0x02,
-  0x40  , 0x0A  , 0x01  , 0x00  , 0x00  , 0x01,
-  0xA0  , 0x0E  , 0x0E  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-
-};
-
-const uint8_t lut_bb[] = {
-  0x80  , 0x17  , 0x00  , 0x00  , 0x00  , 0x02,
-  0x90  , 0x17  , 0x17  , 0x00  , 0x00  , 0x02,
-  0x80  , 0x0A  , 0x01  , 0x00  , 0x00  , 0x01,
-  0x50  , 0x0E  , 0x0E  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-
-};
-
-const uint8_t lut_wb[] = {
-  0x80  , 0x17  , 0x00  , 0x00  , 0x00  , 0x02,
-  0x90  , 0x17  , 0x17  , 0x00  , 0x00  , 0x02,
-  0x80  , 0x0A  , 0x01  , 0x00  , 0x00  , 0x01,
-  0x50  , 0x0E  , 0x0E  , 0x00  , 0x00  , 0x02,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-  0x00  , 0x00  , 0x00  , 0x00  , 0x00  , 0x00,
-
-};
+#if defined(__AVR)
+#include <avr/pgmspace.h>
+#endif
 
 GxGDEW042T2::GxGDEW042T2(GxIO& io, uint8_t rst, uint8_t busy)
   : GxEPD(GxGDEW042T2_WIDTH, GxGDEW042T2_HEIGHT),
-    IO(io), _rst(rst), _busy(busy)
+    IO(io), _rst(rst), _busy(busy),
+    _current_page(-1), _using_partial_mode(false)
 {
-  // do not init hw here, doesn't work
 }
 
 template <typename T> static inline void
@@ -120,6 +70,16 @@ void GxGDEW042T2::drawPixel(int16_t x, int16_t y, uint16_t color)
       break;
   }
   uint16_t i = x / 8 + y * GxGDEW042T2_WIDTH / 8;
+  if (_current_page < 1)
+  {
+    if (i >= sizeof(_buffer)) return;
+  }
+  else
+  {
+    if (i < GxGDEW042T2_PAGE_SIZE * _current_page) return;
+    if (i >= GxGDEW042T2_PAGE_SIZE * (_current_page + 1)) return;
+    i -= GxGDEW042T2_PAGE_SIZE * _current_page;
+  }
 
   if (!color)
     _buffer[i] = (_buffer[i] | (1 << (7 - x % 8)));
@@ -131,16 +91,18 @@ void GxGDEW042T2::init(void)
 {
   IO.init();
   IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
-  digitalWrite(_rst, 1);
+  digitalWrite(_rst, HIGH);
   pinMode(_rst, OUTPUT);
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
+  _current_page = -1;
+  _using_partial_mode = false;
 }
 
 void GxGDEW042T2::fillScreen(uint16_t color)
 {
   uint8_t data = (color == GxEPD_BLACK) ? 0xFF : 0x00;
-  for (uint16_t x = 0; x < GxGDEW042T2_BUFFER_SIZE; x++)
+  for (uint16_t x = 0; x < sizeof(_buffer); x++)
   {
     _buffer[x] = data;
   }
@@ -148,17 +110,17 @@ void GxGDEW042T2::fillScreen(uint16_t color)
 
 void GxGDEW042T2::update(void)
 {
-  uint32_t i;
-  uint8_t data;
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _wakeUp();
   IO.writeCommandTransaction(0x13);
-  for (i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+  for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
   {
-    data = _buffer[i];
+    uint8_t data = _buffer[i];
     IO.writeDataTransaction(~data);
   }
   IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("update display refresh");
+  _waitWhileBusy("update");
   _sleep();
 }
 
@@ -176,7 +138,11 @@ void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+#if defined(__AVR)
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+#else
         uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+#endif
         drawPixel(x1, y1, pixelcolor);
       }
     }
@@ -188,7 +154,11 @@ void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
+#if defined(__AVR)
+        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+#else
         uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+#endif
         drawPixel(x1, y1, pixelcolor);
       }
     }
@@ -197,18 +167,146 @@ void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
 
 void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size)
 {
-  uint32_t i;
-  uint8_t data;
-  _wakeUp();
-  IO.writeCommandTransaction(0x13);
-  for (i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+  drawBitmap(bitmap, size, false);
+}
+
+void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update)
+{
+  if (using_partial_update)
   {
-    data = (i < size) ? bitmap[i] : 0xFF;
-    IO.writeDataTransaction(data);
+    _using_partial_mode = true; // remember
+    _wakeUp();
+    // set full screen
+    IO.writeCommandTransaction(0x91); // partial in
+    _setPartialRamArea(0, 0, GxGDEW042T2_WIDTH - 1, GxGDEW042T2_HEIGHT - 1);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+#if defined(__AVR)
+      IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+      IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);
+#endif
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("drawBitmap");
+    IO.writeCommandTransaction(0x92); // partial out
+  }
+  else
+  {
+    _using_partial_mode = false; // remember
+    _wakeUp();
+    IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+#if defined(__AVR)
+      IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+      IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);
+#endif
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("drawBitmap");
+    _sleep();
+  }
+}
+
+void GxGDEW042T2::eraseDisplay(bool using_partial_update)
+{
+  if (using_partial_update)
+  {
+    _using_partial_mode = true; // remember
+    _wakeUp();
+    // set full screen
+    IO.writeCommandTransaction(0x91); // partial in
+    _setPartialRamArea(0, 0, GxGDEW042T2_WIDTH - 1, GxGDEW042T2_HEIGHT - 1);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+      IO.writeDataTransaction(0xFF);
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("eraseDisplay");
+    IO.writeCommandTransaction(0x92); // partial out
+  }
+  else
+  {
+    _using_partial_mode = false; // remember
+    _wakeUp();
+    IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+      IO.writeDataTransaction(0xFF);
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("eraseDisplay");
+    _sleep();
+  }
+}
+
+void GxGDEW042T2::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
+{
+  if (using_rotation)
+  {
+    switch (getRotation())
+    {
+      case 1:
+        swap(x, y);
+        swap(w, h);
+        x = GxGDEW042T2_WIDTH - x - w - 1;
+        break;
+      case 2:
+        x = GxGDEW042T2_WIDTH - x - w - 1;
+        y = GxGDEW042T2_HEIGHT - y - h - 1;
+        break;
+      case 3:
+        swap(x, y);
+        swap(w, h);
+        y = GxGDEW042T2_HEIGHT - y  - h - 1;
+        break;
+    }
+  }
+  //fillScreen(0x0);
+  if (x >= GxGDEW042T2_WIDTH) return;
+  if (y >= GxGDEW042T2_HEIGHT) return;
+  // x &= 0xFFF8; // byte boundary, not here, use encompassing rectangle
+  uint16_t xe = min(GxGDEW042T2_WIDTH, x + w) - 1;
+  uint16_t ye = min(GxGDEW042T2_HEIGHT, y + h) - 1;
+  // x &= 0xFFF8; // byte boundary, not needed here
+  uint16_t xs_bx = x / 8;
+  uint16_t xe_bx = (xe + 7) / 8;
+  if (!_using_partial_mode) _wakeUp();
+  _using_partial_mode = true;
+  IO.writeCommandTransaction(0x91); // partial in
+  _setPartialRamArea(x, y, xe, ye);
+  IO.writeCommandTransaction(0x13);
+  for (int16_t y1 = y; y1 <= ye; y1++)
+  {
+    for (int16_t x1 = xs_bx; x1 < xe_bx; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEW042T2_WIDTH / 8) + x1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      IO.writeDataTransaction(~data);
+    }
   }
   IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("update display refresh");
-  _sleep();
+  _waitWhileBusy("updateWindow");
+  IO.writeCommandTransaction(0x92); // partial out
+}
+
+void GxGDEW042T2::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye)
+{
+  x &= 0xFFF8; // byte boundary
+  xe = (xe - 1) | 0x0007; // byte boundary - 1
+  IO.writeCommandTransaction(0x90); // partial window
+  IO.writeDataTransaction(x / 256);
+  IO.writeDataTransaction(x % 256);
+  IO.writeDataTransaction(xe / 256);
+  IO.writeDataTransaction(xe % 256);
+  IO.writeDataTransaction(y / 256);
+  IO.writeDataTransaction(y % 256);
+  IO.writeDataTransaction(ye / 256);
+  IO.writeDataTransaction(ye % 256);
+  IO.writeDataTransaction(0x01); // don't see any difference
+  //IO.writeDataTransaction(0x00); // don't see any difference
 }
 
 void GxGDEW042T2::_waitWhileBusy(const char* comment)
@@ -216,12 +314,12 @@ void GxGDEW042T2::_waitWhileBusy(const char* comment)
   unsigned long start = micros();
   while (1)
   { //=0 BUSY
-    if (digitalRead(BSY) == 1) break;
+    if (digitalRead(_busy) == 1) break;
     delay(1);
   }
   if (comment)
   {
-    unsigned long elapsed = micros() - start;
+    //    unsigned long elapsed = micros() - start;
     //    Serial.print(comment);
     //    Serial.print(" : ");
     //    Serial.println(elapsed);
@@ -231,124 +329,71 @@ void GxGDEW042T2::_waitWhileBusy(const char* comment)
 void GxGDEW042T2::_wakeUp(void)
 {
   digitalWrite(_rst, 0);
-  delay(100);
+  delay(10);
   digitalWrite(_rst, 1);
-  delay(100);
-
-  IO.writeCommandTransaction(0x01);
-  IO.writeDataTransaction (0x03);
-  IO.writeDataTransaction (0x00);
-  IO.writeDataTransaction (0x2b);
-  IO.writeDataTransaction (0x2b);
-  IO.writeDataTransaction (0xff);
-
-  IO.writeCommandTransaction(0x06);
-  IO.writeDataTransaction (0x17);
-  IO.writeDataTransaction (0x17);
-  IO.writeDataTransaction (0x17);
-
+  delay(10);
+  IO.writeCommandTransaction(0x06); // boost
+  IO.writeDataTransaction(0x17);
+  IO.writeDataTransaction(0x17);
+  IO.writeDataTransaction(0x17);
   IO.writeCommandTransaction(0x04);
-  _waitWhileBusy("_wakeUp Power On");
-
+  _waitWhileBusy("Power On");
   IO.writeCommandTransaction(0x00);
-  IO.writeDataTransaction(0xbf);
-  IO.writeDataTransaction(0x0b);
-
-  IO.writeCommandTransaction(0x30);
-  IO.writeDataTransaction (0x3c);
-
-  IO.writeCommandTransaction(0x61);
-  IO.writeDataTransaction (0x01);
-  IO.writeDataTransaction (0x90);
-  IO.writeDataTransaction (0x01);
-  IO.writeDataTransaction (0x2c);
-
-  IO.writeCommandTransaction(0x82);
-  IO.writeDataTransaction (0x12);
-
-  IO.writeCommandTransaction(0X50);
-  IO.writeDataTransaction(0x97);
-  _writeLUT();
+  IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
 }
 
 void GxGDEW042T2::_sleep(void)
 {
-  IO.writeCommandTransaction(0X50);
+  IO.writeCommandTransaction(0X50); // border floating
   IO.writeDataTransaction(0x17);
-
-  IO.writeCommandTransaction(0X82);
-  IO.writeCommandTransaction(0X00);
-
-  IO.writeCommandTransaction(0x01);
-  IO.writeDataTransaction (0x00);
-  IO.writeDataTransaction (0x00);
-  IO.writeDataTransaction (0x00);
-  IO.writeDataTransaction (0x00);
-  IO.writeDataTransaction (0x00);
-
-  IO.writeCommandTransaction(0X02);
+  IO.writeCommandTransaction(0X02); // power off
   _waitWhileBusy("Power Off");
-  IO.writeCommandTransaction(0X07);
+  IO.writeCommandTransaction(0X07); // deep sleep
   IO.writeDataTransaction(0xA5);
 }
 
-void GxGDEW042T2::_writeLUT(void)
-{
-  uint16_t count;
-  IO.writeCommandTransaction(0x20);
-  for (count = 0; count < 44; count++)
-  {
-    IO.writeDataTransaction(lut_vcom0[count]);
-  }
-
-  IO.writeCommandTransaction(0x21);
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_ww[count]);
-  }
-
-  IO.writeCommandTransaction(0x22);
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_bw[count]);
-  }
-
-  IO.writeCommandTransaction(0x23);
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_wb[count]);
-  }
-
-  IO.writeCommandTransaction(0x24);
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_bb[count]);
-  }
-}
-
-void GxGDEW042T2::greyTest() // what do the 2 channels provide ?
+void GxGDEW042T2::drawPaged(void (*drawCallback)(void))
 {
   _wakeUp();
-  IO.writeCommandTransaction(0x10);
-  for (uint16_t y = 0; y < GxGDEW042T2_HEIGHT; y++)
+  IO.writeCommandTransaction(0x13);
+  for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    for (uint16_t x8 = 0; x8 < GxGDEW042T2_WIDTH / 8; x8++)
+    fillScreen(0xFF);
+    drawCallback();
+    for (int16_t y1 = 0; y1 < GxGDEW042T2_PAGE_HEIGHT; y1++)
     {
-      uint8_t data = (x8 < GxGDEW042T2_WIDTH / 8 / 2) ? 0xFF : 0x00;
-      IO.writeDataTransaction(data);
+      for (int16_t x1 = 0; x1 < GxGDEW042T2_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW042T2_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        IO.writeDataTransaction(~data);
+      }
     }
   }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPaged");
+  _sleep();
+}
+
+void GxGDEW042T2::drawCornerTest()
+{
+  _wakeUp();
   IO.writeCommandTransaction(0x13);
-  for (uint16_t y = 0; y < GxGDEW042T2_HEIGHT; y++)
+  for (uint32_t y = 0; y < GxGDEW042T2_HEIGHT; y++)
   {
-    for (uint16_t x8 = 0; x8 < GxGDEW042T2_WIDTH / 8; x8++)
+    for (uint32_t x = 0; x < GxGDEW042T2_WIDTH / 8; x++)
     {
-      uint8_t data = (y <  GxGDEW042T2_HEIGHT / 2) ? 0xFF : 0x00;
+      uint8_t data = 0xFF;
+      if ((x < 1) && (y < 8)) data = 0x00;
+      if ((x > GxGDEW042T2_WIDTH / 8 - 3) && (y < 16)) data = 0x00;
+      if ((x > GxGDEW042T2_WIDTH / 8 - 4) && (y > GxGDEW042T2_HEIGHT - 25)) data = 0x00;
+      if ((x < 4) && (y > GxGDEW042T2_HEIGHT - 33)) data = 0x00;
       IO.writeDataTransaction(data);
     }
   }
   IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("greyTest display refresh");
+  _waitWhileBusy("drawCornerTest");
   _sleep();
 }
 

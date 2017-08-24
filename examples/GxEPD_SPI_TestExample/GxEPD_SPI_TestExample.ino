@@ -36,9 +36,9 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>
-//#include <GxGDEW042T2/GxGDEW042T2.cpp>
+#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
 
 // uncomment next line for drawBitmap() test, (consumes RAM on ESP8266)
@@ -160,7 +160,9 @@ void setup()
 void loop()
 {
   showBitmapExample();
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
   showGridIcons();
+#endif
   //drawCornerTest();
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
@@ -250,6 +252,8 @@ void drawCornerTest()
   }
 }
 
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
+
 #include "imglib/gridicons_add_image.h"
 #include "imglib/gridicons_add_outline.h"
 #include "imglib/gridicons_add.h"
@@ -288,5 +292,5 @@ void showGridIcons()
   delay(1000);
 }
 
-
+#endif
 

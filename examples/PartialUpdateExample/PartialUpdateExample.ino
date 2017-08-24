@@ -16,7 +16,8 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>
+#include <GxGDEW042T2/GxGDEW042T2.cpp>
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -42,9 +43,9 @@
 //GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
 GxIO_Class io(SPI, SS, D3, D4);
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-//GxEPD_Class display(io);
+GxEPD_Class display(io);
 // or my IoT connection, busy on MISO
-GxEPD_Class display(io, D4, D6);
+//GxEPD_Class display(io, D4, D6);
 
 #elif defined(ESP32)
 
@@ -144,7 +145,7 @@ void showPartialUpdate()
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(2000);
 
@@ -167,7 +168,7 @@ void showPartialUpdate()
   {
     // reset the background
     display.setRotation(0);
-    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
     display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
     display.setRotation(r);
     for (uint16_t i = 1; i <= 10; i++)
@@ -187,7 +188,7 @@ void showPartialUpdate()
   // should show on right side of long side
   // reset the background
   display.setRotation(0);
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
   // show where the update box is
   for (uint16_t r = 0; r < 4; r++)
@@ -204,7 +205,7 @@ void showPartialUpdate()
   {
     // reset the background
     display.setRotation(0);
-    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK, true);
+    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
     display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
     display.setRotation(r);
     if (box_x >= display.width()) continue; // avoid delay
