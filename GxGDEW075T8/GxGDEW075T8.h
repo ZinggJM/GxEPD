@@ -9,22 +9,22 @@
 
    Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 #ifndef _GxGDEW075T8_H_
@@ -47,20 +47,22 @@
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
-#if defined(ESP8266)
-#define RST D4
-#define BSY D2
-#else
-#define RST 9
-#define BSY 7
-#endif
+#define GxGDEW075T8_BUFFER_SIZE (uint32_t(GxGDEW075T8_WIDTH) * uint32_t(GxGDEW075T8_HEIGHT) / 8)
 
-#define GxGDEW075T8_BUFFER_SIZE GxGDEW075T8_WIDTH * GxGDEW075T8_HEIGHT / 8
+// divisor for AVR, should be factor of GxGDEW075T8_HEIGHT
+#define GxGDEW075T8_PAGES 24
+
+#define GxGDEW075T8_PAGE_HEIGHT (GxGDEW075T8_HEIGHT / GxGDEW075T8_PAGES)
+#define GxGDEW075T8_PAGE_SIZE (GxGDEW075T8_BUFFER_SIZE / GxGDEW075T8_PAGES)
 
 class GxGDEW075T8 : public GxEPD
 {
   public:
-    GxGDEW075T8(GxIO& io, uint8_t rst = RST, uint8_t busy = BSY);
+#if defined(ESP8266)
+    GxGDEW075T8(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+#else
+    GxGDEW075T8(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+#endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
@@ -71,13 +73,30 @@ class GxGDEW075T8 : public GxEPD
     void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = false);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update);
+    void eraseDisplay(bool using_partial_update = false);
+    // partial update
+    // note: on this display, partial update to display RAM works, but refresh is full screen
+    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW075T8_PAGES times
+    // each call of drawCallback() should draw the same
+    void drawPaged(void (*drawCallback)(void));
+    void drawCornerTest();
   private:
-    void _waitWhileBusy(const char* comment=0);
-    void _wakeUp(bool partial);
+    void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
+    void _wakeUp();
     void _sleep();
+    void _waitWhileBusy(const char* comment = 0);
+    void _send8pixel(uint8_t data);
   private:
-    unsigned char _buffer[GxGDEW075T8_BUFFER_SIZE];
+#if defined(__AVR)
+    uint8_t _buffer[GxGDEW075T8_PAGE_SIZE];
+#else
+    uint8_t _buffer[GxGDEW075T8_BUFFER_SIZE];
+#endif
     GxIO& IO;
+    int16_t _current_page;
+    bool _using_partial_mode;
     uint8_t _rst;
     uint8_t _busy;
 };
