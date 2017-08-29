@@ -1,15 +1,16 @@
 /************************************************************************************
-   GxEPD_TestExample : test example for e-Paper displays from GoodDisplay.com
+   GxEPD_SPI_IconGrid_Example : test example for e-Paper displays from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
-   modified by : bytecrusher
+   Contributor : bytecrusher
 
-   Version : 1.1
+   Version : 2.0
 
-   Support: Tested on ESP32 and waveshare 2.9inch.
+   Support: limited, provided as example, no claim to be fit for serious use
+            Tested on ESP32, ESP8266 and Arduino NANO with waveshare 2.9inch.
 */
 
 // include library, include base class, make path known
@@ -205,7 +206,9 @@
 //GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
 GxIO_Class io(SPI, SS, D3, D4); // arbitrary selection of D3, D4 selected for default of GxEPD_Class
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-GxEPD_Class display(io); // default selection of D4, D2
+//GxEPD_Class display(io); // default selection of D4, D2
+// my IoT connection, busy on MISO
+GxEPD_Class display(io, D4, D6);
 
 #elif defined(ESP32)
 
@@ -242,28 +245,54 @@ void setup()
 
 void loop()
 {
-  showBitmapExample();
+  showIconGridExample();
   delay(10000);
 }
 
-void showBitmapExample()
+void showIconGridExample()
 {
-#ifdef _GxBitmapExamples_H_
-#ifdef _GxGDEW027C44_H_
-  // draw black and red bitmap
-  display.drawPicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1));
-  delay(2000);
-  display.setRotation(3);
-#else
-
   display.setRotation(1);
   display.fillScreen(GxEPD_WHITE);
 
-  
+#if defined(__AVR) // || true
+
+  display.drawPaged(drawIconScreen_1);
+  delay(2000);
+
+#if !defined(__AVR)
+
+  display.drawPaged(drawIconScreen_2);
+  delay(2000);
+
+  display.drawPaged(drawIconScreen_3);
+  delay(2000);
+
+#endif
+
+#else
+
+  drawIconScreen_1();
+  display.update();
+  delay(2000);
+
+  drawIconScreen_2();
+  display.update();
+  delay(2000);
+
+  drawIconScreen_3();
+  display.update();
+  delay(2000);
+
+#endif
+}
+
+void drawIconScreen_1()
+{
   display.drawBitmap(0, 0, gridicons_add_image, 24, 24, GxEPD_BLACK);
   display.drawBitmap(25, 0, gridicons_add_outline, 24, 24, GxEPD_BLACK);
   display.drawBitmap(50, 0, gridicons_add, 24, 24, GxEPD_BLACK);
   display.drawBitmap(75, 0, gridicons_align_center, 24, 24, GxEPD_BLACK);
+#if !defined(__AVR)
   display.drawBitmap(100, 0, gridicons_attachment, 24, 24, GxEPD_BLACK);
   display.drawBitmap(125, 0, gridicons_audio, 24, 24, GxEPD_BLACK);
   display.drawBitmap(150, 0, gridicons_bell, 24, 24, GxEPD_BLACK);
@@ -319,10 +348,13 @@ void showBitmapExample()
   display.drawBitmap(200, 100, gridicons_custom_post_type, 24, 24, GxEPD_BLACK);
   display.drawBitmap(225, 100, gridicons_dropdown, 24, 24, GxEPD_BLACK);
   display.drawBitmap(250, 100, gridicons_ellipsis_circle, 24, 24, GxEPD_BLACK);
+#endif
+}
 
-  display.update();
-  delay(2000);
+#if !defined(__AVR)
 
+void drawIconScreen_2()
+{
   display.drawBitmap(0, 0, gridicons_ellipsis, 24, 24, GxEPD_BLACK);
   display.drawBitmap(25, 0, gridicons_external, 24, 24, GxEPD_BLACK);
   display.drawBitmap(50, 0, gridicons_flag, 24, 24, GxEPD_BLACK);
@@ -334,7 +366,7 @@ void showBitmapExample()
   display.drawBitmap(200, 0, gridicons_fullscreen, 24, 24, GxEPD_BLACK);
   display.drawBitmap(225, 0, gridicons_globe, 24, 24, GxEPD_BLACK);
   display.drawBitmap(250, 0, gridicons_grid, 24, 24, GxEPD_BLACK);
-  
+
   display.drawBitmap(0, 25, gridicons_heading_h1, 24, 24, GxEPD_BLACK);
   display.drawBitmap(25, 25, gridicons_heading_h2, 24, 24, GxEPD_BLACK);
   display.drawBitmap(50, 25, gridicons_heading_h4, 24, 24, GxEPD_BLACK);
@@ -382,10 +414,10 @@ void showBitmapExample()
   display.drawBitmap(200, 100, gridicons_pages, 24, 24, GxEPD_BLACK);
   display.drawBitmap(225, 100, gridicons_pause, 24, 24, GxEPD_BLACK);
   display.drawBitmap(250, 100, gridicons_pencil, 24, 24, GxEPD_BLACK);
-  
-  display.update();
-  delay(2000);
+}
 
+void drawIconScreen_3()
+{
   display.drawBitmap(0, 0, gridicons_phone, 24, 24, GxEPD_BLACK);
   display.drawBitmap(25, 0, gridicons_play, 24, 24, GxEPD_BLACK);
   display.drawBitmap(50, 0, gridicons_plugins, 24, 24, GxEPD_BLACK);
@@ -443,13 +475,9 @@ void showBitmapExample()
   display.drawBitmap(150, 100, gridicons_video_camera, 24, 24, GxEPD_BLACK);
   display.drawBitmap(175, 100, gridicons_video, 24, 24, GxEPD_BLACK);
   display.drawBitmap(200, 100, gridicons_visible, 24, 24, GxEPD_BLACK);
-
-  display.update();
-  delay(2000);
-  
-#endif
-#endif
 }
+
+#endif
 
 void showFont(const char name[], const GFXfont* f)
 {
