@@ -34,7 +34,8 @@ The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI displ
 
 Preliminary support for partial update and paged drawing (AVR, low RAM), for test.
 To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for code space.
-Only for GxGDEP015OC1 and GxGDEH029A1 for now. More tests to be done; use cases?
+
+Added GxGDEH029A1_RDEM, a test version for Ram Data Entry Mode test on 2.9inch display.
 
 --------------------------------------------------------------------------------------------
 
