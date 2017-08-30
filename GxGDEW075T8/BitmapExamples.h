@@ -1,10 +1,10 @@
 #ifndef _GxBitmapExamples_H_
 #define _GxBitmapExamples_H_
 
-#if !defined(ESP8266)
-#include <avr/pgmspace.h>
-#else
+#if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
 #endif
 
 const unsigned char BitmapExample1[] PROGMEM =

@@ -11,7 +11,7 @@
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------

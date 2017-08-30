@@ -11,7 +11,7 @@
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
@@ -35,10 +35,10 @@
 
 #include "GxGDEW075T8.h"
 
-#if !defined(ESP8266)
-#include <avr/pgmspace.h>
-#else
+#if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
 #endif
 
 GxGDEW075T8::GxGDEW075T8(GxIO& io, uint8_t rst, uint8_t busy)
@@ -149,7 +149,7 @@ void  GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR) || defined(ESP8266)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
         uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
 #else
         uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
@@ -165,7 +165,7 @@ void  GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR) || defined(ESP8266)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
         uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
 #else
         uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
@@ -192,7 +192,7 @@ void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
     _setPartialRamArea(0, 0, GxGDEW075T8_WIDTH - 1, GxGDEW075T8_HEIGHT - 1);
     for (uint32_t i = 0; i < GxGDEW075T8_BUFFER_SIZE; i++)
     {
-#if defined(__AVR) || defined(ESP8266)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
       _send8pixel(i < size ? pgm_read_byte(bitmap + i) : 0);
 #else
       _send8pixel(i < size ? bitmap[i] : 0);
@@ -214,7 +214,7 @@ void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
       // (31000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 600ms is safe
       // if ((i % 10000) == 0) yield(); // avoid watchdog reset
 #endif
-#if defined(__AVR) || defined(ESP8266)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
       _send8pixel(i < size ? pgm_read_byte(bitmap + i) : 0);
 #else
       _send8pixel(i < size ? bitmap[i] : 0);
