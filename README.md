@@ -37,6 +37,10 @@ To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for 
 
 Added GxGDEH029A1_RDEM, a test version for Ram Data Entry Mode test on 2.9inch display.
 
+Important note: the current implementation has an open issue: width of bitmaps must be multipe of 8. 
+
+Use one of the non-overriden drawBitmap methods of Adafruit_GFX if needed to avoid this restriction.
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
@@ -50,3 +54,7 @@ These display can be used with the red DESTM32-L evaluation board, it has 1MB FS
 The library classes for these display can be used with the STM32GENERIC package for Arduino IDE.
 
 Added GxGDE043A2 4.3 inch 800 x 600 pixel 4 gray level, with unresolved degradation issue
+
+Important note: the current implementation has an open issue: width of bitmaps must be multipe of 8. 
+
+Use one of the non-overriden drawBitmap methods of Adafruit_GFX if needed to avoid this restriction.
