@@ -1,5 +1,5 @@
 /************************************************************************************
-   class GxGDEW042T2 : Display class example for GxGDEW042T2 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+   class GxGDEW042T2 : Display class example for GDEW042T2 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
    based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
@@ -30,7 +30,9 @@
 
 #include "GxGDEW042T2.h"
 
-#if defined(__AVR)
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
 #include <avr/pgmspace.h>
 #endif
 
@@ -116,7 +118,7 @@ void GxGDEW042T2::update(void)
   IO.writeCommandTransaction(0x13);
   for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
   {
-    uint8_t data = _buffer[i];
+    uint8_t data = i < sizeof(_buffer) ? _buffer[i] : 0x00;
     IO.writeDataTransaction(~data);
   }
   IO.writeCommandTransaction(0x12);      //display refresh
@@ -138,7 +140,7 @@ void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
         uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #else
         uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
@@ -154,7 +156,7 @@ void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       for (uint16_t y1 = y; y1 < y + h; y1++)
       {
         uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
         uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
 #else
         uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
@@ -181,7 +183,7 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
     _setPartialRamArea(0, 0, GxGDEW042T2_WIDTH - 1, GxGDEW042T2_HEIGHT - 1);
     for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
     {
-#if defined(__AVR)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
       IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
 #else
       IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);
@@ -198,7 +200,7 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
     IO.writeCommandTransaction(0x13);
     for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
     {
-#if defined(__AVR)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
       IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
 #else
       IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);

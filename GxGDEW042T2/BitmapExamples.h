@@ -1,7 +1,13 @@
 #ifndef _GxBitmapExamples_H_
 #define _GxBitmapExamples_H_
 
-const unsigned char BitmapExample1[] =
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
+
+const unsigned char BitmapExample1[] PROGMEM =
 {
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
@@ -942,7 +948,7 @@ const unsigned char BitmapExample1[] =
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,};
 
-const unsigned char BitmapExample2[] =
+const unsigned char BitmapExample2[] PROGMEM =
 {
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,

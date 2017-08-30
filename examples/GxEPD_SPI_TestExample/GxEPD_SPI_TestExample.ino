@@ -31,8 +31,6 @@
 // include library, include base class, make path known
 #include <GxEPD.h>
 
-#include "IMG_0001.h"
-
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
@@ -171,6 +169,10 @@ void loop()
   delay(10000);
 }
 
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
+#include "IMG_0001.h"
+#endif
+
 void showBitmapExample()
 {
 #ifdef _GxBitmapExamples_H_
@@ -203,11 +205,13 @@ void showBitmapExample()
   display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK); // new signature
   display.update();
   delay(10000);
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
   display.fillScreen(GxEPD_WHITE);
   // thanks to bytecrusher: http://forum.arduino.cc/index.php?topic=487007.msg3367378#msg3367378
   display.drawBitmap(gImage_IMG_0001, 50, 50, 64, 180, GxEPD_BLACK); // new signature
   display.update();
   delay(10000);
+#endif
 #endif
 #endif
 }
