@@ -7,9 +7,9 @@
 
    modified by :
 
-   Version : 2.0
+   Version : 2.1
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
@@ -60,6 +60,12 @@
 // E13 : BUSY -> D2
 // E11 : BS   -> GND
 
+// mapping from Waveshare 1.54inch e-Paper to Wemos D1 mini
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
+// mapping example for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, CS -> 10, CLK -> 13, DIN -> 11
+
 class GxGDEP015OC1 : public GxEPD
 {
   public:
@@ -72,21 +78,26 @@ class GxGDEP015OC1 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
-    // to buffer, may be cropped, drawPixel() used, update needed, old signature kept
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
     void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
-    // to buffer, may be cropped, drawPixel() used, update needed, new signature, mirror default for example bitmaps
-    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = true);
+    // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
+    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_flip_v | bm_invert);
     // to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint32_t size); 
-    void drawBitmap_TestRamEntryMode(const uint8_t *bitmap, uint32_t size, uint8_t rdem); // flip test h, v, both
-    void drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size)
+    {
+      drawBitmap(bitmap, size, bm_flip_v); // default for example bitmaps
+    }
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode);
     void eraseDisplay(bool using_partial_update = false);
     // partial update
     void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEP015OC1_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEH029A1_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
-    void drawCornerTest(uint8_t rdem = 0x01);
+    void drawCornerTest(uint8_t em = 0x01);
+    // private methods kept available public
+    void drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em); // ram data entry mode
+    void drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em); // partial update mode
     // GxGDEP015OC1 has a nice demo example with multipe bitmaps and partial updates
     void showDemoExample();
   private:
@@ -98,12 +109,12 @@ class GxGDEP015OC1 : public GxEPD
     void _PowerOn(void);
     void _PowerOff(void);
     void _waitWhileBusy(const char* comment = 0);
-    void _setRamDataEntryMode(uint8_t rdem);
+    void _setRamDataEntryMode(uint8_t em);
     void _writeDisplayRam(uint16_t XSize, uint16_t YSize, const uint8_t* data);
     void _writeDisplayRamMono(uint16_t XSize, uint16_t YSize, uint8_t value);
-    void _InitDisplay(uint8_t rdem);
-    void _Init_Full(uint8_t rdem);
-    void _Init_Part(uint8_t rdem);
+    void _InitDisplay(uint8_t em);
+    void _Init_Full(uint8_t em);
+    void _Init_Part(uint8_t em);
     void _Update_Full(void);
     void _Update_Part(void);
     void _partial_display(uint8_t RAM_XST, uint8_t RAM_XEND, uint8_t RAM_YST, uint8_t RAM_YST1, uint8_t RAM_YEND, uint8_t RAM_YEND1);

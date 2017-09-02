@@ -1,4 +1,6 @@
-// NicePartialUpdateDemo_1.54 : test example for Waveshare 1.54" e-Paper and GDEP015OC1 from Dalian Good Display Inc.
+// PagedDisplayExampleForNanoRam : test example for e-Paper displays from Waveshare and from Dalian Good Display Inc.
+//                                 shows how the full display screen can be used with Adafruit_GFX on small RAM Arduinos
+//                                 runs also on Arduinos with more RAM, e.g. ESP8266, for test
 //
 // Created by Jean-Marc Zingg based on demo code from Good Display for GDEP015OC1.
 //
@@ -10,12 +12,29 @@
 // or https://www.aliexpress.com/store/product/E001-1-54-inch-partial-refresh-Small-size-dot-matrix-e-paper-display/600281_32815089163.html
 //
 
+// Supporting Arduino Forum Topics:
+// Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
+// Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
+
+// mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
+// BUSY -> D6, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
+// mapping example for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
+
 // include library, include base class, make path known
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-//#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+//#include <GxGDE0213B1/GxGDE0213B1.cpp>
+#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEW027C44/GxGDEW027C44.cpp>
+
+// this one does not yet work with my NANO and my level converter
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>
+// this one is not yet tested with any AVR
+//#include <GxGDEW075T8/GxGDEW075T8.cpp>
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -42,6 +61,8 @@
 GxIO_Class io(SPI, SS, D3, D4);
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
 GxEPD_Class display(io);
+// my IoT connection, busy on MISO
+//GxEPD_Class display(io, D4, D6);
 
 #elif defined(ESP32)
 

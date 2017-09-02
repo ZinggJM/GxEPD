@@ -7,7 +7,7 @@
 
    modified by :
 
-   Version : 2.0
+   Version : 2.1
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -131,51 +131,65 @@ void  GxGDEW042T2::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+void  GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mirror)
+  uint16_t inverse_color = (color == GxEPD_WHITE) ? GxEPD_BLACK : GxEPD_WHITE;
+  uint16_t fg_color = (mode & bm_invert) ? inverse_color : color;
+  uint16_t bg_color = (mode & bm_invert) ? color : inverse_color;
+  // taken from Adafruit_GFX.cpp, modified
+  int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+  uint8_t byte = 0;
+  for (int16_t j = 0; j < h; j++, y++)
   {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
+    for (int16_t i = 0; i < w; i++ )
     {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
+      if (i & 7) byte <<= 1;
+      else
       {
-        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
 #if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+        byte = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
 #else
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+        byte = bitmap[j * byteWidth + i / 8];
 #endif
-        drawPixel(x1, y1, pixelcolor);
       }
-    }
-  }
-  else
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
-#else
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
-#endif
-        drawPixel(x1, y1, pixelcolor);
-      }
+      // keep using overwrite mode
+      uint16_t pixelcolor = (byte & 0x80) ? fg_color  : bg_color;
+      if (mode & bm_flip_v) drawPixel(GxGDEW042T2_WIDTH - (x + i) - 1, y, pixelcolor);
+      else drawPixel(x + i, y, pixelcolor);
     }
   }
 }
 
-void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
-  drawBitmap(bitmap, size, false);
+  uint8_t ram_entry_mode = 0x03;
+  if ((mode & bm_flip_h) && (mode & bm_flip_v)) ram_entry_mode = 0x00;
+  else if (mode & bm_flip_h) ram_entry_mode = 0x01;
+  else if (mode & bm_flip_v) ram_entry_mode = 0x02;
+  if (mode & bm_partial_update) drawBitmapPU(bitmap, size, ram_entry_mode);
+  else drawBitmapEM(bitmap, size, ram_entry_mode);
 }
 
-void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update)
+void GxGDEW042T2::drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em)
 {
-  if (using_partial_update)
-  {
+    _using_partial_mode = false; // remember
+    _wakeUp();
+    IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+      IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+      IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);
+#endif
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("drawBitmap");
+    _sleep();
+}
+
+void GxGDEW042T2::drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em)
+{
     _using_partial_mode = true; // remember
     _wakeUp();
     // set full screen
@@ -192,24 +206,6 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
     IO.writeCommandTransaction(0x92); // partial out
-  }
-  else
-  {
-    _using_partial_mode = false; // remember
-    _wakeUp();
-    IO.writeCommandTransaction(0x13);
-    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
-    {
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-      IO.writeDataTransaction((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
-#else
-      IO.writeDataTransaction((i < size) ? bitmap[i] : 0xFF);
-#endif
-    }
-    IO.writeCommandTransaction(0x12);      //display refresh
-    _waitWhileBusy("drawBitmap");
-    _sleep();
-  }
 }
 
 void GxGDEW042T2::eraseDisplay(bool using_partial_update)
@@ -378,7 +374,7 @@ void GxGDEW042T2::drawPaged(void (*drawCallback)(void))
   _sleep();
 }
 
-void GxGDEW042T2::drawCornerTest()
+void GxGDEW042T2::drawCornerTest(uint8_t em)
 {
   _wakeUp();
   IO.writeCommandTransaction(0x13);

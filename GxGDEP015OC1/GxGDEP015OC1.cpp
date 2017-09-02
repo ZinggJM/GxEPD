@@ -1,36 +1,38 @@
 /************************************************************************************
-   class GxGDEP015OC1 : Display class example for GDEP015OC1 e-Paper from GoodDisplay.com
+   class GxGDEP015OC1 : Display class example for GDEP015OC1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from GoodDisplay.com, avalable with any order for such a display, no copyright notice.
+   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 
    Author : J-M Zingg
 
    modified by :
 
-   Version : 2.0
+   Version : 2.1
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
        |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
+       |  VCC  |o o| VCC 5V, not needed
        |  GND  |o o| GND
        |  3.3  |o o| 3.3V
        |  nc   |o o| nc
        |  nc   |o o| nc
        |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
+       |  MOSI |o o| CLK=SCK
+       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
        |  RST  |o o| BUSY
-       |  nc   |o o| BS
+       |  nc   |o o| BS, connect to GND
        |-------------------------------------------------
 */
 #include "GxGDEP015OC1.h"
 #include "BitmapExamples.h"
 
-#if defined(__AVR)
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
 #include <avr/pgmspace.h>
 #endif
 
@@ -60,7 +62,8 @@ const uint8_t LUTDefault_part[31] =
 //  0x88, 0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51, 0x35, 0x51, 0x51, 0x19, 0x01, 0x00
 //};
 
-const uint8_t LUTDefault_full[31] = {
+const uint8_t LUTDefault_full[31] = 
+{
   0x32,	// command //C221 25C Full update waveform
   0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -85,7 +88,7 @@ uint8_t BOOSTERFB[] = {0xf0, 0x1f}; // Source voltage +15V/-15V
 uint8_t DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
 uint8_t Gatetime[] = {0x3b, 0x08}; // 2us per line
 uint8_t BorderWavefrom[] = {0x3c, 0x33}; // Border
-uint8_t RamDataEntryMode[] = {0x11, 0x01}; // Ram data entry mode
+//uint8_t RamDataEntryMode[] = {0x11, 0x01}; // Ram data entry mode
 
 GxGDEP015OC1::GxGDEP015OC1(GxIO& io, uint8_t rst, uint8_t busy) :
   GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT),
@@ -148,6 +151,8 @@ void GxGDEP015OC1::init(void)
   pinMode(_rst, OUTPUT);
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
+  _current_page = -1;
+  _using_partial_mode = false;
 }
 
 void GxGDEP015OC1::fillScreen(uint16_t color)
@@ -163,20 +168,15 @@ void GxGDEP015OC1::update(void)
 {
   if (_current_page != -1) return;
   _using_partial_mode = false;
-  _Init_Full();
+  _Init_Full(0x03);
   _writeCommand(0x24);
   for (uint16_t y = 0; y < GxGDEP015OC1_HEIGHT; y++)
   {
-    for (uint16_t x = GxGDEP015OC1_WIDTH / 8; x > 0; x--)
+    for (uint16_t x = 0; x < GxGDEP015OC1_WIDTH / 8; x++)
     {
-      uint16_t idx = y * (GxGDEP015OC1_WIDTH / 8) + x - 1;
+      uint16_t idx = y * (GxGDEP015OC1_WIDTH / 8) + x;
       uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      uint8_t mirror = 0x00;
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        mirror |= ((data >> i) & 0x01) << (7 - i);
-      }
-      _writeData(~mirror);
+      _writeData(~data);
     }
   }
   _Update_Full();
@@ -188,103 +188,103 @@ void  GxGDEP015OC1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void  GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+void  GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mirror)
+  uint16_t inverse_color = (color == GxEPD_WHITE) ? GxEPD_BLACK : GxEPD_WHITE;
+  uint16_t fg_color = (mode & bm_invert) ? inverse_color : color;
+  uint16_t bg_color = (mode & bm_invert) ? color : inverse_color;
+  // taken from Adafruit_GFX.cpp, modified
+  int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+  uint8_t byte = 0;
+  for (int16_t j = 0; j < h; j++, y++)
   {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
+    for (int16_t i = 0; i < w; i++ )
     {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
+      if (i & 7) byte <<= 1;
+      else
       {
-        uint32_t i = (w - (x1 - x)- 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+        byte = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
 #else
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
+        byte = bitmap[j * byteWidth + i / 8];
 #endif
-        drawPixel(x1, y1, pixelcolor);
       }
-    }
-  }
-  else
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
-#else
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? GxEPD_WHITE  : color;
-#endif
-        drawPixel(x1, y1, pixelcolor);
-      }
+      // keep using overwrite mode
+      uint16_t pixelcolor = (byte & 0x80) ? fg_color  : bg_color;
+      if (mode & bm_flip_v) drawPixel(GxGDEP015OC1_WIDTH - (x + i) - 1, y, pixelcolor);
+      else drawPixel(x + i, y, pixelcolor);
     }
   }
 }
 
-void GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
-  drawBitmap(bitmap, size, false);
+  uint8_t ram_entry_mode = 0x03;
+  if ((mode & bm_flip_h) && (mode & bm_flip_v)) ram_entry_mode = 0x00;
+  else if (mode & bm_flip_h) ram_entry_mode = 0x01;
+  else if (mode & bm_flip_v) ram_entry_mode = 0x02;
+  if (mode & bm_partial_update) drawBitmapPU(bitmap, size, ram_entry_mode);
+  else drawBitmapEM(bitmap, size, ram_entry_mode);
 }
 
-void GxGDEP015OC1::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update)
+void GxGDEP015OC1::drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em)
+{
+  _using_partial_mode = false; // remember
+  _Init_Full(em);
+  _writeCommand(0x24);
+  for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
+  {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+    _writeData((i < size) ? bitmap[i] : 0xFF);
+#endif
+  }
+  _Update_Full();
+  _PowerOff();
+}
+
+void GxGDEP015OC1::drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em)
+{
+  _using_partial_mode = true; // remember
+  _Init_Part(em);
+  _writeCommand(0x24);
+  for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
+  {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+    _writeData((i < size) ? bitmap[i] : 0xFF);
+#endif
+  }
+  _Update_Part();
+  _PowerOff();
+}
+
+void GxGDEP015OC1::eraseDisplay(bool using_partial_update)
 {
   if (using_partial_update)
   {
     _using_partial_mode = true; // remember
-    _Init_Part();
-    // set full screen
-    _SetRamArea(0x00, xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
-    _SetRamPointer(0x00, yPixelsPar % 256, yPixelsPar / 256); // set ram
-    _writeCommand(0x24);
-    for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
-    {
-#if defined(__AVR)
-      _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
-#else
-      _writeData((i < size) ? bitmap[i] : 0xFF);
-#endif
-    }
-    _Update_Part();
-    _PowerOff();
-  }
-  else
-  {
-    _using_partial_mode = false; // remember
-    _Init_Full();
-    _writeCommand(0x24);
-    for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
-    {
-#if defined(__AVR)
-      _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
-#else
-      _writeData((i < size) ? bitmap[i] : 0xFF);
-#endif
-    }
-    _Update_Full();
-    _PowerOff();
-  }
-}
-
-void GxGDEP015OC1::eraseDisplay(bool using_partial_mode)
-{
-  if (using_partial_mode)
-  {
-    _using_partial_mode = true; // remember
-    _Init_Part();
+    _Init_Part(0x01);
     _writeCommand(0x24);
     for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
     {
       _writeData(0xFF);
     }
     _Update_Part();
+    // update erase buffer
+    _writeCommand(0x24);
+    for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
+    {
+      _writeData(0xFF);
+    }
     _PowerOff();
   }
   else
   {
-    _Init_Full();
+    _using_partial_mode = false; // remember
+    _Init_Full(0x01);
     _writeCommand(0x24);
     for (uint32_t i = 0; i < GxGDEP015OC1_BUFFER_SIZE; i++)
     {
@@ -322,49 +322,36 @@ void GxGDEP015OC1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
   if (y >= GxGDEP015OC1_HEIGHT) return;
   uint16_t xe = min(GxGDEP015OC1_WIDTH, x + w) - 1;
   uint16_t ye = min(GxGDEP015OC1_HEIGHT, y + h) - 1;
-  uint16_t xs_bx = x / 8;
-  uint16_t xe_bx = (xe + 7) / 8;
-  uint16_t p_xs = (GxGDEP015OC1_WIDTH - xe - 1) / 8;
-  uint16_t p_xe = (GxGDEP015OC1_WIDTH - x - 1) / 8;
-  uint16_t p_ys = (GxGDEP015OC1_HEIGHT - y - 1);
-  uint16_t p_ye = (GxGDEP015OC1_HEIGHT - ye - 1);
-  _Init_Part();
-  _SetRamArea(p_xs, p_xe, p_ys % 256, p_ys / 256, p_ye % 256, p_ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(p_xs, p_ys % 256, p_ys / 256); // set ram
+  uint16_t xs_d8 = x / 8;
+  uint16_t xe_d8 = xe / 8; //(xe + 7) / 8;
+  _Init_Part(0x03);
+  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
+  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
   _waitWhileBusy();
   _writeCommand(0x24);
   for (int16_t y1 = y; y1 <= ye; y1++)
   {
-    for (int16_t x1 = xe_bx; x1 > xs_bx; x1--)
+    for (int16_t x1 = xs_d8; x1 <= xe_d8; x1++)
     {
-      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1 - 1;
+      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1;
       uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      uint8_t mirror = 0x00;
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        mirror |= ((data >> i) & 0x01) << (7 - i);
-      }
-      _writeData(~mirror);
+      _writeData(~data);
     }
   }
   _Update_Part();
   delay(300);
-  _SetRamArea(p_xs, p_xe, p_ys % 256, p_ys / 256, p_ye % 256, p_ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(p_xs, p_ys % 256, p_ys / 256); // set ram
+  // update erase buffer
+  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
+  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
   _waitWhileBusy();
   _writeCommand(0x24);
   for (int16_t y1 = y; y1 <= ye; y1++)
   {
-    for (int16_t x1 = xe_bx; x1 > xs_bx; x1--)
+    for (int16_t x1 = xs_d8; x1 <= xe_d8; x1++)
     {
-      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1 - 1;
+      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1;
       uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      uint8_t mirror = 0x00;
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        mirror |= ((data >> i) & 0x01) << (7 - i);
-      }
-      _writeData(~mirror);
+      _writeData(~data);
     }
   }
   delay(300);
@@ -422,6 +409,32 @@ void GxGDEP015OC1::_waitWhileBusy(const char* comment)
   }
 }
 
+void GxGDEP015OC1::_setRamDataEntryMode(uint8_t em)
+{
+  em = min(em, 0x03);
+  _writeCommand(0x11);
+  _writeData(em);
+  switch (em)
+  {
+    case 0x00: // x decrease, y decrease
+      _SetRamArea(xPixelsPar / 8, 0x00, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
+      _SetRamPointer(xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256); // set ram
+      break;
+    case 0x01: // x increase, y decrease : as in demo code
+      _SetRamArea(0x00, xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
+      _SetRamPointer(0x00, yPixelsPar % 256, yPixelsPar / 256); // set ram
+      break;
+    case 0x02: // x decrease, y increase
+      _SetRamArea(xPixelsPar / 8, 0x00, 0x00, 0x00, yPixelsPar % 256, yPixelsPar / 256);  // X-source area,Y-gate area
+      _SetRamPointer(xPixelsPar / 8, 0x00, 0x00); // set ram
+      break;
+    case 0x03: // x increase, y increase : normal mode
+      _SetRamArea(0x00, xPixelsPar / 8, 0x00, 0x00, yPixelsPar % 256, yPixelsPar / 256);  // X-source area,Y-gate area
+      _SetRamPointer(0x00, 0x00, 0x00); // set ram
+      break;
+  }
+}
+
 void GxGDEP015OC1::_SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1)
 {
   _writeCommand(0x44);
@@ -459,7 +472,7 @@ void GxGDEP015OC1::_PowerOff(void)
 
 void GxGDEP015OC1::showDemoExample()
 {
-  _Init_Full();
+  _Init_Full(0x01);
   delay(300);
 
   _Display_Full(first, 1); // pic
@@ -478,7 +491,7 @@ void GxGDEP015OC1::showDemoExample()
   _Display_Full(logo, 1); //  pic
   delay(3000);
 
-  _Init_Part();
+  _Init_Part(0x01);
   delay(300);
 
   _Display_Part(0, xPixelsPar, 0, yPixelsPar, logo, 1); //pic
@@ -489,13 +502,13 @@ void GxGDEP015OC1::showDemoExample()
   }
   delay(1500);
 
-  _Init_Full();
+  _Init_Full(0x01);
   delay(300);
   uint8_t w = 0xff;
   _Display_Full(&w, 0); //all white
   delay(1500);
 
-  _Init_Part();
+  _Init_Part(0x01);
   delay(300);
 
   while (1)
@@ -538,7 +551,7 @@ void GxGDEP015OC1::_writeDisplayRam(uint16_t XSize, uint16_t YSize, const uint8_
   {
     for (uint16_t j = 0; j < xBytes; j++)
     {
-#if defined(__AVR)
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
       _writeData(pgm_read_byte(data));
 #else
       _writeData(*data);
@@ -569,28 +582,26 @@ void GxGDEP015OC1::_partial_display(uint8_t RAM_XST, uint8_t RAM_XEND, uint8_t R
   _SetRamPointer (RAM_XST, RAM_YST, RAM_YST1);      /*set orginal*/
 }
 
-void GxGDEP015OC1::_InitDisplay(void)
+void GxGDEP015OC1::_InitDisplay(uint8_t em)
 {
   _writeCommandData(GDOControl, sizeof(GDOControl));  // Pannel configuration, Gate selection
   _writeCommandData(softstart, sizeof(softstart));  // X decrease, Y decrease
   _writeCommandData(VCOMVol, sizeof(VCOMVol));    // VCOM setting
   _writeCommandData(DummyLine, sizeof(DummyLine));  // dummy line per gate
   _writeCommandData(Gatetime, sizeof(Gatetime));    // Gate time setting
-  _writeCommandData(RamDataEntryMode, sizeof(RamDataEntryMode));  // X increase, Y decrease
-  _SetRamArea(0x00, xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
-  _SetRamPointer(0x00, yPixelsPar % 256, yPixelsPar / 256); // set ram
+  _setRamDataEntryMode(em);
 }
 
-void GxGDEP015OC1::_Init_Full(void)
+void GxGDEP015OC1::_Init_Full(uint8_t em)
 {
-  _InitDisplay();
+  _InitDisplay(em);
   _writeCommandData(LUTDefault_full, sizeof(LUTDefault_full));
   _PowerOn();
 }
 
-void GxGDEP015OC1::_Init_Part(void)
+void GxGDEP015OC1::_Init_Part(uint8_t em)
 {
-  _InitDisplay();
+  _InitDisplay(em);
   _writeCommandData(LUTDefault_part, sizeof(LUTDefault_part));
   _PowerOn();
 }
@@ -659,55 +670,40 @@ void GxGDEP015OC1::_Display_Part(uint8_t xStart, uint8_t xEnd, unsigned long ySt
 
 void GxGDEP015OC1::_drawCurrentPage()
 {
-  uint16_t x = 0;
-  uint16_t xe = GxGDEP015OC1_WIDTH - 1;
+  uint16_t xs_d8 = 0;
+  uint16_t xe_d8 = (GxGDEP015OC1_WIDTH - 1) / 8;
   uint16_t y = GxGDEP015OC1_PAGE_HEIGHT * _current_page;
   uint16_t ye = y + GxGDEP015OC1_PAGE_HEIGHT - 1;
-  uint16_t p_xs = (GxGDEP015OC1_WIDTH - xe - 1) / 8;
-  uint16_t p_xe = (GxGDEP015OC1_WIDTH - x - 1) / 8;
-  uint16_t p_ys = (GxGDEP015OC1_HEIGHT - y - 1);
-  uint16_t p_ye = (GxGDEP015OC1_HEIGHT - ye - 1);
-  _SetRamArea(p_xs, p_xe, p_ys % 256, p_ys / 256, p_ye % 256, p_ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(p_xs, p_ys % 256, p_ys / 256); // set ram
+  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
+  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
   _waitWhileBusy();
   _writeCommand(0x24);
   for (int16_t y1 = 0; y1 < GxGDEP015OC1_PAGE_HEIGHT; y1++)
   {
-    for (int16_t x1 = GxGDEP015OC1_WIDTH / 8; x1 > 0; x1--)
+    for (int16_t x1 = 0; x1 < GxGDEP015OC1_WIDTH / 8; x1++)
     {
-      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1 - 1;
+      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1;
       uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      uint8_t mirror = 0x00;
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        mirror |= ((data >> i) & 0x01) << (7 - i);
-      }
-      _writeData(~mirror);
+      _writeData(~data);
     }
   }
   _Update_Part();
   delay(300);
-#if 1 // this is required
-  _SetRamArea(p_xs, p_xe, p_ys % 256, p_ys / 256, p_ye % 256, p_ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(p_xs, p_ys % 256, p_ys / 256); // set ram
+  // update erase buffer
+  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
+  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
   _waitWhileBusy();
   _writeCommand(0x24);
   for (int16_t y1 = 0; y1 < GxGDEP015OC1_PAGE_HEIGHT; y1++)
   {
-    for (int16_t x1 = GxGDEP015OC1_WIDTH / 8; x1 > 0; x1--)
+    for (int16_t x1 = 0; x1 < GxGDEP015OC1_WIDTH / 8; x1++)
     {
-      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1 - 1;
+      uint16_t idx = y1 * (GxGDEP015OC1_WIDTH / 8) + x1;
       uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      uint8_t mirror = 0x00;
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        mirror |= ((data >> i) & 0x01) << (7 - i);
-      }
-      _writeData(~mirror);
+      _writeData(~data);
     }
   }
   delay(300);
-#endif
 }
 
 void GxGDEP015OC1::drawPaged(void (*drawCallback)(void))
@@ -718,7 +714,7 @@ void GxGDEP015OC1::drawPaged(void (*drawCallback)(void))
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  _Init_Part();
+  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEP015OC1_PAGES; _current_page++)
   {
     fillScreen(0xFF);
@@ -730,4 +726,25 @@ void GxGDEP015OC1::drawPaged(void (*drawCallback)(void))
   _current_page = -1;
   _PowerOff();
 }
+
+void GxGDEP015OC1::drawCornerTest(uint8_t em)
+{
+  _Init_Full(em);
+  _writeCommand(0x24);
+  for (uint32_t y = 0; y < GxGDEP015OC1_HEIGHT; y++)
+  {
+    for (uint32_t x = 0; x < GxGDEP015OC1_WIDTH / 8; x++)
+    {
+      uint8_t data = 0xFF;
+      if ((x < 1) && (y < 8)) data = 0x00;
+      if ((x > GxGDEP015OC1_WIDTH / 8 - 3) && (y < 16)) data = 0x00;
+      if ((x > GxGDEP015OC1_WIDTH / 8 - 4) && (y > GxGDEP015OC1_HEIGHT - 25)) data = 0x00;
+      if ((x < 4) && (y > GxGDEP015OC1_HEIGHT - 33)) data = 0x00;
+      _writeData(data);
+    }
+  }
+  _Update_Full();
+  _PowerOff();
+}
+
 

@@ -13,6 +13,16 @@
             Tested on ESP32, ESP8266 and Arduino NANO with waveshare 2.9inch.
 */
 
+// Supporting Arduino Forum Topics:
+// Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
+// Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
+
+// mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
+// mapping example for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
+
 // include library, include base class, make path known
 #include <GxEPD.h>
 
@@ -206,9 +216,9 @@
 //GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
 GxIO_Class io(SPI, SS, D3, D4); // arbitrary selection of D3, D4 selected for default of GxEPD_Class
 // GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-//GxEPD_Class display(io); // default selection of D4, D2
+GxEPD_Class display(io); // default selection of D4, D2
 // my IoT connection, busy on MISO
-GxEPD_Class display(io, D4, D6);
+//GxEPD_Class display(io, D4, D6);
 
 #elif defined(ESP32)
 

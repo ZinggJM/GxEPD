@@ -17,15 +17,18 @@ class GxEPD : public Adafruit_GFX
 {
   public:
     // bitmap presentation modes may be partially implemented by subclasses
-    enum bm_mode
+    enum bm_mode //BM_ModeSet
     {
-      bm_normal,
-      bm_default, // for use for BitmapExamples
-      bm_flip_h,
-      bm_flip_v,
-      bm_r90,
-      bm_r180,
-      bm_r270
+      bm_normal = 0,
+      bm_default = 1, // for use for BitmapExamples
+      // these potentially can be combined
+      bm_invert = (1 << 1),
+      bm_flip_h = (1 << 2),
+      bm_flip_v = (1 << 3),
+      bm_r90 = (1 << 4),
+      bm_r180 = (1 << 5),
+      bm_r270 = bm_r90 | bm_r180,
+      bm_partial_update = (1 << 6)
     };
   public:
     GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
@@ -33,10 +36,10 @@ class GxEPD : public Adafruit_GFX
     virtual void init(void) = 0;
     virtual void fillScreen(uint16_t color) = 0; // to buffer
     virtual void update(void) = 0;
-    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, Adafruit_GFX signature
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
     virtual void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color) = 0;
-    // to buffer, may be cropped, drawPixel() used, update needed, new signature, sublass may support some bm_modes
-    virtual void  drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m = bm_normal)
+    // to buffer, may be cropped, drawPixel() used, update needed, different signature, sublass may support some modes
+    virtual void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m = bm_normal)
     {
       // fall back, not yet implemented in all subclasses
       drawBitmap(x, y, bitmap, w, h, color);

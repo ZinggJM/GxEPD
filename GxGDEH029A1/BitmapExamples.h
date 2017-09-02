@@ -1,11 +1,13 @@
 #ifndef _GxBitmapExamples_H_
 #define _GxBitmapExamples_H_
-#if defined(__AVR)
-#include <avr/pgmspace.h>
-const unsigned char BitmapExample1[4736] PROGMEM = { /* 0X01,0X01,0X28,0X01,0X80,0X00, */
+
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
 #else
-const unsigned char BitmapExample1[4736] = { /* 0X01,0X01,0X28,0X01,0X80,0X00, */
+#include <avr/pgmspace.h>
 #endif
+
+const unsigned char BitmapExample1[4736] PROGMEM = { /* 0X01,0X01,0X28,0X01,0X80,0X00, */
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
@@ -304,12 +306,7 @@ const unsigned char BitmapExample1[4736] = { /* 0X01,0X01,0X28,0X01,0X80,0X00, *
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 };
 
-#if defined(__AVR)
-#include <avr/pgmspace.h>
 const unsigned char logo[] PROGMEM = {
-#else
-const unsigned char logo[] = {
-#endif
 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
@@ -609,7 +606,7 @@ const unsigned char logo[] = {
 
 };
 
-const unsigned char first[] = {
+const unsigned char first[] PROGMEM = {
 
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
@@ -910,7 +907,7 @@ const unsigned char first[] = {
 
 };
 
-const unsigned char second[] = {
+const unsigned char second[] PROGMEM = {
 
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
@@ -1211,7 +1208,7 @@ const unsigned char second[] = {
 
 };
 
-const unsigned char third[] = {
+const unsigned char third[] PROGMEM = {
 
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,

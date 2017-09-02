@@ -8,6 +8,11 @@ It needs roughly 20kB available RAM to buffer the black/white image for the SPI 
 ESP8266 or STM32 systems have just enough free RAM, e.g. Arduino Due, ESP8266 or STM32.
 I use it with Wemos D1 mini, STM32F103RB-Nucleo, and STMF103C8T6 (BluePill) systems.
 
+Supporting Arduino Forum Topics:
+
+- Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
+- Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
+
 Initial support is for E-Paper displays from Dalian Good Display Inc. with SPI:
 
 GDEW042T2 4.2 inch 400 x 300 pixel black/white
@@ -37,10 +42,11 @@ To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for 
 
 Added GxGDEH029A1_RDEM, a test version for Ram Data Entry Mode test on 2.9inch display.
 
-Important note: the current implementation has an open issue: width of bitmaps must be multipe of 8. 
+// mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
-Use one of the non-overriden drawBitmap methods of Adafruit_GFX if needed to avoid this restriction.
-
+// mapping example for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
