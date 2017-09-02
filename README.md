@@ -15,38 +15,31 @@ Supporting Arduino Forum Topics:
 
 Initial support is for E-Paper displays from Dalian Good Display Inc. with SPI:
 
-GDEW042T2 4.2 inch 400 x 300 pixel black/white
+- GDEW042T2 4.2 inch 400 x 300 pixel black/white
+- GDEW075T8 7.5 inch 640 x 384 pixel black/white
 
-GDEW075T8 7.5 inch 640 x 384 pixel black/white
-
-Added GDEP015OC1 1.54 inch 200 x 200 pixel black/white (initial version, no partial update)
-
-Added GDEW027C44 2.7 inch 176 x 264 pixel black/white/red
-
-Added example IoT_SHT31LP_Example_1.54inchEPD
-
-Added GDE0213B1 2.13 inch 128 x 250 pixel black/white
-
-Added GDEH029A1 2.9 inch 128 x 296 pixel black/white
+- Added GDEP015OC1 1.54 inch 200 x 200 pixel black/white
+- Added GDEW027C44 2.7 inch 176 x 264 pixel black/white/red
+- Added example IoT_SHT31LP_Example_1.54inchEPD
+- Added GDE0213B1 2.13 inch 128 x 250 pixel black/white
+- Added GDEH029A1 2.9 inch 128 x 296 pixel black/white
 
 These display can be connected using the DESTM32-S2 connection board to power and SPI.
 
-The GxGDEP015OC1 class can also be used with Waveshare 1.54inch e-Paper SPI display.
+- The GxGDEP015OC1 class can also be used with Waveshare 1.54inch e-Paper SPI display.
+- The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI display.
+- The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI display.
 
-The GxGDE0213B1  class can also be used with Waveshare 2.13inch e-Paper SPI display.
+Support for partial update and paged drawing (AVR, low RAM).
+- To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for code space.
+- Added GxGDEH029A1_RDEM, a test version for Ram Data Entry Mode test on 2.9inch display.
 
-The GxGDEH029A1  class can also be used with Waveshare 2.9inch e-Paper SPI display.
+mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini:
+- BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
-Preliminary support for partial update and paged drawing (AVR, low RAM), for test.
-To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for code space.
+mapping example for AVR, UNO, NANO etc.:
+- BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
 
-Added GxGDEH029A1_RDEM, a test version for Ram Data Entry Mode test on 2.9inch display.
-
-// mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
-// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
-
-// mapping example for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
