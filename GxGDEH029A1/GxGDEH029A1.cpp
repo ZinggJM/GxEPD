@@ -189,7 +189,7 @@ void  GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uin
       }
       // keep using overwrite mode
       uint16_t pixelcolor = (byte & 0x80) ? fg_color  : bg_color;
-      if (mode & bm_flip_v) drawPixel(GxGDEH029A1_WIDTH - (x + i) - 1, y, pixelcolor);
+      if (mode & bm_flip_v) drawPixel(width() - (x + i) - 1, y, pixelcolor);
       else drawPixel(x + i, y, pixelcolor);
     }
   }
