@@ -67,10 +67,11 @@ class GxGDEW075T8 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
-    // to buffer, may be cropped, drawPixel() used, update needed, old signature kept
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
+    // still needed here because of a signature matching issue of the ESP compiler (matches only if declared in subclass)
     void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
-    // to buffer, may be cropped, drawPixel() used, update needed, new signature, mirror default set for example bitmaps
-    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = false);
+    // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
+    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size);
     void drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update);
@@ -81,7 +82,7 @@ class GxGDEW075T8 : public GxEPD
     // paged drawing, for limited RAM, drawCallback() is called GxGDEW075T8_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
-    void drawCornerTest();
+    void drawCornerTest(uint8_t em = 0x01);
   private:
     void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _wakeUp();

@@ -37,13 +37,10 @@ class GxEPD : public Adafruit_GFX
     virtual void fillScreen(uint16_t color) = 0; // to buffer
     virtual void update(void) = 0;
     // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
-    virtual void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color) = 0;
-    // to buffer, may be cropped, drawPixel() used, update needed, different signature, sublass may support some modes
-    virtual void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m = bm_normal)
-    {
-      // fall back, not yet implemented in all subclasses
-      drawBitmap(x, y, bitmap, w, h, color);
-    };
+    // still pure virtual because of a signature matching issue of the ESP compiler (matches only if declared in subclass)
+    virtual void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color) = 0;
+    // to buffer, may be cropped, drawPixel() used, update needed, different signature, subclass may support some modes
+    virtual void drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m) = 0;
     // monochrome or 4 gray or other to full screen, filled with white if size is less, no update needed
     virtual void drawPicture(const uint8_t *picture, uint32_t size) // b/w or grey is class specific
     {
@@ -51,6 +48,8 @@ class GxEPD : public Adafruit_GFX
     };
     // monochrome to full screen, filled with white if size is less, no update needed
     virtual void drawBitmap(const uint8_t *bitmap, uint32_t size) = 0; // monochrome
+  protected:
+    void drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m);
 };
 
 #endif

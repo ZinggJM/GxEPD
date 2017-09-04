@@ -113,32 +113,10 @@ void GxGDE043A2::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void GxGDE043A2::drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m)
+void  GxGDE043A2::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  switch (m)
-  {
-    case bm_flip_h:
-      for (uint16_t x1 = x; x1 < x + w; x1++)
-      {
-        for (uint16_t y1 = y; y1 < y + h; y1++)
-        {
-          uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-          uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? GxEPD_WHITE  : color;
-          drawPixel(x1, y1, pixelcolor);
-        }
-      }
-      break;
-    default:
-      for (uint16_t x1 = x; x1 < x + w; x1++)
-      {
-        for (uint16_t y1 = y; y1 < y + h; y1++)
-        {
-          uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-          uint16_t pixelcolor = (bitmap[i] & (0x80 >> x1 % 8)) ? GxEPD_WHITE  : color;
-          drawPixel(x1, y1, pixelcolor);
-        }
-      }
-  }
+  if (mode == bm_default) mode = bm_normal;
+  drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDE043A2::drawPicture(const uint8_t *bitmap, uint32_t size)

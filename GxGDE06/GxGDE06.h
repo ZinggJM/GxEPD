@@ -78,10 +78,10 @@ class GxGDE06 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // to buffer
     void update(void);
-    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, Adafruit_GFX signature
+    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
     void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
     // to buffer, may be cropped, drawPixel() used, update needed, new signature, may support some bm_modes
-    void drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bm_mode m = bm_normal);
+    void drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m = bm_normal);
     // to full screen, filled with white if size is less, no update needed
     void drawPicture(const uint8_t *picture, uint32_t size); // 4 gray levels
     // to full screen, filled with white if size is less, no update needed
@@ -93,6 +93,13 @@ class GxGDE06 : public GxEPD
     void clearDisplay(); // alternative to eraseBitmap, without bitmap
     void DisplayTestPicture(const uint8_t *picture);
     void fillScreenTest();
+    void eraseDisplay(bool using_partial_update = false){clearDisplay();}; // parameter ignored
+    // partial update, not implemented
+    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true){};
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEH029A1_PAGES times
+    // each call of drawCallback() should draw the same
+    void drawPaged(void (*drawCallback)(void)){};
+    void drawCornerTest(uint8_t em = 0x01){};
   private:
     void init_wave_table(void);
     void clear_display();

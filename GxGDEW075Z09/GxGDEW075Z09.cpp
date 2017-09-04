@@ -165,32 +165,10 @@ void  GxGDEW075Z09::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void  GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+void  GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mirror)
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
-  else
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
+  if (mode == bm_default) mode = bm_normal;
+  drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
@@ -205,7 +183,11 @@ void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
     // (31000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 600ms is safe
     if ((i % 10000) == 0) yield(); // avoid watchdog reset
 #endif
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    uint8_t t1 = i < size ? pgm_read_byte(bitmap + i) : 0xFF;
+#else
     uint8_t t1 = i < size ? bitmap[i] : 0xFF;
+#endif
     for (uint8_t j = 0; j < 4; j++)
     {
       uint8_t t2 = t1 & 0xc0;
@@ -243,7 +225,7 @@ void GxGDEW075Z09::_waitWhileBusy(const char* comment)
   unsigned long start = micros();
   while (1)
   { //=0 BUSY
-    if (digitalRead(BSY) == 1) break;
+    if (digitalRead(_busy) == 1) break;
     delay(1);
   }
   //if (comment)

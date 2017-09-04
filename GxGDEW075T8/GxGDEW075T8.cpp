@@ -140,40 +140,10 @@ void  GxGDEW075T8::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void  GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+void  GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mirror)
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
-#else
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
-#endif
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
-  else
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-        uint16_t pixelcolor = (pgm_read_byte(bitmap + i) & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
-#else
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
-#endif
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
+  if (mode == bm_default) mode = bm_normal;
+  drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size)
@@ -464,7 +434,7 @@ void GxGDEW075T8::drawPaged(void (*drawCallback)(void))
   //  Serial.println(elapsed);
 }
 
-void GxGDEW075T8::drawCornerTest()
+void GxGDEW075T8::drawCornerTest(uint8_t em)
 {
   _wakeUp();
   IO.writeCommandTransaction(0x10);

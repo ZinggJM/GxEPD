@@ -7,9 +7,9 @@
 
    modified by :
 
-   Version : 2.0
+   Version : 2.1
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+   Support: limited, provided as example, no claim to be fit for serious use
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
 
@@ -31,6 +31,12 @@
 
 */
 #include "GxGDEW027C44.h"
+
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 
 const uint8_t lut_vcomDC[] =
 {
@@ -86,7 +92,7 @@ const uint8_t lut_wb[] = {
 
 GxGDEW027C44::GxGDEW027C44(GxIO& io, uint8_t rst, uint8_t busy)
   : GxEPD(GxGDEW027C44_WIDTH, GxGDEW027C44_HEIGHT),
-    IO(io), _rst(rst), _busy(busy)
+    IO(io), _rst(rst), _busy(busy), _current_page(-1)
 {
 }
 
@@ -119,7 +125,17 @@ void GxGDEW027C44::drawPixel(int16_t x, int16_t y, uint16_t color)
       break;
   }
   uint16_t i = x / 8 + y * GxGDEW027C44_WIDTH / 8;
-  if (i >= GxGDEW027C44_BUFFER_SIZE) return; // for reduced buffer size
+  if (_current_page < 1)
+  {
+    if (i >= sizeof(_black_buffer)) return;
+  }
+  else
+  {
+    if (i < GxGDEW027C44_PAGE_SIZE * _current_page) return;
+    if (i >= GxGDEW027C44_PAGE_SIZE * (_current_page + 1)) return;
+    i -= GxGDEW027C44_PAGE_SIZE * _current_page;
+  }
+
   _black_buffer[i] = (_black_buffer[i] & (0xFF ^ (1 << (7 - x % 8)))); // white
   _red_buffer[i] = (_red_buffer[i] & (0xFF ^ (1 << (7 - x % 8)))); // white
   if (color == GxEPD_WHITE) return;
@@ -144,6 +160,7 @@ void GxGDEW027C44::init(void)
   pinMode(_rst, OUTPUT);
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
+  _current_page = -1;
 }
 
 void GxGDEW027C44::fillScreen(uint16_t color)
@@ -164,7 +181,7 @@ void GxGDEW027C44::fillScreen(uint16_t color)
 
 void GxGDEW027C44::update(void)
 {
-  drawPicture(_black_buffer, _red_buffer, GxGDEW027C44_BUFFER_SIZE);
+  drawPicture(_black_buffer, _red_buffer, sizeof(_black_buffer));
 }
 
 void  GxGDEW027C44::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
@@ -172,32 +189,10 @@ void  GxGDEW027C44::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int1
   drawBitmap(bitmap, x, y, w, h, color);
 }
 
-void  GxGDEW027C44::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror)
+void  GxGDEW027C44::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mirror)
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (w - (x1 - x) - 1) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-        uint16_t pixelcolor = (bitmap[i] & (0x01 << (x1 - x) % 8)) ? color : GxEPD_WHITE;
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
-  else
-  {
-    for (uint16_t x1 = x; x1 < x + w; x1++)
-    {
-      for (uint16_t y1 = y; y1 < y + h; y1++)
-      {
-        uint32_t i = (x1 - x) / 8 + uint32_t(y1 - y) * uint32_t(w) / 8;
-        uint16_t pixelcolor = (bitmap[i] & (0x80 >> (x1 - x) % 8)) ? color : GxEPD_WHITE;
-        drawPixel(x1, y1, pixelcolor);
-      }
-    }
-  }
+  if (mode == bm_default) mode = bm_normal;
+  drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDEW027C44::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t size)
@@ -206,30 +201,60 @@ void GxGDEW027C44::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_b
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
   {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(&black_bitmap[i]) : 0x00);
+#else
     _writeData((i < size) ? black_bitmap[i] : 0x00);
+#endif
   }
   _writeCommand(0x13);
   for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
   {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(&red_bitmap[i]) : 0x00);
+#else
     _writeData((i < size) ? red_bitmap[i] : 0x00);
+#endif
   }
   _writeCommand(0x12);      //display refresh
   _waitWhileBusy("update display refresh");
   _sleep();
 }
 
-void GxGDEW027C44::drawBitmap(const uint8_t* bitmap, uint32_t size)
+void GxGDEW027C44::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mode)
 {
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
   {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(&bitmap[i]) : 0x00);
+#else
     _writeData((i < size) ? bitmap[i] : 0x00);
+#endif
   }
   _writeCommand(0x13);
   for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
   {
     _writeData(0);
+  }
+  _writeCommand(0x12);      //display refresh
+  _waitWhileBusy("update display refresh");
+  _sleep();
+}
+
+void GxGDEW027C44::eraseDisplay(bool using_partial_update)
+{
+  _wakeUp();
+  _writeCommand(0x10);
+  for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
+  {
+    _writeData(0x00);
+  }
+  _writeCommand(0x13);
+  for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
+  {
+    _writeData(0x00);
   }
   _writeCommand(0x12);      //display refresh
   _waitWhileBusy("update display refresh");
@@ -375,5 +400,70 @@ void GxGDEW027C44::_writeLUT(void)
       _writeData(lut_wb[count]);
     }
   }
+}
+
+void GxGDEW027C44::drawPaged(void (*drawCallback)(void))
+{
+  _wakeUp();
+  _writeCommand(0x10);
+  for (_current_page = 0; _current_page < GxGDEW027C44_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback();
+    for (int16_t y1 = 0; y1 < GxGDEW027C44_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEW027C44_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW027C44_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_black_buffer)) ? _black_buffer[idx] : 0x00;
+        _writeData(data);
+      }
+    }
+  }
+  _writeCommand(0x13);
+  for (_current_page = 0; _current_page < GxGDEW027C44_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback();
+    for (int16_t y1 = 0; y1 < GxGDEW027C44_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEW027C44_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW027C44_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_red_buffer)) ? _red_buffer[idx] : 0x00;
+        _writeData(data);
+      }
+    }
+  }
+  _current_page = -1;
+  _writeCommand(0x12);      //display refresh
+  _waitWhileBusy("drawPaged");
+  _sleep();
+}
+
+void GxGDEW027C44::drawCornerTest(uint8_t em)
+{
+  _wakeUp();
+  _writeCommand(0x10);
+  for (uint32_t y = 0; y < GxGDEW027C44_HEIGHT; y++)
+  {
+    for (uint32_t x = 0; x < GxGDEW027C44_WIDTH / 8; x++)
+    {
+      uint8_t data = 0xFF;
+      if ((x < 1) && (y < 8)) data = 0x00;
+      if ((x > GxGDEW027C44_WIDTH / 8 - 3) && (y < 16)) data = 0x00;
+      if ((x > GxGDEW027C44_WIDTH / 8 - 4) && (y > GxGDEW027C44_HEIGHT - 25)) data = 0x00;
+      if ((x < 4) && (y > GxGDEW027C44_HEIGHT - 33)) data = 0x00;
+      _writeData(~data);
+    }
+  }
+  _writeCommand(0x13);
+  for (uint32_t i = 0; i < GxGDEW027C44_BUFFER_SIZE; i++)
+  {
+    _writeData(0);
+  }
+  _writeCommand(0x12);      //display refresh
+  _waitWhileBusy("drawCornerTest");
+  _sleep();
 }
 
