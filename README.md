@@ -29,7 +29,8 @@ The following classes can be used with Waveshare e-Paper displays:
 - The GxGDEP015OC1 class can be used with Waveshare 1.54inch e-Paper SPI display.
 - The GxGDE0213B1 class can be used with Waveshare 2.13inch e-Paper SPI display.
 - The GxGDEH029A1 class can be used with Waveshare 2.9inch e-Paper SPI display.
-- The GDEW042T2 class can be used with Waveshare 4.2inch e-Paper SPI display.
+- The GxGDEW042T2 class can be used with Waveshare 4.2inch e-Paper SPI display.
+- The GxGDEW027C44 class may be usable with the Waveshare 264x176 2.7inch 3 color E-Ink display. 
 
 Support for partial update and paged drawing (AVR, low RAM).
 - To use on AVR (UNO, NANO) Arduino IDE 1.8.x is required (optimizing linker) for code space.
@@ -54,6 +55,3 @@ The library classes for these display can be used with the STM32GENERIC package 
 
 - Added GxGDE043A2 4.3 inch 800 x 600 pixel 4 gray level, with unresolved degradation issue
 
-Important note: the current implementation has an open issue: width of bitmaps must be multipe of 8. 
-
-- Use one of the drawBitmap methods of Adafruit_GFX if needed to avoid this restriction.
