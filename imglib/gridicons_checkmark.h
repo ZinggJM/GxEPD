@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_checkmark
-const unsigned char gridicons_checkmark[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_checkmark[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 0xFF, 0xFF, 0xC7, 0xFF, 0xFF, 0xE3, 0xFF, 0xFF, 

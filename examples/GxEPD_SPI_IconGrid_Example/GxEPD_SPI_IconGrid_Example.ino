@@ -34,7 +34,7 @@
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
 
-// uncomment next line for drawBitmap() test, (consumes RAM on ESP8266)
+// uncomment next line for drawBitmap() test
 #include GxEPD_BitmapExamples
 
 // FreeFonts from Adafruit_GFX
@@ -269,15 +269,11 @@ void showIconGridExample()
   display.drawPaged(drawIconScreen_1);
   delay(2000);
 
-#if !defined(__AVR)
-
   display.drawPaged(drawIconScreen_2);
   delay(2000);
 
   display.drawPaged(drawIconScreen_3);
   delay(2000);
-
-#endif
 
 #else
 
@@ -302,7 +298,6 @@ void drawIconScreen_1()
   display.drawBitmap(25, 0, gridicons_add_outline, 24, 24, GxEPD_BLACK);
   display.drawBitmap(50, 0, gridicons_add, 24, 24, GxEPD_BLACK);
   display.drawBitmap(75, 0, gridicons_align_center, 24, 24, GxEPD_BLACK);
-#if !defined(__AVR)
   display.drawBitmap(100, 0, gridicons_attachment, 24, 24, GxEPD_BLACK);
   display.drawBitmap(125, 0, gridicons_audio, 24, 24, GxEPD_BLACK);
   display.drawBitmap(150, 0, gridicons_bell, 24, 24, GxEPD_BLACK);
@@ -358,10 +353,7 @@ void drawIconScreen_1()
   display.drawBitmap(200, 100, gridicons_custom_post_type, 24, 24, GxEPD_BLACK);
   display.drawBitmap(225, 100, gridicons_dropdown, 24, 24, GxEPD_BLACK);
   display.drawBitmap(250, 100, gridicons_ellipsis_circle, 24, 24, GxEPD_BLACK);
-#endif
 }
-
-#if !defined(__AVR)
 
 void drawIconScreen_2()
 {
@@ -486,8 +478,6 @@ void drawIconScreen_3()
   display.drawBitmap(175, 100, gridicons_video, 24, 24, GxEPD_BLACK);
   display.drawBitmap(200, 100, gridicons_visible, 24, 24, GxEPD_BLACK);
 }
-
-#endif
 
 void showFont(const char name[], const GFXfont* f)
 {

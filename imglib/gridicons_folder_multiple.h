@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_folder_multiple
-const unsigned char gridicons_folder_multiple[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_folder_multiple[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0x7F, 0xFF, 
 0xE0, 0x3F, 0xE0, 0x00, 0x3F, 0xC0, 0x00, 0x3F, 

@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_next_page
-const unsigned char gridicons_next_page[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_next_page[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xE0, 0x00, 
 0x7F, 0xC0, 0x00, 0x3F, 0xCF, 0xFF, 0x3F, 0xCF, 
 0xFF, 0x3F, 0xCC, 0x03, 0x37, 0xCC, 0x03, 0x33, 

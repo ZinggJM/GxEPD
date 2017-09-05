@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_link_break
-const unsigned char gridicons_link_break[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_link_break[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 0xFF, 0xFF, 0xFF, 0xFF, 0xC7, 0xFF, 0xFF, 0xC3, 
 0xFF, 0xFF, 0xE1, 0xFF, 0xFF, 0xF0, 0xFE, 0x0F, 

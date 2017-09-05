@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_help_outline
-const unsigned char gridicons_heart_outline[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_heart_outline[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 0xFF, 0xF8, 0x3C, 0x1F, 0xF0, 0x18, 0x0F, 0xE7, 
 0xC3, 0xE7, 0xCF, 0xE7, 0xF3, 0xCF, 0xFF, 0xF3, 

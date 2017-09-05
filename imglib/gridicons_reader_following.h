@@ -1,5 +1,10 @@
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 // 24 x 24 gridicons_reader_following
-const unsigned char gridicons_reader_following[] = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
+const unsigned char gridicons_reader_following[] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 
 0x03, 0xF0, 0x00, 0x03, 0xF3, 0xFF, 0xF3, 0xF3, 
 0xFF, 0xF3, 0xF0, 0x00, 0x03, 0xF0, 0x00, 0x03, 
