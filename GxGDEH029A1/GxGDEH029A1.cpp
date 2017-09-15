@@ -7,7 +7,7 @@
 
    modified by :
 
-   Version : 2.1
+   Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -36,37 +36,31 @@
 #include <avr/pgmspace.h>
 #endif
 
+// Partial Update Delay, may have an influence on degradation
+#define PU_DELAY 300
+
 #define xPixelsPar (GxGDEH029A1_X_PIXELS -1 )
 #define yPixelsPar (GxGDEH029A1_Y_PIXELS -1 )
 
-// old version
-//const uint8_t LUTDefault_full[] =
-//{
-//  0x32,  // command
-//  0x02, 0x02, 0x01, 0x11, 0x12, 0x12, 0x22, 0x22, 0x66, 0x69, 0x69, 0x59, 0x58, 0x99, 0x99,
-//  0x88, 0x00, 0x00, 0x00, 0x00, 0xF8, 0xB4, 0x13, 0x51, 0x35, 0x51, 0x51, 0x19, 0x01, 0x00
-//};
-
-const uint8_t LUTDefault_full[31] =
+const uint8_t GxGDEH029A1::LUTDefault_full[] =
 {
-  0x32,  // command //C221 25C Full update waveform
+  0x32,  // command
   0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-const uint8_t LUTDefault_part[] =
+const uint8_t GxGDEH029A1::LUTDefault_part[] =
 {
   0x32,  // command
   0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x14, 0x44, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-uint8_t GDOControl[] = {0x01, yPixelsPar % 256, yPixelsPar / 256, 0x00}; //for 2.9inch
-uint8_t softstart[] = {0x0c, 0xd7, 0xd6, 0x9d};
-uint8_t VCOMVol[] = {0x2c, 0xa8};  // VCOM 7c
-uint8_t DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
-uint8_t Gatetime[] = {0x3b, 0x08};  // 2us per line
-//uint8_t RamDataEntryMode[] = {0x11, 0x01};  // Ram data entry mode
+const uint8_t GxGDEH029A1::GDOControl[] = {0x01, yPixelsPar % 256, yPixelsPar / 256, 0x00}; //for 2.9inch
+const uint8_t GxGDEH029A1::softstart[] = {0x0c, 0xd7, 0xd6, 0x9d};
+const uint8_t GxGDEH029A1::VCOMVol[] = {0x2c, 0xa8};  // VCOM 7c
+const uint8_t GxGDEH029A1::DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
+const uint8_t GxGDEH029A1::Gatetime[] = {0x3b, 0x08};  // 2us per line
 
 GxGDEH029A1::GxGDEH029A1(GxIO& io, uint8_t rst, uint8_t busy) :
   GxEPD(GxGDEH029A1_WIDTH, GxGDEH029A1_HEIGHT),
@@ -168,31 +162,8 @@ void  GxGDEH029A1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16
 
 void  GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  uint16_t inverse_color = (color == GxEPD_WHITE) ? GxEPD_BLACK : GxEPD_WHITE;
-  uint16_t fg_color = (mode & bm_invert) ? inverse_color : color;
-  uint16_t bg_color = (mode & bm_invert) ? color : inverse_color;
-  // taken from Adafruit_GFX.cpp, modified
-  int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
-  uint8_t byte = 0;
-  for (int16_t j = 0; j < h; j++, y++)
-  {
-    for (int16_t i = 0; i < w; i++ )
-    {
-      if (i & 7) byte <<= 1;
-      else
-      {
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-        byte = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
-#else
-        byte = bitmap[j * byteWidth + i / 8];
-#endif
-      }
-      // keep using overwrite mode
-      uint16_t pixelcolor = (byte & 0x80) ? fg_color  : bg_color;
-      if (mode & bm_flip_v) drawPixel(width() - (x + i) - 1, y, pixelcolor);
-      else drawPixel(x + i, y, pixelcolor);
-    }
-  }
+  if (mode & bm_default) mode |= bm_flip_v | bm_invert;
+  drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
@@ -236,6 +207,18 @@ void GxGDEH029A1::drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em)
 #endif
   }
   _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  _writeCommand(0x24);
+  for (uint32_t i = 0; i < GxGDEH029A1_BUFFER_SIZE; i++)
+  {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+#else
+    _writeData((i < size) ? bitmap[i] : 0xFF);
+#endif
+  }
+  delay(PU_DELAY);
   _PowerOff();
 }
 
@@ -251,12 +234,14 @@ void GxGDEH029A1::eraseDisplay(bool using_partial_update)
       _writeData(0xFF);
     }
     _Update_Part();
+    delay(PU_DELAY);
     // update erase buffer
     _writeCommand(0x24);
     for (uint32_t i = 0; i < GxGDEH029A1_BUFFER_SIZE; i++)
     {
       _writeData(0xFF);
     }
+    delay(PU_DELAY);
     _PowerOff();
   }
   else
@@ -291,7 +276,7 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
       case 3:
         swap(x, y);
         swap(w, h);
-        y = GxGDEH029A1_HEIGHT - y  - h - 1;
+        y = GxGDEH029A1_HEIGHT - y - h - 1;
         break;
     }
   }
@@ -301,7 +286,7 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
   uint16_t xe = min(GxGDEH029A1_WIDTH, x + w) - 1;
   uint16_t ye = min(GxGDEH029A1_HEIGHT, y + h) - 1;
   uint16_t xs_d8 = x / 8;
-  uint16_t xe_d8 = xe / 8; //(xe + 7) / 8;
+  uint16_t xe_d8 = xe / 8;
   _Init_Part(0x03);
   _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
   _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
@@ -317,7 +302,7 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
     }
   }
   _Update_Part();
-  delay(300);
+  delay(PU_DELAY);
   // update erase buffer
   _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
   _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
@@ -332,7 +317,84 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
       _writeData(~data);
     }
   }
-  delay(300);
+  delay(PU_DELAY);
+}
+
+void GxGDEH029A1::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
+{
+  if (using_rotation)
+  {
+    switch (getRotation())
+    {
+      case 1:
+        swap(xs, ys);
+        swap(xd, yd);
+        swap(w, h);
+        xs = GxGDEH029A1_WIDTH - xs - w - 1;
+        xd = GxGDEH029A1_WIDTH - xd - w - 1;
+        break;
+      case 2:
+        xs = GxGDEH029A1_WIDTH - xs - w - 1;
+        ys = GxGDEH029A1_HEIGHT - ys - h - 1;
+        xd = GxGDEH029A1_WIDTH - xd - w - 1;
+        yd = GxGDEH029A1_HEIGHT - yd - h - 1;
+        break;
+      case 3:
+        swap(xs, ys);
+        swap(xd, yd);
+        swap(w, h);
+        ys = GxGDEH029A1_HEIGHT - ys  - h - 1;
+        yd = GxGDEH029A1_HEIGHT - yd  - h - 1;
+        break;
+    }
+  }
+  if (xs >= GxGDEH029A1_WIDTH) return;
+  if (ys >= GxGDEH029A1_HEIGHT) return;
+  if (xd >= GxGDEH029A1_WIDTH) return;
+  if (yd >= GxGDEH029A1_HEIGHT) return;
+  // the screen limits are the hard limits
+  uint16_t xde = min(GxGDEH029A1_WIDTH, xd + w) - 1;
+  uint16_t yde = min(GxGDEH029A1_HEIGHT, yd + h) - 1;
+  uint16_t xds_d8 = xd / 8;
+  uint16_t xde_d8 = xde / 8;
+  // soft limits, must send as many bytes as set by _SetRamArea
+  uint16_t xse_d8 = xs / 8 + xde_d8 - xds_d8;
+  uint16_t yse = ys + yde - yd;
+  _Init_Part(0x03);
+  _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
+  _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
+  _waitWhileBusy();
+  _writeCommand(0x24);
+  for (int16_t y1 = ys; y1 <= yse; y1++)
+  {
+    for (int16_t x1 = xs / 8; x1 <= xse_d8; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      _writeData(~data);
+    }
+  }
+  _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
+  _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
+  _waitWhileBusy();
+  _writeCommand(0x24);
+  for (int16_t y1 = ys; y1 <= yse; y1++)
+  {
+    for (int16_t x1 = xs / 8; x1 <= xse_d8; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      _writeData(~data);
+    }
+  }
+  delay(PU_DELAY);
+}
+
+void GxGDEH029A1::powerDown()
+{
   _PowerOff();
 }
 
@@ -439,6 +501,7 @@ void GxGDEH029A1::_PowerOn(void)
   _writeCommand(0x22);
   _writeData(0xc0);
   _writeCommand(0x20);
+  _waitWhileBusy("_PowerOn");
 }
 
 void GxGDEH029A1::_PowerOff(void)
@@ -446,6 +509,7 @@ void GxGDEH029A1::_PowerOff(void)
   _writeCommand(0x22);
   _writeData(0xc3);
   _writeCommand(0x20);
+  _waitWhileBusy("_PowerOff");
 }
 
 void GxGDEH029A1::_InitDisplay(uint8_t em)
@@ -477,6 +541,7 @@ void GxGDEH029A1::_Update_Full(void)
   _writeCommand(0x22);
   _writeData(0xc4);
   _writeCommand(0x20);
+  _waitWhileBusy("_Update_Full");
   _writeCommand(0xff);
 }
 
@@ -485,63 +550,218 @@ void GxGDEH029A1::_Update_Part(void)
   _writeCommand(0x22);
   _writeData(0x04);
   _writeCommand(0x20);
+  _waitWhileBusy("_Update_Part");
   _writeCommand(0xff);
-}
-
-void GxGDEH029A1::_drawCurrentPage()
-{
-  uint16_t xs_d8 = 0;
-  uint16_t xe_d8 = (GxGDEH029A1_WIDTH - 1) / 8;
-  uint16_t y = GxGDEH029A1_PAGE_HEIGHT * _current_page;
-  uint16_t ye = y + GxGDEH029A1_PAGE_HEIGHT - 1;
-  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
-  {
-    for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
-  _Update_Part();
-  delay(300);
-  // update erase buffer
-  _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
-  _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
-  {
-    for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
-  delay(300);
 }
 
 void GxGDEH029A1::drawPaged(void (*drawCallback)(void))
 {
+  _Init_Full(0x03);
+  _writeCommand(0x24);
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback();
+    for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _writeData(~data);
+      }
+    }
+  }
+  _current_page = -1;
+  _Update_Full();
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
+{
+  _Init_Full(0x03);
+  _writeCommand(0x24);
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback(p);
+    for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _writeData(~data);
+      }
+    }
+  }
+  _current_page = -1;
+  _Update_Full();
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPaged(void (*drawCallback)(const void*), const void* p)
+{
+  _Init_Full(0x03);
+  _writeCommand(0x24);
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback(p);
+    for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _writeData(~data);
+      }
+    }
+  }
+  _current_page = -1;
+  _Update_Full();
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPaged(void (*drawCallback)(const void*, const void*), const void* p1, const void* p2)
+{
+  _Init_Full(0x03);
+  _writeCommand(0x24);
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    fillScreen(0xFF);
+    drawCallback(p1, p2);
+    for (int16_t y1 = 0; y1 < GxGDEH029A1_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEH029A1_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _writeData(~data);
+      }
+    }
+  }
+  _current_page = -1;
+  _Update_Full();
+  _PowerOff();
+}
+
+void GxGDEH029A1::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
+{
+  switch (getRotation())
+  {
+    case 1:
+      swap(x, y);
+      swap(w, h);
+      x = GxGDEH029A1_WIDTH - x - w - 1;
+      break;
+    case 2:
+      x = GxGDEH029A1_WIDTH - x - w - 1;
+      y = GxGDEH029A1_HEIGHT - y - h - 1;
+      break;
+    case 3:
+      swap(x, y);
+      swap(w, h);
+      y = GxGDEH029A1_HEIGHT - y - h - 1;
+      break;
+  }
+}
+
+void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+  _rotate(x, y, w, h);
   if (!_using_partial_mode)
   {
     eraseDisplay(false);
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
-    drawCallback();
-    //fillScreen(0x00);
-    _drawCurrentPage();
-    //delay(2000);
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(0xFF);
+      drawCallback();
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t p)
+{
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(0xFF);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p)
+{
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(0xFF);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  _PowerOff();
+}
+
+void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p1, const void* p2)
+{
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(0xFF);
+      drawCallback(p1, p2);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
   }
   _current_page = -1;
   _PowerOff();

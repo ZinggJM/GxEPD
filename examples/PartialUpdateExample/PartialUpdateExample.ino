@@ -140,7 +140,11 @@ void setup(void)
 
 void loop()
 {
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_))
+  showPartialUpdate_AVR();
+#else
   showPartialUpdate();
+#endif
   delay(DEMO_DELAY * 1000);
 }
 
@@ -213,7 +217,7 @@ void showPartialUpdate()
     display.updateWindow(box_x, box_y, box_w, box_h, true);
   }
   // show updates in the update box
-  for (uint16_t r = 0; r < 4; r++) // avoid 
+  for (uint16_t r = 0; r < 4; r++) // avoid
   {
     // reset the background
     display.setRotation(0);
@@ -234,4 +238,73 @@ void showPartialUpdate()
     display.updateWindow(box_x, box_y, box_w, box_h, true);
   }
 }
+
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_))
+
+void showBlackBoxCallback(uint32_t v)
+{
+  uint16_t box_x = 10;
+  uint16_t box_y = 15;
+  uint16_t box_w = 70;
+  uint16_t box_h = 20;
+  display.fillRect(box_x, box_y, box_w, box_h, v);
+}
+
+void showValueBoxCallback(const void* v)
+{
+  uint16_t box_x = 10;
+  uint16_t box_y = 15;
+  uint16_t box_w = 70;
+  uint16_t box_h = 20;
+  uint16_t cursor_y = box_y + box_h - 6;
+  display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+  display.setCursor(box_x, cursor_y);
+  display.print(*reinterpret_cast<const float*>(v), 2);
+}
+
+void showPartialUpdate_AVR()
+{
+  uint16_t box_x = 10;
+  uint16_t box_y = 15;
+  uint16_t box_w = 70;
+  uint16_t box_h = 20;
+  uint16_t cursor_y = box_y + box_h - 6;
+  float value = 13.95;
+  display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+  display.setRotation(0);
+  // draw background
+  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+
+  // partial update to full screen to preset for partial update of box window
+  // (this avoids strange background effects)
+  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_flip_v | GxEPD::bm_partial_update);
+  delay(1000);
+
+  // show where the update box is
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_BLACK);
+    //display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_BLACK);
+    delay(1000);
+    display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_WHITE);
+  }
+  // show updates in the update box
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    for (uint16_t i = 1; i <= 10; i++)
+    {
+      float v = value * i;
+      display.drawPagedToWindow(showValueBoxCallback, box_x, box_y, box_w, box_h, &v);
+      delay(500);
+    }
+    delay(1000);
+    display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_WHITE);
+  }
+}
+
+#endif
 

@@ -48,6 +48,7 @@
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>
+//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>
 
 // uncomment next line for drawBitmap() test, (consumes RAM on ESP8266)
 #include GxEPD_BitmapExamples
@@ -172,10 +173,14 @@ void loop()
   showGridIcons();
 #endif
   //drawCornerTest();
+#if !defined(__AVR)
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
   //showFont("FreeMonoBold18pt7b", &FreeMonoBold18pt7b);
   //showFont("FreeMonoBold24pt7b", &FreeMonoBold24pt7b);
+#else
+  display.drawPaged(showFontCallback);
+#endif
   delay(10000);
 }
 
@@ -254,6 +259,24 @@ void showFont(const char name[], const GFXfont* f)
   display.println("pqrstuvwxyz{|}~ ");
   display.update();
   delay(5000);
+}
+
+void showFontCallback()
+{
+  const char* name = "FreeMonoBold9pt7b";
+  const GFXfont* f = &FreeMonoBold9pt7b;
+  display.fillScreen(GxEPD_WHITE);
+  display.setTextColor(GxEPD_BLACK);
+  display.setFont(f);
+  display.setCursor(0, 0);
+  display.println();
+  display.println(name);
+  display.println(" !\"#$%&'()*+,-./");
+  display.println("0123456789:;<=>?");
+  display.println("@ABCDEFGHIJKLMNO");
+  display.println("PQRSTUVWXYZ[\\]^_");
+  display.println("`abcdefghijklmno");
+  display.println("pqrstuvwxyz{|}~ ");
 }
 
 void drawCornerTest()

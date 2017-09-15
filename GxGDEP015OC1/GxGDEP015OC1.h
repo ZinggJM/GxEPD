@@ -7,7 +7,7 @@
 
    modified by :
 
-   Version : 2.1
+   Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -89,17 +89,27 @@ class GxGDEP015OC1 : public GxEPD
     }
     void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode);
     void eraseDisplay(bool using_partial_update = false);
-    // partial update
+    // partial update of rectangle from buffer to screen, does not power off
     void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
+    // partial update of rectangle at (xs,ys) from buffer to screen at (xd,yd), does not power off
+    void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
+    // terminate cleanly updateWindow or updateToWindow before removing power or long delays
+    void powerDown();
     // paged drawing, for limited RAM, drawCallback() is called GxGDEP015OC1_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
+    void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
+    void drawPaged(void (*drawCallback)(const void*), const void*);
+    void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
+    // paged drawing to screen rectangle at (x,y) using partial update
+    void drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t);
+    void drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*);
+    void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
     // private methods kept available public
     void drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em); // ram data entry mode
     void drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em); // partial update mode
-    // GxGDEP015OC1 has a nice demo example with multipe bitmaps and partial updates
-    void showDemoExample();
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
@@ -110,30 +120,32 @@ class GxGDEP015OC1 : public GxEPD
     void _PowerOff(void);
     void _waitWhileBusy(const char* comment = 0);
     void _setRamDataEntryMode(uint8_t em);
-    void _writeDisplayRam(uint16_t XSize, uint16_t YSize, const uint8_t* data);
-    void _writeDisplayRamMono(uint16_t XSize, uint16_t YSize, uint8_t value);
     void _InitDisplay(uint8_t em);
     void _Init_Full(uint8_t em);
     void _Init_Part(uint8_t em);
     void _Update_Full(void);
     void _Update_Part(void);
-    void _partial_display(uint8_t RAM_XST, uint8_t RAM_XEND, uint8_t RAM_YST, uint8_t RAM_YST1, uint8_t RAM_YEND, uint8_t RAM_YEND1);
-    void _Display_Full(const uint8_t* DisBuffer, uint8_t Label);
-    void _Display_Part(uint8_t xStart, uint8_t xEnd, unsigned long yStart, unsigned long yEnd, const uint8_t* DisBuffer, uint8_t Label);
     void _drawCurrentPage();
+    void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   protected:
 #if defined(__AVR)
     uint8_t _buffer[GxGDEP015OC1_PAGE_SIZE];
 #else
     uint8_t _buffer[GxGDEP015OC1_BUFFER_SIZE];
 #endif
-
   private:
     GxIO& IO;
     int16_t _current_page;
     bool _using_partial_mode;
     uint8_t _rst;
     uint8_t _busy;
+    static const uint8_t LUTDefault_part[];
+    static const uint8_t LUTDefault_full[];
+    static const uint8_t GDOControl[];
+    static const uint8_t softstart[];
+    static const uint8_t VCOMVol[];
+    static const uint8_t DummyLine[];
+    static const uint8_t Gatetime[];
 };
 
 #define GxEPD_Class GxGDEP015OC1
