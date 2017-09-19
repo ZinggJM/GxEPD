@@ -15,7 +15,7 @@
 // Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
 
 // mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
-// BUSY -> D6, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
 // mapping example for AVR, UNO, NANO etc.
 // BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
@@ -27,11 +27,6 @@
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
 #include <GxGDEH029A1/GxGDEH029A1.cpp>
-
-// no longer needed, will be removed
-//#include <GxGDEP015OC1_RDEM/GxGDEP015OC1_RDEM.cpp>
-//#include <GxGDE0213B1_RDEM/GxGDE0213B1_RDEM.cpp>
-//#include <GxGDEH029A1_RDEM/GxGDEH029A1_RDEM.cpp>
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
