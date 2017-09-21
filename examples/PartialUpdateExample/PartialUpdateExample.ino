@@ -27,7 +27,6 @@
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
 #include <GxGDEH029A1/GxGDEH029A1.cpp>
-
 // this display does not fully support partial update
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
 
@@ -140,7 +139,7 @@ void setup(void)
 
 void loop()
 {
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_))
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
   showPartialUpdate_AVR();
 #else
   showPartialUpdate();
@@ -193,9 +192,9 @@ void showPartialUpdate()
       display.setCursor(box_x, cursor_y);
       display.print(value * i, 2);
       display.updateWindow(box_x, box_y, box_w, box_h, true);
-      delay(500);
+      delay(2000);
     }
-    delay(1000);
+    delay(2000);
     display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
     display.updateWindow(box_x, box_y, box_w, box_h, true);
   }
@@ -231,15 +230,15 @@ void showPartialUpdate()
       display.setCursor(box_x, cursor_y);
       display.print(value * i, 2);
       display.updateWindow(box_x, box_y, box_w, box_h, true);
-      delay(500);
+      delay(2000);
     }
-    delay(1000);
+    delay(2000);
     display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
     display.updateWindow(box_x, box_y, box_w, box_h, true);
   }
 }
 
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_))
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
 
 void showBlackBoxCallback(uint32_t v)
 {

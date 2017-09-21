@@ -7,9 +7,11 @@
 
    modified by :
 
-   Version : 2.1
+   Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
+
+   Controller: IL0398 : http://www.good-display.com/download_detail/downloadsId=537.html
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
@@ -35,12 +37,25 @@
 #define GxGDEW042T2_WIDTH 400
 #define GxGDEW042T2_HEIGHT 300
 
-// my mapping from DESTM32-S1 evaluation board to Wemos D1 mini
+#define GxGDEW042T2_BUFFER_SIZE (uint32_t(GxGDEW042T2_WIDTH) * uint32_t(GxGDEW042T2_HEIGHT) / 8)
+
+// divisor for AVR, should be factor of GxGDEW042T2_HEIGHT
+#define GxGDEW042T2_PAGES 20
+
+#define GxGDEW042T2_PAGE_HEIGHT (GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES)
+#define GxGDEW042T2_PAGE_SIZE (GxGDEW042T2_BUFFER_SIZE / GxGDEW042T2_PAGES)
+
+// use tiles to reduce number of updates to screen with drawPagedToWindow()
+// divisors for AVR, should be factors of (GxGDEW042T2_WIDTH / 8), GxGDEW042T2_HEIGHT
+#define GxGDEW042T2_W_PAGES 5
+#define GxGDEW042T2_H_PAGES 4
+
+// mapping from DESTM32-S1 evaluation board to Wemos D1 mini
 
 // D10 : MOSI -> D7
 // D8  : CS   -> D8
 // E14 : RST  -> D4
-// E12 : nc?  -> nc?
+// E12 : nc   -> nc
 
 // D9  : CLK  -> D5
 // E15 : DC   -> D3
@@ -52,15 +67,6 @@
 
 // mapping example for AVR, UNO, NANO etc.
 // BUSY -> 7, RST -> 9, DC -> 8, CS -> 10, CLK -> 13, DIN -> 11
-
-#define GxGDEW042T2_BUFFER_SIZE (uint32_t(GxGDEW042T2_WIDTH) * uint32_t(GxGDEW042T2_HEIGHT) / 8)
-
-// divisor for AVR, should be factor of GxGDEW042T2_HEIGHT
-#define GxGDEW042T2_PAGES 20
-
-#define GxGDEW042T2_PAGE_HEIGHT (GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES)
-#define GxGDEW042T2_PAGE_SIZE (GxGDEW042T2_BUFFER_SIZE / GxGDEW042T2_PAGES)
-
 
 class GxGDEW042T2 : public GxEPD
 {
@@ -85,20 +91,33 @@ class GxGDEW042T2 : public GxEPD
     }
     void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode);
     void eraseDisplay(bool using_partial_update = false);
-    // partial update
+    // partial update of rectangle from buffer to screen, does not power off
     void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
+    // partial update of rectangle at (xs,ys) from buffer to screen at (xd,yd), does not power off
+    void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
+    // terminate cleanly updateWindow or updateToWindow before removing power or long delays
+    void powerDown();
     // paged drawing, for limited RAM, drawCallback() is called GxGDEW042T2_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
+    void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
+    void drawPaged(void (*drawCallback)(const void*), const void*);
+    void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
+    // paged drawing to screen rectangle at (x,y) using partial update
+    void drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t);
+    void drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*);
+    void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0);
     // private methods kept available public
     void drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em); // ram data entry mode
     void drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em); // partial update mode
   private:
-    void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
+    uint16_t _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _wakeUp();
     void _sleep(void);
     void _waitWhileBusy(const char* comment = 0);
+    void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
 #if defined(__AVR)
     uint8_t _buffer[GxGDEW042T2_PAGE_SIZE];
@@ -107,6 +126,7 @@ class GxGDEW042T2 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
+    int16_t _page_x, _page_y, _page_w, _page_h;
     bool _using_partial_mode;
     uint8_t _rst;
     uint8_t _busy;
