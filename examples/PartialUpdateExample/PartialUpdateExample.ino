@@ -24,11 +24,13 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-//#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
-// this display does not fully support partial update
-//#include <GxGDEW042T2/GxGDEW042T2.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
+//#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
+#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+// these displays do not fully support partial update
+//#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
+//#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -139,7 +141,8 @@ void setup(void)
 
 void loop()
 {
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
+ || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_))
   showPartialUpdate_AVR();
 #else
   showPartialUpdate();
@@ -160,7 +163,7 @@ void showPartialUpdate()
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(2000);
 
@@ -183,7 +186,7 @@ void showPartialUpdate()
   {
     // reset the background
     display.setRotation(0);
-    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+    display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
     display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
     display.setRotation(r);
     for (uint16_t i = 1; i <= 10; i++)
@@ -203,7 +206,7 @@ void showPartialUpdate()
   // should show on right side of long side
   // reset the background
   display.setRotation(0);
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
   // show where the update box is
   for (uint16_t r = 0; r < 4; r++)
@@ -220,7 +223,7 @@ void showPartialUpdate()
   {
     // reset the background
     display.setRotation(0);
-    display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+    display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
     display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
     display.setRotation(r);
     if (box_x >= display.width()) continue; // avoid delay
@@ -238,7 +241,8 @@ void showPartialUpdate()
   }
 }
 
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
+#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
+ || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_))
 
 void showBlackBoxCallback(uint32_t v)
 {
@@ -273,12 +277,12 @@ void showPartialUpdate_AVR()
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
 
   // partial update to full screen to preset for partial update of box window
   // (this avoids strange background effects)
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_flip_v | GxEPD::bm_partial_update);
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_flip_v | GxEPD::bm_partial_update);
   delay(1000);
 
   // show where the update box is

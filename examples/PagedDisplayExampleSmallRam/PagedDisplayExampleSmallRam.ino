@@ -1,6 +1,6 @@
-// PagedDisplayExampleForNanoRam : test example for e-Paper displays from Waveshare and from Dalian Good Display Inc.
-//                                 shows how the full display screen can be used with Adafruit_GFX on small RAM Arduinos
-//                                 runs also on Arduinos with more RAM, e.g. ESP8266, for test
+// PagedDisplayExampleForSmallRam : test example for e-Paper displays from Waveshare and from Dalian Good Display Inc.
+//                                  shows how the full display screen can be used with Adafruit_GFX on small RAM Arduinos
+//                                  runs also on Arduinos with more RAM, e.g. ESP8266, for test
 //
 // Created by Jean-Marc Zingg based on demo code from Good Display for GDEP015OC1.
 //
@@ -25,14 +25,14 @@
 // include library, include base class, make path known
 #include <GxEPD.h>
 
-// select the display class to use, only one
-//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-//#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
-//#include <GxGDEW027C44/GxGDEW027C44.cpp>
-//#include <GxGDEW042T2/GxGDEW042T2.cpp>
-// this one is not yet tested with any AVR
-//#include <GxGDEW075T8/GxGDEW075T8.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
+//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r
+//#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
+//#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
+#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+//#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
+//#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -143,7 +143,11 @@ void setup(void)
 
 void loop()
 {
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_)
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
+#else
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+#endif
   delay(DEMO_DELAY * 1000);
   display.drawPaged(showFontCallback);
   delay(DEMO_DELAY * 1000);
@@ -163,6 +167,9 @@ void showFontCallback()
   display.println("0123456789:;<=>?");
   display.println("@ABCDEFGHIJKLMNO");
   display.println("PQRSTUVWXYZ[\\]^_");
+#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_)
+  display.setTextColor(GxEPD_RED);
+#endif
   display.println("`abcdefghijklmno");
   display.println("pqrstuvwxyz{|}~ ");
 }

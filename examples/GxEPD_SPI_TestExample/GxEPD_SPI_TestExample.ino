@@ -5,8 +5,6 @@
 
    Author : J-M Zingg
 
-   modified by :
-
    Version : 2.0
 
    Support: limited, provided as example, no claim to be fit for serious use
@@ -14,18 +12,18 @@
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V, not needed
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK=SCK
-       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS, connect to GND
-       |-------------------------------------------------
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 
 // Supporting Arduino Forum Topics:
@@ -42,15 +40,18 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-//#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
-//#include <GxGDEW027C44/GxGDEW027C44.cpp>
-//#include <GxGDEW042T2/GxGDEW042T2.cpp>
-//#include <GxGDEW075T8/GxGDEW075T8.cpp>
-//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>
+//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
+//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r
+//#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
+//#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
+#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+//#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
+//#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
+//#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
+//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
-// uncomment next line for drawBitmap() test, (consumes RAM on ESP8266)
+// uncomment next line for drawBitmap() test
 #include GxEPD_BitmapExamples
 
 // FreeFonts from Adafruit_GFX
@@ -169,9 +170,6 @@ void setup()
 void loop()
 {
   showBitmapExample();
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
-  showGridIcons();
-#endif
   //drawCornerTest();
 #if !defined(__AVR)
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
@@ -216,6 +214,22 @@ void showBitmapExample()
   display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(10000);
+#elif defined(_GxGDEW0154Z04_H_)
+  display.drawPicture(BitmapWaveshare_black, BitmapWaveshare_red, sizeof(BitmapWaveshare_black), sizeof(BitmapWaveshare_red), GxEPD::bm_normal);
+  delay(5000);
+#if !defined(__AVR)
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  delay(5000);
+#endif
+#elif defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_)
+  display.drawPicture(BitmapWaveshare_black, BitmapWaveshare_red, sizeof(BitmapWaveshare_black), sizeof(BitmapWaveshare_red));
+  delay(5000);
+#if !defined(__AVR)
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  delay(5000);
+  display.drawExamplePicture(BitmapExample3, BitmapExample4, sizeof(BitmapExample3), sizeof(BitmapExample4));
+  delay(5000);
+#endif
 #else
   display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
@@ -252,7 +266,7 @@ void showFont(const char name[], const GFXfont* f)
   display.println("0123456789:;<=>?");
   display.println("@ABCDEFGHIJKLMNO");
   display.println("PQRSTUVWXYZ[\\]^_");
-#ifdef _GxGDEW027C44_H_
+#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_)
   display.setTextColor(GxEPD_RED);
 #endif
   display.println("`abcdefghijklmno");
@@ -275,6 +289,9 @@ void showFontCallback()
   display.println("0123456789:;<=>?");
   display.println("@ABCDEFGHIJKLMNO");
   display.println("PQRSTUVWXYZ[\\]^_");
+#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_)
+  display.setTextColor(GxEPD_RED);
+#endif
   display.println("`abcdefghijklmno");
   display.println("pqrstuvwxyz{|}~ ");
 }
@@ -297,46 +314,4 @@ void drawCornerTest()
     delay(5000);
   }
 }
-
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
-
-#include "imglib/gridicons_add_image.h"
-#include "imglib/gridicons_add_outline.h"
-#include "imglib/gridicons_add.h"
-#include "imglib/gridicons_align_center.h"
-#include "imglib/gridicons_align_image_center.h"
-#include "imglib/gridicons_align_image_left.h"
-#include "imglib/gridicons_align_image_none.h"
-#include "imglib/gridicons_align_image_right.h"
-#include "imglib/gridicons_align_justify.h"
-#include "imglib/gridicons_align_left.h"
-#include "imglib/gridicons_align_right.h"
-#include "imglib/gridicons_arrow_down.h"
-#include "imglib/gridicons_arrow_left.h"
-#include "imglib/gridicons_arrow_right.h"
-#include "imglib/gridicons_arrow_up.h"
-
-void showGridIcons()
-{
-  display.fillScreen(GxEPD_WHITE);
-  display.drawBitmap(0, 0, gridicons_add_image, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(25, 0, gridicons_add_outline, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(50, 0, gridicons_add, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(75, 0, gridicons_align_center, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(0, 25, gridicons_align_image_center, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(25, 25, gridicons_align_image_left, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(50, 25, gridicons_align_image_none, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(75, 25, gridicons_align_image_right, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(0, 50, gridicons_align_justify, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(25, 50, gridicons_align_left, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(50, 50, gridicons_align_right, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(75, 50, gridicons_arrow_down, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(0, 75, gridicons_arrow_left, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(25, 75, gridicons_arrow_right, 24, 24, GxEPD_BLACK);
-  display.drawBitmap(50, 75, gridicons_arrow_up, 24, 24, GxEPD_BLACK);
-  display.update();
-  delay(1000);
-}
-
-#endif
 

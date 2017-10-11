@@ -42,6 +42,12 @@ mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini:
 mapping example for AVR, UNO, NANO etc.:
 - BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
 
+Added classes for Waveshare and Good Display black / white / red SPI e-Paper displays:
+
+- GxGDEW0154Z04 1.54 inch 200 x 200 3 color SPI display
+- GxGDEW0213Z16 2.13 inch 104 x 212 3 color SPI display
+- GxGDEW029Z10  2.9  inch 128 x 296 3 color SPI display
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.

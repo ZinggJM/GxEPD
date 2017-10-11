@@ -28,7 +28,8 @@ class GxEPD : public Adafruit_GFX
       bm_r90 = (1 << 4),
       bm_r180 = (1 << 5),
       bm_r270 = bm_r90 | bm_r180,
-      bm_partial_update = (1 << 6)
+      bm_partial_update = (1 << 6),
+      bm_invert_red = (1 << 7)
     };
   public:
     GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
@@ -36,18 +37,24 @@ class GxEPD : public Adafruit_GFX
     virtual void init(void) = 0;
     virtual void fillScreen(uint16_t color) = 0; // to buffer
     virtual void update(void) = 0;
-    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
-    // still pure virtual because of a signature matching issue of the ESP compiler (matches only if declared in subclass)
-    virtual void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color) = 0;
-    // to buffer, may be cropped, drawPixel() used, update needed, different signature, subclass may support some modes
-    virtual void drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m) = 0;
+    // to buffer, may be cropped, drawPixel() used, update needed, subclass may support some modes
+    virtual void drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m = bm_normal) = 0;
+    // to buffer, may be cropped, drawPixel() used, update needed, subclass may support some modes, default for example bitmaps
+    virtual void drawExampleBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m = bm_default)
+    {
+      drawBitmap(bitmap, x, y, w, h, color, m);
+    };
     // monochrome or 4 gray or other to full screen, filled with white if size is less, no update needed
     virtual void drawPicture(const uint8_t *picture, uint32_t size) // b/w or grey is class specific
     {
       drawBitmap(picture, size); // default is monochrome
     };
     // monochrome to full screen, filled with white if size is less, no update needed
-    virtual void drawBitmap(const uint8_t *bitmap, uint32_t size) = 0; // monochrome
+    virtual void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m = bm_normal) = 0; // monochrome
+    virtual void drawExampleBitmap(const uint8_t *bitmap, uint32_t size, int16_t m = bm_default) // monochrome
+    {
+      drawBitmap(bitmap, size, m);
+    };
   protected:
     void drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m);
 };
