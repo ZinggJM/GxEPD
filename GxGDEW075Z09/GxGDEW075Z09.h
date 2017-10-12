@@ -1,7 +1,7 @@
 /************************************************************************************
     class GxGDEW075Z09 : Display class example for GDEW075Z09 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-    based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+    based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=526.html
 
     Author : J-M Zingg
 
@@ -11,21 +11,23 @@
 
     Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
+    Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
+
     connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
-   DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS
-       |-------------------------------------------------
+    DESTM32-S2 pinout (top, component side view):
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 #ifndef _GxGDEW075Z09_H_
 #define _GxGDEW075Z09_H_
@@ -35,18 +37,6 @@
 #define GxGDEW075Z09_WIDTH 640
 #define GxGDEW075Z09_HEIGHT 384
 
-// my mapping from DESTM32-S1 evaluation board to Wemos D1 mini
-
-// D10 : MOSI -> D7
-// D8  : CS   -> D8
-// E14 : RST  -> D4
-// E12 : nc  -> nc
-
-// D9  : CLK  -> D5 SCK
-// E15 : DC   -> D3
-// E13 : BUSY -> D2
-// E11 : BS   -> GND
-
 #if defined(ESP8266)
 #define GxGDEW075Z09_BUFFER_SIZE GxGDEW075Z09_WIDTH * GxGDEW075Z09_HEIGHT / 8
 #define GxGDEW075Z09_OUTBUFFER_SIZE GxGDEW075Z09_WIDTH * GxGDEW075Z09_HEIGHT / 4
@@ -54,6 +44,13 @@
 #define GxGDEW075Z09_BUFFER_SIZE GxGDEW075Z09_WIDTH * GxGDEW075Z09_HEIGHT / 4
 #define GxGDEW075Z09_OUTBUFFER_SIZE GxGDEW075Z09_BUFFER_SIZE
 #endif
+
+// mapping example from Waveshare 7.5inch e-Paper to Wemos D1 mini
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
+// mapping example for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
+
 class GxGDEW075Z09 : public GxEPD
 {
   public:
@@ -72,7 +69,7 @@ class GxGDEW075Z09 : public GxEPD
     // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
     void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint32_t size);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // parameter ignored
     void eraseDisplay(bool using_partial_update){drawBitmap(0,0);};
     // these methods are not implemented
     // partial update

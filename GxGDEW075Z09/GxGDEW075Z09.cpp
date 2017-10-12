@@ -1,7 +1,7 @@
 /************************************************************************************
     class GxGDEW075Z09 : Display class example for GDEW075Z09 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-    based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+    based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=526.html
 
     Author : J-M Zingg
 
@@ -9,23 +9,25 @@
 
     Version : 2.0
 
-   Support: minimal, provided as example only, as is, no claim to be fit for serious use
+    Support: minimal, provided as example only, as is, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+    Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
 
-   DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  SS   |o o| D/C
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS
-       |-------------------------------------------------
+    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
+
+    DESTM32-S2 pinout (top, component side view):
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 
 #include "GxGDEW075Z09.h"
@@ -171,7 +173,7 @@ void  GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, ui
   drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
-void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDEW075Z09::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
   //Serial.print("drawBitmap "); Serial.println(size);
   _wakeUp(true);

@@ -1,31 +1,31 @@
 /************************************************************************************
    class GxGDEW075T8 : Display class example for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=525.html
 
    Author : J-M Zingg
 
-   modified by :
-
-   Version : 2.0
+   Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
+
+   Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V, not needed
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK=SCK
-       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS, connect to GND
-       |-------------------------------------------------
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 
 // note 28.8.2017 : the controller UC8159 seems to know command 90H Partial Window, but neither 91H Partial In nor 92H Partial Out
@@ -40,6 +40,9 @@
 #else
 #include <avr/pgmspace.h>
 #endif
+
+// Partial Update Delay, may have an influence on degradation
+#define PU_DELAY 500
 
 GxGDEW075T8::GxGDEW075T8(GxIO& io, uint8_t rst, uint8_t busy)
   : GxEPD(GxGDEW075T8_WIDTH, GxGDEW075T8_HEIGHT),
@@ -83,9 +86,9 @@ void GxGDEW075T8::drawPixel(int16_t x, int16_t y, uint16_t color)
   }
   else
   {
-    if (i < GxGDEW075T8_PAGE_SIZE * _current_page) return;
-    if (i >= GxGDEW075T8_PAGE_SIZE * (_current_page + 1)) return;
-    i -= GxGDEW075T8_PAGE_SIZE * _current_page;
+    y -= _current_page * GxGDEW075T8_PAGE_HEIGHT;
+    if ((y < 0) || (y >= GxGDEW075T8_PAGE_HEIGHT)) return;
+    i = x / 8 + y * GxGDEW075T8_WIDTH / 8;
   }
 
   if (!color)
@@ -135,38 +138,34 @@ void GxGDEW075T8::update(void)
   _sleep();
 }
 
-void  GxGDEW075T8::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
-{
-  drawBitmap(bitmap, x, y, w, h, color);
-}
-
 void  GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mode == bm_default) mode = bm_normal;
+  if (mode & bm_default) mode |= bm_normal;
   drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
-void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDEW075T8::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mode)
 {
-  drawBitmap(bitmap, size, false);
-}
-
-void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_partial_update)
-{
-  if (using_partial_update)
+  if (_current_page != -1) return;
+  if (mode & bm_partial_update)
   {
     _using_partial_mode = true; // remember
     _wakeUp();
-    // set full screen
     IO.writeCommandTransaction(0x91); // partial in
     _setPartialRamArea(0, 0, GxGDEW075T8_WIDTH - 1, GxGDEW075T8_HEIGHT - 1);
     for (uint32_t i = 0; i < GxGDEW075T8_BUFFER_SIZE; i++)
     {
+      uint8_t data = 0x00; // white is 0x00 on device
+      if (i < size)
+      {
 #if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-      _send8pixel(i < size ? pgm_read_byte(bitmap + i) : 0);
+        data = pgm_read_byte(&bitmap[i]);
 #else
-      _send8pixel(i < size ? bitmap[i] : 0);
+        data = bitmap[i];
 #endif
+        if (mode & bm_invert) data = ~data;
+      }
+      _send8pixel(data);
     }
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
@@ -184,11 +183,17 @@ void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
       // (31000 * 8bit * (8bits/bit + gap)/ 4MHz = ~ 600ms is safe
       // if ((i % 10000) == 0) yield(); // avoid watchdog reset
 #endif
+      uint8_t data = 0x00; // white is 0x00 on device
+      if (i < size)
+      {
 #if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-      _send8pixel(i < size ? pgm_read_byte(bitmap + i) : 0);
+        data = pgm_read_byte(&bitmap[i]);
 #else
-      _send8pixel(i < size ? bitmap[i] : 0);
+        data = bitmap[i];
 #endif
+        if (mode & bm_invert) data = ~data;
+      }
+      _send8pixel(data);
     }
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
@@ -198,11 +203,11 @@ void GxGDEW075T8::drawBitmap(const uint8_t *bitmap, uint32_t size, bool using_pa
 
 void GxGDEW075T8::eraseDisplay(bool using_partial_update)
 {
+  if (_current_page != -1) return;
   if (using_partial_update)
   {
+    if (!_using_partial_mode) _wakeUp();
     _using_partial_mode = true; // remember
-    _wakeUp();
-    // set full screen
     IO.writeCommandTransaction(0x91); // partial in
     _setPartialRamArea(0, 0, GxGDEW075T8_WIDTH - 1, GxGDEW075T8_HEIGHT - 1);
     IO.writeCommandTransaction(0x10);
@@ -251,7 +256,6 @@ void GxGDEW075T8::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
         break;
     }
   }
-  //fillScreen(0x0);
   if (x >= GxGDEW075T8_WIDTH) return;
   if (y >= GxGDEW075T8_HEIGHT) return;
   // x &= 0xFFF8; // byte boundary, not here, use encompassing rectangle
@@ -277,9 +281,80 @@ void GxGDEW075T8::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("updateWindow");
   IO.writeCommandTransaction(0x92); // partial out
+  delay(PU_DELAY); // don't stress this display
 }
 
-void GxGDEW075T8::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye)
+void GxGDEW075T8::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
+{
+  if (!_using_partial_mode) _wakeUp();
+  _using_partial_mode = true;
+  _writeToWindow(xs, ys, xd, yd, w, h, using_rotation);
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("updateToWindow");
+  delay(PU_DELAY); // don't stress this display
+}
+
+void GxGDEW075T8::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
+{
+  if (using_rotation)
+  {
+    switch (getRotation())
+    {
+      case 1:
+        swap(xs, ys);
+        swap(xd, yd);
+        swap(w, h);
+        xs = GxGDEW075T8_WIDTH - xs - w - 1;
+        xd = GxGDEW075T8_WIDTH - xd - w - 1;
+        break;
+      case 2:
+        xs = GxGDEW075T8_WIDTH - xs - w - 1;
+        ys = GxGDEW075T8_HEIGHT - ys - h - 1;
+        xd = GxGDEW075T8_WIDTH - xd - w - 1;
+        yd = GxGDEW075T8_HEIGHT - yd - h - 1;
+        break;
+      case 3:
+        swap(xs, ys);
+        swap(xd, yd);
+        swap(w, h);
+        ys = GxGDEW075T8_HEIGHT - ys  - h - 1;
+        yd = GxGDEW075T8_HEIGHT - yd  - h - 1;
+        break;
+    }
+  }
+  if (xs >= GxGDEW075T8_WIDTH) return;
+  if (ys >= GxGDEW075T8_HEIGHT) return;
+  if (xd >= GxGDEW075T8_WIDTH) return;
+  if (yd >= GxGDEW075T8_HEIGHT) return;
+  // the screen limits are the hard limits
+  uint16_t xde = min(GxGDEW075T8_WIDTH, xd + w) - 1;
+  uint16_t yde = min(GxGDEW075T8_HEIGHT, yd + h) - 1;
+  uint16_t xds_d8 = xd / 8;
+  uint16_t xde_d8 = xde / 8;
+  IO.writeCommandTransaction(0x91); // partial in
+  // soft limits, must send as many bytes as set by _SetRamArea
+  uint16_t yse = ys + yde - yd;
+  uint16_t xss_d8 = xs / 8;
+  uint16_t xse_d8 = xss_d8 + _setPartialRamArea(xd, yd, xde, yde);
+  IO.writeCommandTransaction(0x10);
+  for (int16_t y1 = ys; y1 <= yse; y1++)
+  {
+    for (int16_t x1 = xss_d8; x1 < xse_d8; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEW075T8_WIDTH / 8) + x1;
+      _send8pixel((idx < sizeof(_buffer)) ? _buffer[idx] : 0x00);
+    }
+  }
+  IO.writeCommandTransaction(0x92); // partial out
+}
+
+void GxGDEW075T8::powerDown()
+{
+  _using_partial_mode = false; // force _wakeUp()
+  _sleep();
+}
+
+uint16_t GxGDEW075T8::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye)
 {
   x &= 0xFFF8; // byte boundary
   xe = (xe - 1) | 0x0007; // byte boundary - 1
@@ -294,6 +369,7 @@ void GxGDEW075T8::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16
   IO.writeDataTransaction(ye % 256);
   //IO.writeDataTransaction(0x01); // don't see any difference
   IO.writeDataTransaction(0x00); // don't see any difference
+  return (7 + xe - x) / 8; // number of bytes to transfer per line
 }
 
 void GxGDEW075T8::_waitWhileBusy(const char* comment)
@@ -405,12 +481,13 @@ void GxGDEW075T8::_sleep(void)
 
 void GxGDEW075T8::drawPaged(void (*drawCallback)(void))
 {
-  unsigned long start = micros();
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _wakeUp();
   IO.writeCommandTransaction(0x10);
   for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback();
     for (int16_t y1 = 0; y1 < GxGDEW075T8_PAGE_HEIGHT; y1++)
     {
@@ -427,11 +504,228 @@ void GxGDEW075T8::drawPaged(void (*drawCallback)(void))
   }
   _current_page = -1;
   IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("drawPaged refresh");
+  _waitWhileBusy("drawPaged");
   _sleep();
-  //  unsigned long elapsed = micros() - start;
-  //  Serial.print("drawPaged total   : ");
-  //  Serial.println(elapsed);
+}
+
+void GxGDEW075T8::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
+{
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
+  _wakeUp();
+  IO.writeCommandTransaction(0x10);
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    fillScreen(GxEPD_WHITE);
+    drawCallback(p);
+    for (int16_t y1 = 0; y1 < GxGDEW075T8_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEW075T8_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW075T8_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _send8pixel(data);
+      }
+    }
+#if defined(ESP8266)
+    yield();
+#endif
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPaged");
+  _sleep();
+}
+
+void GxGDEW075T8::drawPaged(void (*drawCallback)(const void*), const void* p)
+{
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
+  _wakeUp();
+  IO.writeCommandTransaction(0x10);
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    fillScreen(GxEPD_WHITE);
+    drawCallback(p);
+    for (int16_t y1 = 0; y1 < GxGDEW075T8_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEW075T8_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW075T8_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _send8pixel(data);
+      }
+    }
+#if defined(ESP8266)
+    yield();
+#endif
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPaged");
+  _sleep();
+}
+
+void GxGDEW075T8::drawPaged(void (*drawCallback)(const void*, const void*), const void* p1, const void* p2)
+{
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
+  _wakeUp();
+  IO.writeCommandTransaction(0x10);
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    fillScreen(GxEPD_WHITE);
+    drawCallback(p1, p2);
+    for (int16_t y1 = 0; y1 < GxGDEW075T8_PAGE_HEIGHT; y1++)
+    {
+      for (int16_t x1 = 0; x1 < GxGDEW075T8_WIDTH / 8; x1++)
+      {
+        uint16_t idx = y1 * (GxGDEW075T8_WIDTH / 8) + x1;
+        uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+        _send8pixel(data);
+      }
+    }
+#if defined(ESP8266)
+    yield();
+#endif
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPaged");
+  _sleep();
+}
+
+void GxGDEW075T8::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
+{
+  switch (getRotation())
+  {
+    case 1:
+      swap(x, y);
+      swap(w, h);
+      x = GxGDEW075T8_WIDTH - x - w - 1;
+      break;
+    case 2:
+      x = GxGDEW075T8_WIDTH - x - w - 1;
+      y = GxGDEW075T8_HEIGHT - y - h - 1;
+      break;
+    case 3:
+      swap(x, y);
+      swap(w, h);
+      y = GxGDEW075T8_HEIGHT - y - h - 1;
+      break;
+  }
+}
+
+void GxGDEW075T8::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+  if (_current_page != -1) return;
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW075T8_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW075T8_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback();
+      uint16_t ys = yds % GxGDEW075T8_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPagedToWindow");
+  delay(PU_DELAY); // don't stress this display
+}
+
+void GxGDEW075T8::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t p)
+{
+  if (_current_page != -1) return;
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW075T8_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW075T8_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEW075T8_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPagedToWindow");
+  delay(PU_DELAY); // don't stress this display
+}
+
+void GxGDEW075T8::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p)
+{
+  if (_current_page != -1) return;
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW075T8_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW075T8_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEW075T8_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPagedToWindow");
+  delay(PU_DELAY); // don't stress this display
+}
+
+void GxGDEW075T8::drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p1, const void* p2)
+{
+  if (_current_page != -1) return;
+  _rotate(x, y, w, h);
+  if (!_using_partial_mode)
+  {
+    eraseDisplay(false);
+    eraseDisplay(true);
+  }
+  _using_partial_mode = true;
+  for (_current_page = 0; _current_page < GxGDEW075T8_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW075T8_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW075T8_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p1, p2);
+      uint16_t ys = yds % GxGDEW075T8_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds, false);
+    }
+  }
+  _current_page = -1;
+  IO.writeCommandTransaction(0x12);      //display refresh
+  _waitWhileBusy("drawPagedToWindow");
+  delay(PU_DELAY); // don't stress this display
 }
 
 void GxGDEW075T8::drawCornerTest(uint8_t em)
