@@ -48,6 +48,9 @@ Added classes for Waveshare and Good Display black / white / red SPI e-Paper dis
 - GxGDEW0213Z16 2.13 inch 104 x 212 3 color SPI display
 - GxGDEW029Z10  2.9  inch 128 x 296 3 color SPI display
 
+Note for use with package ESP8266 or ESP32:
+- some ESP libraries #undef min and max, #include these libraries AFTER the GxEPD display class!
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
