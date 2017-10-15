@@ -84,7 +84,7 @@ class GxGDEW080T5 : public GxEPD
     // 4 gray levels to full screen, filled with white if size is less, no update needed
     void drawPicture(const uint8_t *picture, uint32_t size);
     // monochrome to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint32_t size);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m = bm_normal); // parameter m ignored
     // undo last drawBitmap to prepare for next drawBitmap (turn display white);
     // any bitmap can be used, but real last bitmap gives slightly better result
     void erasePicture(const uint8_t *picture, uint32_t size);

@@ -138,7 +138,7 @@ void GxGDE06::drawPicture(const uint8_t *picture, uint32_t size)
   IO.powerOff();
 }
 
-void GxGDE06::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDE06::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m)
 {
   IO.powerOn();
   delay(25);

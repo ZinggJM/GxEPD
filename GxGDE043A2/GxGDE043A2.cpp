@@ -146,7 +146,7 @@ void GxGDE043A2::drawPicture(const uint8_t *bitmap, uint32_t size)
   IO.powerOff();
 }
 
-void GxGDE043A2::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDE043A2::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m)
 {
   IO.powerOn();
   delay(25);

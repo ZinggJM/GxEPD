@@ -144,7 +144,7 @@ void GxGDEW080T5::drawPicture(const uint8_t *bitmap, uint32_t size)
   IO.powerOff();
 }
 
-void GxGDEW080T5::drawBitmap(const uint8_t *bitmap, uint32_t size)
+void GxGDEW080T5::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m)
 {
   IO.powerOn();
   delay(25);
