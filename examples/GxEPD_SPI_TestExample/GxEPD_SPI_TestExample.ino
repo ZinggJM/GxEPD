@@ -231,24 +231,42 @@ void showBitmapExample()
   delay(5000);
 #endif
 #else
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
-  display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
   delay(2000);
-  display.setRotation(2);
+  display.setRotation(0);
   display.fillScreen(GxEPD_WHITE);
-  // display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK); // old signature
-  // to buffer, may be cropped, drawPixel() used, update needed, new signature, mirror default set for example bitmaps (display class dependent)
-  // void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, bool mirror = true);
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK); // new signature
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(10000);
 #if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
-  display.fillScreen(GxEPD_WHITE);
   // thanks to bytecrusher: http://forum.arduino.cc/index.php?topic=487007.msg3367378#msg3367378
-  display.drawBitmap(gImage_IMG_0001, 50, 50, 64, 180, GxEPD_BLACK); // new signature
+  uint16_t x = (display.width() - 64) / 2;
+  uint16_t y = 5;
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(gImage_IMG_0001, x, y, 64, 180, GxEPD_BLACK);
   display.update();
-  delay(10000);
+  delay(500);
+  uint16_t forward = GxEPD::bm_invert | GxEPD::bm_flip_x;
+  uint16_t reverse = GxEPD::bm_invert | GxEPD::bm_flip_x | GxEPD::bm_flip_y;
+  for (; y + 180 + 5 <= display.height(); y += 5)
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.drawExampleBitmap(gImage_IMG_0001, x, y, 64, 180, GxEPD_BLACK, forward);
+    display.updateWindow(0, 0, display.width(), display.height());
+    delay(500);
+  }
+  delay(1000);
+  for (; y >= 5; y -= 5)
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.drawExampleBitmap(gImage_IMG_0001, x, y, 64, 180, GxEPD_BLACK, reverse);
+    display.updateWindow(0, 0, display.width(), display.height());
+    delay(1000);
+  }
+  display.update();
+  delay(1000);
 #endif
 #endif
 #endif

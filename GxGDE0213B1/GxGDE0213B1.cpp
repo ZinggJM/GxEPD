@@ -1,31 +1,31 @@
 /************************************************************************************
    class GxGDE0213B1 : Display class example for GDE0213B1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
 
    Author : J-M Zingg
-
-   modified by :
 
    Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
+   Controller: IL3895 : http://www.good-display.com/download_detail/downloadsId=538.html
+
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V, not needed
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK=SCK
-       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS, connect to GND
-       |-------------------------------------------------
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 
 #include "GxGDE0213B1.h"
@@ -106,9 +106,9 @@ void GxGDE0213B1::drawPixel(int16_t x, int16_t y, uint16_t color)
   }
   else
   {
-    if (i < GxGDE0213B1_PAGE_SIZE * _current_page) return;
-    if (i >= GxGDE0213B1_PAGE_SIZE * (_current_page + 1)) return;
-    i -= GxGDE0213B1_PAGE_SIZE * _current_page;
+    y -= _current_page * GxGDE0213B1_PAGE_HEIGHT;
+    if ((y < 0) || (y >= GxGDE0213B1_PAGE_HEIGHT)) return;
+    i = x / 8 + y * GxGDE0213B1_WIDTH / 8;
   }
 
   if (!color)
@@ -157,74 +157,89 @@ void GxGDE0213B1::update(void)
   _PowerOff();
 }
 
-void  GxGDE0213B1::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
-{
-  drawBitmap(bitmap, x, y, w, h, color);
-}
-
 void  GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mode & bm_default) mode |= bm_flip_v | bm_invert;
+  if (mode & bm_default) mode |= bm_flip_x | bm_invert;
   drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
 void GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
-  uint8_t ram_entry_mode = 0x01; // always y-decrease, x-increase
-  if ((mode & bm_flip_h) && (mode & bm_flip_v)) ram_entry_mode = 0x00;
-  else if (mode & bm_flip_h) ram_entry_mode = 0x00; // always y-decrease, x-decrease
-  //else if (mode & bm_flip_v) ram_entry_mode = 0x02; // always y-decrease
-  if (mode & bm_partial_update) drawBitmapPU(bitmap, size, ram_entry_mode);
-  else drawBitmapEM(bitmap, size, ram_entry_mode);
-}
-
-void GxGDE0213B1::drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em)
-{
-  _using_partial_mode = false; // remember
-  _Init_Full(em);
-  _writeCommand(0x24);
-  for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
+  if (_current_page != -1) return;
+  // example bitmaps are made for y-decrement, x-increment, for origin on opposite corner
+  // bm_flip_x for normal display (bm_flip_y would be rotated)
+  // y-increment is not available with this controller, done with SW
+  if (mode & bm_default) mode |= bm_flip_x;
+  uint8_t ram_entry_mode = 0x01; // (always) y-decrement, x-increment for normal mode
+  if ((mode & bm_flip_y) && (mode & bm_flip_x)) ram_entry_mode = 0x00; // y-decrement, x-decrement
+  else if (mode & bm_flip_y) ram_entry_mode = 0x00; // (always) y-decrement, x-decrement
+  //else if (mode & bm_flip_x) ram_entry_mode = 0x02; // (always) y-decrement
+  if (mode & bm_partial_update)
   {
+    _using_partial_mode = true; // remember
+    _Init_Part(ram_entry_mode);
+    _writeCommand(0x24);
+    for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
+    {
+      uint8_t data = 0xFF; // white is 0xFF on device
+      if (i < size)
+      {
 #if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+        data = pgm_read_byte(&bitmap[i]);
 #else
-    _writeData((i < size) ? bitmap[i] : 0xFF);
+        data = bitmap[i];
 #endif
+        if (mode & bm_invert) data = ~data;
+      }
+      _writeData(data);
+    }
+    _Update_Part();
+    delay(PU_DELAY);
+    _writeCommand(0x24);
+    for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
+    {
+      uint8_t data = 0xFF; // white is 0xFF on device
+      if (i < size)
+      {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+        data = pgm_read_byte(&bitmap[i]);
+#else
+        data = bitmap[i];
+#endif
+        if (mode & bm_invert) data = ~data;
+      }
+      _writeData(data);
+    }
+    delay(PU_DELAY);
+    _PowerOff();
   }
-  _Update_Full();
-  _PowerOff();
-}
-
-void GxGDE0213B1::drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em)
-{
-  _using_partial_mode = true; // remember
-  _Init_Part(em);
-  _writeCommand(0x24);
-  for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
+  else
   {
+    _using_partial_mode = false; // remember
+    _Init_Full(ram_entry_mode);
+    _writeCommand(0x24);
+    for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
+    {
+      uint8_t data = 0xFF; // white is 0xFF on device
+      if (i < size)
+      {
 #if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
+        data = pgm_read_byte(&bitmap[i]);
 #else
-    _writeData((i < size) ? bitmap[i] : 0xFF);
+        data = bitmap[i];
 #endif
+        if (mode & bm_invert) data = ~data;
+      }
+      _writeData(data);
+    }
+    _Update_Full();
+    _PowerOff();
   }
-  _Update_Part();
-  delay(PU_DELAY);
-  _writeCommand(0x24);
-  for (uint32_t i = 0; i < GxGDE0213B1_BUFFER_SIZE; i++)
-  {
-#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
-    _writeData((i < size) ? pgm_read_byte(bitmap + i) : 0xFF);
-#else
-    _writeData((i < size) ? bitmap[i] : 0xFF);
-#endif
-  }
-  delay(PU_DELAY);
-  _PowerOff();
 }
 
 void GxGDE0213B1::eraseDisplay(bool using_partial_update)
 {
+  if (_current_page != -1) return;
   if (using_partial_update)
   {
     _using_partial_mode = true; // remember
@@ -261,27 +276,8 @@ void GxGDE0213B1::eraseDisplay(bool using_partial_update)
 
 void GxGDE0213B1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
 {
-  if (using_rotation)
-  {
-    switch (getRotation())
-    {
-      case 1:
-        swap(x, y);
-        swap(w, h);
-        x = GxGDE0213B1_WIDTH - x - w - 1;
-        break;
-      case 2:
-        x = GxGDE0213B1_WIDTH - x - w - 1;
-        y = GxGDE0213B1_HEIGHT - y - h - 1;
-        break;
-      case 3:
-        swap(x, y);
-        swap(w, h);
-        y = GxGDE0213B1_HEIGHT - y - h - 1;
-        break;
-    }
-  }
-  //fillScreen(0x0);
+  if (_current_page != -1) return;
+  if (using_rotation) _rotate(x, y, w, h);
   if (x >= GxGDE0213B1_WIDTH) return;
   if (y >= GxGDE0213B1_HEIGHT) return;
   uint16_t xe = min(GxGDE0213B1_WIDTH, x + w) - 1;
@@ -400,12 +396,12 @@ void GxGDE0213B1::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t
 
 void GxGDE0213B1::powerDown()
 {
+  _using_partial_mode = false;
   _PowerOff();
 }
 
 void GxGDE0213B1::_writeCommand(uint8_t command)
 {
-  //while (digitalRead(_busy));
   if (digitalRead(_busy))
   {
     String str = String("command 0x") + String(command, HEX);
@@ -421,7 +417,6 @@ void GxGDE0213B1::_writeData(uint8_t data)
 
 void GxGDE0213B1::_writeCommandData(const uint8_t* pCommandData, uint8_t datalen)
 {
-  //while (digitalRead(_busy)); // wait
   if (digitalRead(_busy))
   {
     String str = String("command 0x") + String(pCommandData[0], HEX);
@@ -444,10 +439,15 @@ void GxGDE0213B1::_waitWhileBusy(const char* comment)
   {
     if (!digitalRead(_busy)) break;
     delay(1);
+    if (micros() - start > 10000000)
+    {
+      Serial.println("Busy Timeout!");
+      break;
+    }
   }
   if (comment)
   {
-    unsigned long elapsed = micros() - start;
+    //unsigned long elapsed = micros() - start;
     //Serial.print(comment);
     //Serial.print(" : ");
     //Serial.println(elapsed);
@@ -561,11 +561,13 @@ void GxGDE0213B1::_Update_Part(void)
 
 void GxGDE0213B1::drawPaged(void (*drawCallback)(void))
 {
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _Init_Full(0x01);
   _writeCommand(0x24);
   for (_current_page = 0; _current_page < GxGDE0213B1_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback();
     for (int16_t y1 = 0; y1 < GxGDE0213B1_PAGE_HEIGHT; y1++)
     {
@@ -584,11 +586,13 @@ void GxGDE0213B1::drawPaged(void (*drawCallback)(void))
 
 void GxGDE0213B1::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
 {
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _Init_Full(0x01);
   _writeCommand(0x24);
   for (_current_page = 0; _current_page < GxGDE0213B1_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDE0213B1_PAGE_HEIGHT; y1++)
     {
@@ -607,11 +611,13 @@ void GxGDE0213B1::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
 
 void GxGDE0213B1::drawPaged(void (*drawCallback)(const void*), const void* p)
 {
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _Init_Full(0x01);
   _writeCommand(0x24);
   for (_current_page = 0; _current_page < GxGDE0213B1_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDE0213B1_PAGE_HEIGHT; y1++)
     {
@@ -630,11 +636,13 @@ void GxGDE0213B1::drawPaged(void (*drawCallback)(const void*), const void* p)
 
 void GxGDE0213B1::drawPaged(void (*drawCallback)(const void*, const void*), const void* p1, const void* p2)
 {
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _Init_Full(0x01);
   _writeCommand(0x24);
   for (_current_page = 0; _current_page < GxGDE0213B1_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p1, p2);
     for (int16_t y1 = 0; y1 < GxGDE0213B1_PAGE_HEIGHT; y1++)
     {
@@ -674,6 +682,7 @@ void GxGDE0213B1::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
 
 void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
+  if (_current_page != -1) return;
   _rotate(x, y, w, h);
   if (!_using_partial_mode)
   {
@@ -690,7 +699,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
     yde = min(y + h, yde);
     if (yde > yds)
     {
-      fillScreen(0xFF);
+      fillScreen(GxEPD_WHITE);
       drawCallback();
       uint16_t ys = (GxGDE0213B1_PAGES - 1) * GxGDE0213B1_PAGE_HEIGHT + (yds % GxGDE0213B1_PAGE_HEIGHT);
       updateToWindow(x, ys, x, yds, w, yde - yds + 1, false);
@@ -702,6 +711,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
 
 void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t p)
 {
+  if (_current_page != -1) return;
   _rotate(x, y, w, h);
   if (!_using_partial_mode)
   {
@@ -718,7 +728,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
     yde = min(y + h, yde);
     if (yde > yds)
     {
-      fillScreen(0xFF);
+      fillScreen(GxEPD_WHITE);
       drawCallback(p);
       uint16_t ys = (GxGDE0213B1_PAGES - 1) * GxGDE0213B1_PAGE_HEIGHT + (yds % GxGDE0213B1_PAGE_HEIGHT);
       updateToWindow(x, ys, x, yds, w, yde - yds, false);
@@ -730,6 +740,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
 
 void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p)
 {
+  if (_current_page != -1) return;
   _rotate(x, y, w, h);
   if (!_using_partial_mode)
   {
@@ -746,7 +757,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
     yde = min(y + h, yde);
     if (yde > yds)
     {
-      fillScreen(0xFF);
+      fillScreen(GxEPD_WHITE);
       drawCallback(p);
       uint16_t ys = (GxGDE0213B1_PAGES - 1) * GxGDE0213B1_PAGE_HEIGHT + (yds % GxGDE0213B1_PAGE_HEIGHT);
       updateToWindow(x, ys, x, yds, w, yde - yds, false);
@@ -758,6 +769,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
 
 void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p1, const void* p2)
 {
+  if (_current_page != -1) return;
   _rotate(x, y, w, h);
   if (!_using_partial_mode)
   {
@@ -774,7 +786,7 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*, const void
     yde = min(y + h, yde);
     if (yde > yds)
     {
-      fillScreen(0xFF);
+      fillScreen(GxEPD_WHITE);
       drawCallback(p1, p2);
       uint16_t ys = (GxGDE0213B1_PAGES - 1) * GxGDE0213B1_PAGE_HEIGHT + (yds % GxGDE0213B1_PAGE_HEIGHT);
       updateToWindow(x, ys, x, yds, w, yde - yds, false);
@@ -786,6 +798,8 @@ void GxGDE0213B1::drawPagedToWindow(void (*drawCallback)(const void*, const void
 
 void GxGDE0213B1::drawCornerTest(uint8_t em)
 {
+  if (_current_page != -1) return;
+  _using_partial_mode = false;
   _Init_Full(em);
   _writeCommand(0x24);
   for (uint32_t y = 0; y < GxGDE0213B1_HEIGHT; y++)
@@ -801,67 +815,6 @@ void GxGDE0213B1::drawCornerTest(uint8_t em)
     }
   }
   _Update_Full();
-  _PowerOff();
-}
-
-void GxGDE0213B1::_drawCurrentPage()
-{
-  uint16_t xs_d8 = 0;
-  uint16_t xe_d8 = (GxGDE0213B1_WIDTH - 1) / 8;
-  // flip y for y-decrement mode
-  uint16_t ye_p = (GxGDE0213B1_PAGES - _current_page - 1) * GxGDE0213B1_PAGE_HEIGHT;
-  uint16_t ys_p = ye_p + GxGDE0213B1_PAGE_HEIGHT - 1;
-  //uint16_t y = GxGDE0213B1_PAGE_HEIGHT * (GxGDE0213B1_PAGES - _current_page - 1);
-  uint16_t y = 0;
-  uint16_t ye = y + GxGDE0213B1_PAGE_HEIGHT - 1;
-  _SetRamArea(xs_d8, xe_d8, ys_p % 256, ys_p / 256, ye_p % 256, ye_p / 256); // X-source area,Y-gate area
-  _SetRamPointer(xs_d8, ys_p % 256, ys_p / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = y; y1 <= ye; y1++)
-  {
-    for (int16_t x1 = 0; x1 < GxGDE0213B1_WIDTH / 8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDE0213B1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
-  _Update_Part();
-  delay(PU_DELAY);
-  // update erase buffer
-  _SetRamArea(xs_d8, xe_d8, ys_p % 256, ys_p / 256, ye_p % 256, ye_p / 256); // X-source area,Y-gate area
-  _SetRamPointer(xs_d8, ys_p % 256, ys_p / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = 0; y1 < GxGDE0213B1_PAGE_HEIGHT; y1++)
-  {
-    for (int16_t x1 = 0; x1 < GxGDE0213B1_WIDTH / 8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDE0213B1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
-  delay(PU_DELAY);
-}
-
-void GxGDE0213B1::drawPagedPU(void (*drawCallback)(void))
-{
-  if (!_using_partial_mode)
-  {
-    eraseDisplay(false);
-    eraseDisplay(true);
-  }
-  _using_partial_mode = true;
-  _Init_Part(0x01);
-  for (_current_page = GxGDE0213B1_PAGES - 1; _current_page >= 0; _current_page--)
-  {
-    fillScreen(0xFF);
-    drawCallback();
-    _drawCurrentPage();
-  }
-  _current_page = -1;
   _PowerOff();
 }
 

@@ -1,31 +1,31 @@
 /************************************************************************************
    class GxGDEH029A1 : Display class example for GDEH029A1 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=516.html
 
    Author : J-M Zingg
-
-   modified by :
 
    Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
+   Controller: IL3820 : http://www.good-display.com/download_detail/downloadsId=540.html
+
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V, not needed
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK=SCK
-       | SS=DC |o o| D/C=RS    // Slave Select = Device Connect |o o| Data/Command = Register Select
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS, connect to GND
-       |-------------------------------------------------
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 */
 #ifndef _GxGDEH029A1_H_
 #define _GxGDEH029A1_H_
@@ -48,18 +48,6 @@
 #define GxGDEH029A1_PAGE_HEIGHT (GxGDEH029A1_HEIGHT / GxGDEH029A1_PAGES)
 #define GxGDEH029A1_PAGE_SIZE (GxGDEH029A1_BUFFER_SIZE / GxGDEH029A1_PAGES)
 
-// mapping from DESTM32-S1 evaluation board to Wemos D1 mini
-
-// D10 : MOSI -> D7
-// D8  : CS   -> D8
-// E14 : RST  -> D4
-// E12 : nc   -> nc
-
-// D9  : CLK  -> D5
-// E15 : DC   -> D3
-// E13 : BUSY -> D2
-// E11 : BS   -> GND
-
 // mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
@@ -78,16 +66,10 @@ class GxGDEH029A1 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
-    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
-    // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
-    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_flip_v | bm_invert);
+    // to buffer, may be cropped, drawPixel() used, update needed
+    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint32_t size)
-    {
-      drawBitmap(bitmap, size, bm_flip_v); // default for example bitmaps
-    }
-    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode);
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // only bm_normal, bm_invert, bm_partial_update modes implemented
     void eraseDisplay(bool using_partial_update = false);
     // partial update of rectangle from buffer to screen, does not power off
     void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
@@ -107,9 +89,6 @@ class GxGDEH029A1 : public GxEPD
     void drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*);
     void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
-    // private methods kept available public
-    void drawBitmapEM(const uint8_t *bitmap, uint32_t size, uint8_t em); // ram data entry mode
-    void drawBitmapPU(const uint8_t *bitmap, uint32_t size, uint8_t em); // partial update mode
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
@@ -145,9 +124,15 @@ class GxGDEH029A1 : public GxEPD
     static const uint8_t VCOMVol[];
     static const uint8_t DummyLine[];
     static const uint8_t Gatetime[];
-};
-
+#if defined(ESP8266) || defined(ESP32)
+  public:
+    // the compiler of these packages has a problem with signature matching to base classes
+    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color)
+    {
+      Adafruit_GFX::drawBitmap(x, y, bitmap, w, h, color);
+    };
 #endif
+};
 
 #define GxEPD_Class GxGDEH029A1
 
@@ -155,4 +140,6 @@ class GxGDEH029A1 : public GxEPD
 #define GxEPD_HEIGHT GxGDEH029A1_HEIGHT
 #define GxEPD_BitmapExamples <GxGDEH029A1/BitmapExamples.h>
 #define GxEPD_BitmapExamplesQ "GxGDEH029A1/BitmapExamples.h"
+
+#endif
 

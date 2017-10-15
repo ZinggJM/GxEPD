@@ -23,13 +23,16 @@ class GxEPD : public Adafruit_GFX
       bm_default = 1, // for use for BitmapExamples
       // these potentially can be combined
       bm_invert = (1 << 1),
-      bm_flip_h = (1 << 2),
-      bm_flip_v = (1 << 3),
+      bm_flip_x = (1 << 2),
+      bm_flip_y = (1 << 3),
       bm_r90 = (1 << 4),
       bm_r180 = (1 << 5),
       bm_r270 = bm_r90 | bm_r180,
       bm_partial_update = (1 << 6),
-      bm_invert_red = (1 << 7)
+      bm_invert_red = (1 << 7),
+      // exchanged, will be removed, retained until all classes are updated
+      bm_flip_h = bm_flip_y,
+      bm_flip_v = bm_flip_x
     };
   public:
     GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};

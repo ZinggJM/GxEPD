@@ -14,7 +14,7 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
   // taken from Adafruit_GFX.cpp, modified
   int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
   uint8_t byte = 0;
-  for (int16_t j = 0; j < h; j++, y++)
+  for (int16_t j = 0; j < h; j++)
   {
     for (int16_t i = 0; i < w; i++ )
     {
@@ -29,8 +29,11 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
       }
       // keep using overwrite mode
       uint16_t pixelcolor = (byte & 0x80) ? fg_color  : bg_color;
-      if (mode & bm_flip_v) drawPixel(width() - (x + i) - 1, y, pixelcolor);
-      else drawPixel(x + i, y, pixelcolor);
+      uint16_t xd = x + i;
+      uint16_t yd = y + j;
+      if (mode & bm_flip_x) xd = x + w - i;
+      if (mode & bm_flip_y) yd = y + h - j;
+      drawPixel(xd, yd, pixelcolor);
     }
   }
 }
