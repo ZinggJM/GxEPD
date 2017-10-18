@@ -157,7 +157,7 @@ void GxGDEH029A1::update(void)
 
 void  GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode)
 {
-  if (mode & bm_default) mode |= bm_flip_v | bm_invert;
+  if (mode & bm_default) mode |= bm_flip_x | bm_invert;
   drawBitmapBM(bitmap, x, y, w, h, color, mode);
 }
 
@@ -165,12 +165,12 @@ void GxGDEH029A1::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
   if (_current_page != -1) return;
   // example bitmaps are made for y-decrement, x-increment, for origin on opposite corner
-  // bm_flip_x
-  if (mode & bm_default) mode |= bm_flip_v;
+  // bm_flip_x for normal display (bm_flip_y would be rotated)
+  if (mode & bm_default) mode |= bm_flip_x;
   uint8_t ram_entry_mode = 0x03; // y-increment, x-increment : normal mode
-  if ((mode & bm_flip_h) && (mode & bm_flip_v)) ram_entry_mode = 0x00; // y-decrement, x-decrement
-  else if (mode & bm_flip_h) ram_entry_mode = 0x01; // y-decrement, x-increment
-  else if (mode & bm_flip_v) ram_entry_mode = 0x02; // y-increment, x-decrement
+  if ((mode & bm_flip_y) && (mode & bm_flip_x)) ram_entry_mode = 0x00; // y-decrement, x-decrement
+  else if (mode & bm_flip_y) ram_entry_mode = 0x01; // y-decrement, x-increment
+  else if (mode & bm_flip_x) ram_entry_mode = 0x02; // y-increment, x-decrement
   if (mode & bm_partial_update)
   {
     _using_partial_mode = true; // remember

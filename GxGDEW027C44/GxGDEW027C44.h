@@ -1,34 +1,36 @@
 /************************************************************************************
    class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
-   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=519.html
 
    Author : J-M Zingg
 
    modified by :
 
-   Version : 2.1
+   Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   Controller: IL91874 : http://www.good-display.com/download_detail/downloadsId=539.html
+
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
-       |-------------------------------------------------
-       |  VCC  |o o| VCC 5V
-       |  GND  |o o| GND
-       |  3.3  |o o| 3.3V
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  nc   |o o| nc
-       |  MOSI |o o| CLK
-       |  DC   |o o| D/C
-       |  RST  |o o| BUSY
-       |  nc   |o o| BS
-       |-------------------------------------------------
+         |-------------------------------------------------
+         |  VCC  |o o| VCC 5V  not needed
+         |  GND  |o o| GND
+         |  3.3  |o o| 3.3     3.3V
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+         |  nc   |o o| nc
+   MOSI  |  DIN  |o o| CLK     SCK
+   SS    |  CS   |o o| DC      e.g. D3
+   D4    |  RST  |o o| BUSY    e.g. D2
+         |  nc   |o o| BS      GND
+         |-------------------------------------------------
 
    note: for correct red color jumper J3 must be set on 0.47 side (towards FCP connector)
-   
+
 */
 #ifndef _GxGDEW027C44_H_
 #define _GxGDEW027C44_H_
@@ -38,24 +40,6 @@
 #define GxGDEW027C44_WIDTH 176
 #define GxGDEW027C44_HEIGHT 264
 
-// mapping from DESTM32-S1 evaluation board to Wemos D1 mini
-
-// D10 : MOSI -> D7
-// D8  : CS   -> D8
-// E14 : RST  -> D4
-// E12 : nc   -> nc
-
-// D9  : CLK  -> D5 SCK
-// E15 : DC   -> D3
-// E13 : BUSY -> D2
-// E11 : BS   -> GND
-
-// mapping from Waveshare 2.9inch e-Paper to Wemos D1 mini
-// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
-
-// mapping example for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
-
 #define GxGDEW027C44_BUFFER_SIZE (uint32_t(GxGDEW027C44_WIDTH) * uint32_t(GxGDEW027C44_HEIGHT) / 8)
 
 // divisor for AVR, should be factor of GxGDEW027C44_HEIGHT
@@ -63,6 +47,16 @@
 
 #define GxGDEW027C44_PAGE_HEIGHT (GxGDEW027C44_HEIGHT / GxGDEW027C44_PAGES)
 #define GxGDEW027C44_PAGE_SIZE (GxGDEW027C44_BUFFER_SIZE / GxGDEW027C44_PAGES)
+
+// mapping suggestion from Waveshare 2.7inch e-Paper to Wemos D1 mini
+// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
+// mapping suggestion for ESP32, e.g. LOLIN32, see .../variants/.../pins_arduino.h for your board
+// NOTE: there are variants with different pins for SPI ! CHECK SPI PINS OF YOUR BOARD
+// BUSY -> 4, RST -> 16, DC -> 17, CS -> SS(5), CLK -> SCK(18), DIN -> MOSI(23), GND -> GND, 3.3V -> 3.3V
+
+// mapping suggestion for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
 
 class GxGDEW027C44 : public GxEPD
 {
@@ -74,27 +68,25 @@ class GxGDEW027C44 : public GxEPD
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
-    void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
+    void fillScreen(uint16_t color); // to buffer
     void update(void);
-    // monochrome bitmap to buffer, may be cropped, drawPixel() used, update needed, signature like Adafruit_GFX
-    // still needed here because of a signature matching issue of the ESP compiler (matches only if declared in subclass)
-    void  drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
-    // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
+    // to buffer, may be cropped, drawPixel() used, update needed
     void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
+    // to full screen, filled with white if size is less, no update needed, black  /white / red, for example bitmaps
+    void drawExamplePicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size);
+    // to full screen, filled with white if size is less, no update needed, black  /white / red, general version
+    void drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed
-    void drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t size);
-    // to full screen, filled with white if size is less, no update needed
-    void drawBitmap(const uint8_t *bitmap, uint32_t size)
-    {
-      drawBitmap(bitmap, size, bm_normal); // default for example bitmaps
-    }
-    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode); // mode support not implemented
+    void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // only bm_normal, bm_invert modes implemented
     void eraseDisplay(bool using_partial_update = false); // parameter ignored
-    // partial update, not implemented
-    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true){};
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEH029A1_PAGES times
+    // terminate cleanly, not needed as all screen drawing methods of this class do power down
+    void powerDown();
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW027C44_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
+    void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
+    void drawPaged(void (*drawCallback)(const void*), const void*);
+    void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
   private:
     void _writeData(uint8_t data);
@@ -102,7 +94,7 @@ class GxGDEW027C44 : public GxEPD
     void _writeLUT();
     void _wakeUp();
     void _sleep();
-    void _waitWhileBusy(const char* comment=0);
+    void _waitWhileBusy(const char* comment = 0);
   private:
 #if defined(__AVR)
     uint8_t _black_buffer[GxGDEW027C44_PAGE_SIZE];
@@ -115,6 +107,19 @@ class GxGDEW027C44 : public GxEPD
     int16_t _current_page;
     uint8_t _rst;
     uint8_t _busy;
+    static const uint8_t lut_vcomDC[];
+    static const uint8_t lut_ww[];
+    static const uint8_t lut_bw[];
+    static const uint8_t lut_bb[];
+    static const uint8_t lut_wb[];
+#if defined(ESP8266) || defined(ESP32)
+  public:
+    // the compiler of these packages has a problem with signature matching to base classes
+    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color)
+    {
+      Adafruit_GFX::drawBitmap(x, y, bitmap, w, h, color);
+    };
+#endif
 };
 
 #define GxEPD_Class GxGDEW027C44

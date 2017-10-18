@@ -168,7 +168,7 @@ void GxGDE0213B1::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
   if (_current_page != -1) return;
   // example bitmaps are made for y-decrement, x-increment, for origin on opposite corner
   // bm_flip_x for normal display (bm_flip_y would be rotated)
-  // y-increment is not available with this controller, done with SW
+  // y-increment is not available with this controller
   if (mode & bm_default) mode |= bm_flip_x;
   uint8_t ram_entry_mode = 0x01; // (always) y-decrement, x-increment for normal mode
   if ((mode & bm_flip_y) && (mode & bm_flip_x)) ram_entry_mode = 0x00; // y-decrement, x-decrement

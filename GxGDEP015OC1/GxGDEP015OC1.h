@@ -48,11 +48,15 @@
 #define GxGDEP015OC1_PAGE_HEIGHT (GxGDEP015OC1_HEIGHT / GxGDEP015OC1_PAGES)
 #define GxGDEP015OC1_PAGE_SIZE (GxGDEP015OC1_BUFFER_SIZE / GxGDEP015OC1_PAGES)
 
-// mapping from Waveshare 1.54inch e-Paper to Wemos D1 mini
+// mapping suggestion from Waveshare 1.54inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
-// mapping example for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, CS -> 10, CLK -> 13, DIN -> 11
+// mapping suggestion for ESP32, e.g. LOLIN32, see .../variants/.../pins_arduino.h for your board
+// NOTE: there are variants with different pins for SPI ! CHECK SPI PINS OF YOUR BOARD
+// BUSY -> 4, RST -> 16, DC -> 17, CS -> SS(5), CLK -> SCK(18), DIN -> MOSI(23), GND -> GND, 3.3V -> 3.3V
+
+// mapping suggestion for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
 
 class GxGDEP015OC1 : public GxEPD
 {
@@ -104,7 +108,6 @@ class GxGDEP015OC1 : public GxEPD
     void _Init_Part(uint8_t em);
     void _Update_Full(void);
     void _Update_Part(void);
-    void _drawCurrentPage();
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   protected:
 #if defined(__AVR)

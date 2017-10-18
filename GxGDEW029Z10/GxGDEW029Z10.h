@@ -5,13 +5,11 @@
 
    Author : J-M Zingg
 
-   modified by :
-
    Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   Controller: maybe IL0398 : http://www.good-display.com/download_detail/downloadsId=537.html
+   Controller: IL0373 : http://www.good-display.com/download_detail/downloadsId=535.html
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
@@ -46,11 +44,15 @@
 #define GxGDEW029Z10_PAGE_HEIGHT (GxGDEW029Z10_HEIGHT / GxGDEW029Z10_PAGES)
 #define GxGDEW029Z10_PAGE_SIZE (GxGDEW029Z10_BUFFER_SIZE / GxGDEW029Z10_PAGES)
 
-// mapping example from Waveshare 2.7inch e-Paper to Wemos D1 mini
+// mapping suggestion from Waveshare 2.9inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
-// mapping example for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
+// mapping suggestion for ESP32, e.g. LOLIN32, see .../variants/.../pins_arduino.h for your board
+// NOTE: there are variants with different pins for SPI ! CHECK SPI PINS OF YOUR BOARD
+// BUSY -> 4, RST -> 16, DC -> 17, CS -> SS(5), CLK -> SCK(18), DIN -> MOSI(23), GND -> GND, 3.3V -> 3.3V
+
+// mapping suggestion for AVR, UNO, NANO etc.
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
 
 class GxGDEW029Z10 : public GxEPD
 {
@@ -64,8 +66,8 @@ class GxGDEW029Z10 : public GxEPD
     void init(void);
     void fillScreen(uint16_t color); // to buffer
     void update(void);
-    // to buffer, may be cropped, drawPixel() used, update needed, different signature, mode default for example bitmaps
-    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_invert);
+    // to buffer, may be cropped, drawPixel() used, update needed
+    void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed, black  /white / red, for example bitmaps
     void drawExamplePicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size);
     // to full screen, filled with white if size is less, no update needed, black  /white / red, general version

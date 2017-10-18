@@ -5,13 +5,11 @@
 
    Author : J-M Zingg
 
-   modified by :
-
    Version : 2.2
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   Controller: maybe IL0398 : http://www.good-display.com/download_detail/downloadsId=537.html
+   Controller: IL0373 : http://www.good-display.com/download_detail/downloadsId=535.html
 
    connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
 
@@ -206,6 +204,8 @@ void GxGDEW0213Z16::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_
 void GxGDEW0213Z16::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mode)
 {
   if (_current_page != -1) return;
+  // example bitmaps are normal on b/w, but inverted on red
+  if (mode & bm_default) mode |= bm_normal;
   if (mode & bm_partial_update)
   {
     _using_partial_mode = true;
@@ -494,10 +494,10 @@ void GxGDEW0213Z16::_waitWhileBusy(const char* comment)
   }
   if (comment)
   {
-    unsigned long elapsed = micros() - start;
-    Serial.print(comment);
-    Serial.print(" : ");
-    Serial.println(elapsed);
+    //unsigned long elapsed = micros() - start;
+    //Serial.print(comment);
+    //Serial.print(" : ");
+    //Serial.println(elapsed);
   }
 }
 

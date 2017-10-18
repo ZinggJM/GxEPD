@@ -28,7 +28,6 @@
          |-------------------------------------------------
 */
 #include "GxGDEP015OC1.h"
-#include "BitmapExamples.h"
 
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>

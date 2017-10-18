@@ -146,6 +146,7 @@ void GxGDEW0154Z04::fillScreen(uint16_t color)
 
 void GxGDEW0154Z04::update(void)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW0154Z04_BUFFER_SIZE; i++)
@@ -172,6 +173,7 @@ void  GxGDEW0154Z04::drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, u
 
 void GxGDEW0154Z04::drawExamplePicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW0154Z04_BUFFER_SIZE * 2; i++)
@@ -198,6 +200,7 @@ void GxGDEW0154Z04::drawExamplePicture(const uint8_t* black_bitmap, const uint8_
 
 void GxGDEW0154Z04::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size, int16_t mode)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW0154Z04_BUFFER_SIZE; i++)
@@ -237,6 +240,8 @@ void GxGDEW0154Z04::drawPicture(const uint8_t* black_bitmap, const uint8_t* red_
 
 void GxGDEW0154Z04::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mode)
 {
+  if (_current_page != -1) return;
+  if (mode & bm_default) mode |= bm_normal; // no change
   uint8_t mask = 0xFF; // black
   //uint8_t mask = 0b0101010101010101; // (light) grey
   //uint8_t mask = 0b1010101010101010; // (dark) grey, same grey
@@ -265,6 +270,7 @@ void GxGDEW0154Z04::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mod
 
 void GxGDEW0154Z04::eraseDisplay(bool using_partial_update)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t i = 0; i < GxGDEW0154Z04_BUFFER_SIZE * 2; i++)
@@ -476,11 +482,12 @@ void GxGDEW0154Z04::_writeLUT(void)
 
 void GxGDEW0154Z04::drawPaged(void (*drawCallback)(void))
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback();
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -496,7 +503,7 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(void))
   _writeCommand(0x13);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback();
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -516,11 +523,12 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(void))
 
 void GxGDEW0154Z04::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -536,7 +544,7 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
   _writeCommand(0x13);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -556,11 +564,12 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
 
 void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*), const void* p)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -576,7 +585,7 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*), const void* p)
   _writeCommand(0x13);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -596,11 +605,12 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*), const void* p)
 
 void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*, const void*), const void* p1, const void* p2)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p1, p2);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -616,7 +626,7 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*, const void*), co
   _writeCommand(0x13);
   for (_current_page = 0; _current_page < GxGDEW0154Z04_PAGES; _current_page++)
   {
-    fillScreen(0xFF);
+    fillScreen(GxEPD_WHITE);
     drawCallback(p1, p2);
     for (int16_t y1 = 0; y1 < GxGDEW0154Z04_PAGE_HEIGHT; y1++)
     {
@@ -636,6 +646,7 @@ void GxGDEW0154Z04::drawPaged(void (*drawCallback)(const void*, const void*), co
 
 void GxGDEW0154Z04::drawCornerTest(uint8_t em)
 {
+  if (_current_page != -1) return;
   _wakeUp();
   _writeCommand(0x10);
   for (uint32_t y = 0; y < GxGDEW0154Z04_HEIGHT; y++)
