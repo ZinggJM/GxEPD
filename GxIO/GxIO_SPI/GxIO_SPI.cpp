@@ -216,7 +216,7 @@ void GxIO_SPI::writeData(uint8_t* d, uint32_t num)
 void GxIO_SPI::writeData16(uint16_t d, uint32_t num)
 {
 #if defined(ESP8266) || defined(ESP32)
-  uint8_t b[2] = {d >> 8 , d};
+  uint8_t b[2] = {uint8_t(d >> 8), uint8_t(d)};
   IOSPI.writePattern(b, 2, num);
 #else
   while (num > 0)
@@ -632,7 +632,7 @@ void GxIO_SPI_USING_TRANSACTION::writeData(uint8_t* d, uint32_t num)
 void GxIO_SPI_USING_TRANSACTION::writeData16(uint16_t d, uint32_t num)
 {
 #if defined(ESP8266) || defined(ESP32)
-  uint8_t b[2] = {d >> 8 , d};
+  uint8_t b[2] = {uint8_t(d >> 8), uint8_t(d)};
   IOSPI.writePattern(b, 2, num);
 #else
   while (num > 0)

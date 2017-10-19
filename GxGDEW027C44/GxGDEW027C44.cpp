@@ -92,7 +92,8 @@ const uint8_t GxGDEW027C44::lut_wb[] = {
 
 GxGDEW027C44::GxGDEW027C44(GxIO& io, uint8_t rst, uint8_t busy)
   : GxEPD(GxGDEW027C44_WIDTH, GxGDEW027C44_HEIGHT),
-    IO(io), _rst(rst), _busy(busy), _current_page(-1)
+    IO(io), _current_page(-1), 
+    _rst(rst), _busy(busy) 
 {
 }
 
@@ -172,7 +173,7 @@ void GxGDEW027C44::fillScreen(uint16_t color)
   else if (color == GxEPD_RED) red = 0xFF;
   else if ((color & 0xF100) > (0xF100 / 2))  red = 0xFF;
   else if ((((color & 0xF100) >> 11) + ((color & 0x07E0) >> 5) + (color & 0x001F)) < 3 * 255 / 2) black = 0xFF;
-  for (uint16_t x = 0; x < GxGDEW027C44_BUFFER_SIZE; x++)
+  for (uint16_t x = 0; x < sizeof(_black_buffer); x++)
   {
     _black_buffer[x] = black;
     _red_buffer[x] = red;
