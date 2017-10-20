@@ -63,9 +63,9 @@ const uint8_t GxGDEH029A1::DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
 const uint8_t GxGDEH029A1::Gatetime[] = {0x3b, 0x08};  // 2us per line
 
 GxGDEH029A1::GxGDEH029A1(GxIO& io, uint8_t rst, uint8_t busy) :
-  GxEPD(GxGDEH029A1_WIDTH, GxGDEH029A1_HEIGHT),
-  IO(io), _rst(rst), _busy(busy),
-  _current_page(-1), _using_partial_mode(false)
+  GxEPD(GxGDEH029A1_WIDTH, GxGDEH029A1_HEIGHT), IO(io), 
+  _current_page(-1), _using_partial_mode(false),
+  _rst(rst), _busy(busy)
 {
 }
 
@@ -315,6 +315,39 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
   delay(PU_DELAY);
 }
 
+void GxGDEH029A1::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h)
+{
+  //Serial.printf("_writeToWindow(%d, %d, %d, %d, %d, %d)\n", xs, ys, xd, yd, w, h);
+  // the screen limits are the hard limits
+  if (xs >= GxGDEH029A1_WIDTH) return;
+  if (ys >= GxGDEH029A1_HEIGHT) return;
+  if (xd >= GxGDEH029A1_WIDTH) return;
+  if (yd >= GxGDEH029A1_HEIGHT) return;
+  w = min(w, GxGDEH029A1_WIDTH - xs);
+  w = min(w, GxGDEH029A1_WIDTH - xd);
+  h = min(h, GxGDEH029A1_HEIGHT - ys);
+  h = min(h, GxGDEH029A1_HEIGHT - yd);
+  uint16_t xds_d8 = xd / 8;
+  uint16_t xde_d8 = (xd + w - 1) / 8;
+  uint16_t yde = yd + h - 1;
+  // soft limits, must send as many bytes as set by _SetRamArea
+  uint16_t xse_d8 = xs / 8 + xde_d8 - xds_d8;
+  uint16_t yse = ys + h - 1;
+  _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
+  _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
+  _waitWhileBusy();
+  _writeCommand(0x24);
+  for (int16_t y1 = ys; y1 <= yse; y1++)
+  {
+    for (int16_t x1 = xs / 8; x1 <= xse_d8; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      _writeData(~data);
+    }
+  }
+}
+
 void GxGDEH029A1::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
 {
   if (using_rotation)
@@ -343,48 +376,12 @@ void GxGDEH029A1::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t
         break;
     }
   }
-  if (xs >= GxGDEH029A1_WIDTH) return;
-  if (ys >= GxGDEH029A1_HEIGHT) return;
-  if (xd >= GxGDEH029A1_WIDTH) return;
-  if (yd >= GxGDEH029A1_HEIGHT) return;
-  // the screen limits are the hard limits
-  uint16_t xde = min(GxGDEH029A1_WIDTH, xd + w) - 1;
-  uint16_t yde = min(GxGDEH029A1_HEIGHT, yd + h) - 1;
-  uint16_t xds_d8 = xd / 8;
-  uint16_t xde_d8 = xde / 8;
-  // soft limits, must send as many bytes as set by _SetRamArea
-  uint16_t xse_d8 = xs / 8 + xde_d8 - xds_d8;
-  uint16_t yse = ys + yde - yd;
   _Init_Part(0x03);
-  _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
-  _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = ys; y1 <= yse; y1++)
-  {
-    for (int16_t x1 = xs / 8; x1 <= xse_d8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
+  _writeToWindow(xs, ys, xd, yd, w, h);
   _Update_Part();
   delay(PU_DELAY);
   // update erase buffer
-  _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
-  _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
-  _waitWhileBusy();
-  _writeCommand(0x24);
-  for (int16_t y1 = ys; y1 <= yse; y1++)
-  {
-    for (int16_t x1 = xs / 8; x1 <= xse_d8; x1++)
-    {
-      uint16_t idx = y1 * (GxGDEH029A1_WIDTH / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      _writeData(~data);
-    }
-  }
+  _writeToWindow(xs, ys, xd, yd, w, h);
   delay(PU_DELAY);
 }
 
@@ -684,6 +681,7 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
     eraseDisplay(true);
   }
   _using_partial_mode = true;
+  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
     uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
@@ -693,9 +691,25 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
       fillScreen(GxEPD_WHITE);
       drawCallback();
       uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
-      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
+  _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback();
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(PU_DELAY);
   _current_page = -1;
   _PowerOff();
 }
@@ -710,6 +724,7 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
     eraseDisplay(true);
   }
   _using_partial_mode = true;
+  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
     uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
@@ -719,9 +734,25 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
       fillScreen(GxEPD_WHITE);
       drawCallback(p);
       uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
-      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
+  _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(PU_DELAY);
   _current_page = -1;
   _PowerOff();
 }
@@ -736,6 +767,7 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
     eraseDisplay(true);
   }
   _using_partial_mode = true;
+  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
     uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
@@ -745,9 +777,25 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
       fillScreen(GxEPD_WHITE);
       drawCallback(p);
       uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
-      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
+  _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(PU_DELAY);
   _current_page = -1;
   _PowerOff();
 }
@@ -762,6 +810,7 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*, const void
     eraseDisplay(true);
   }
   _using_partial_mode = true;
+  _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
     uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
@@ -771,9 +820,25 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*, const void
       fillScreen(GxEPD_WHITE);
       drawCallback(p1, p2);
       uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
-      updateToWindow(x, ys, x, yds, w, yde - yds, false);
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
+  _Update_Part();
+  delay(PU_DELAY);
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p1, p2);
+      uint16_t ys = yds % GxGDEH029A1_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(PU_DELAY);
   _current_page = -1;
   _PowerOff();
 }

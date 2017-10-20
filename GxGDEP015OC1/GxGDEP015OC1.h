@@ -94,6 +94,7 @@ class GxGDEP015OC1 : public GxEPD
     void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
   private:
+    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
     void _writeCommandData(const uint8_t* pCommandData, uint8_t datalen);

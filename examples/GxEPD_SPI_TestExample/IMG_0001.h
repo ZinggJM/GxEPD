@@ -1,8 +1,12 @@
-#if defined(__AVR)
-#include <avr/pgmspace.h>
+#ifndef _GxBootExample_H_
+#define _GxBootExample_H_
+
+#if defined(ESP8266) || defined(ESP32)
+#include <pgmspace.h>
 #else
-#define PROGMEM
+#include <avr/pgmspace.h>
 #endif
+
 // 180 x 64 (Boot)
 const unsigned char gImage_IMG_0001[1440] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X40,0X00, */
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
@@ -96,3 +100,5 @@ const unsigned char gImage_IMG_0001[1440] PROGMEM = { /* 0X01,0X01,0XB4,0X00,0X4
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
 };
+#endif
+
