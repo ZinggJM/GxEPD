@@ -26,11 +26,12 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
-#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
 // these displays do not fully support partial update
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
-//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
+#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
+//#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -150,6 +151,8 @@ void loop()
   delay(DEMO_DELAY * 1000);
 }
 
+#if !defined(__AVR)
+
 void showPartialUpdate()
 {
   // use asymmetric values for test
@@ -241,8 +244,12 @@ void showPartialUpdate()
   }
 }
 
+#endif
+
 #if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
  || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_))
+
+// modified to avoid float; reduces program size ~2k (for GxGDEW042T2)
 
 void showBlackBoxCallback(uint32_t v)
 {
@@ -253,7 +260,7 @@ void showBlackBoxCallback(uint32_t v)
   display.fillRect(box_x, box_y, box_w, box_h, v);
 }
 
-void showValueBoxCallback(const void* v)
+void showValueBoxCallback(const uint32_t v)
 {
   uint16_t box_x = 10;
   uint16_t box_y = 15;
@@ -262,7 +269,9 @@ void showValueBoxCallback(const void* v)
   uint16_t cursor_y = box_y + box_h - 6;
   display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
   display.setCursor(box_x, cursor_y);
-  display.print(*reinterpret_cast<const float*>(v), 2);
+  display.print(v / 100);
+  display.print(v % 100 > 9 ? "." : ".0");
+  display.print(v % 100);
 }
 
 void showPartialUpdate_AVR()
@@ -272,7 +281,7 @@ void showPartialUpdate_AVR()
   uint16_t box_w = 70;
   uint16_t box_h = 20;
   uint16_t cursor_y = box_y + box_h - 6;
-  float value = 13.95;
+  uint32_t value = 1395;
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
@@ -300,8 +309,8 @@ void showPartialUpdate_AVR()
     display.setRotation(r);
     for (uint16_t i = 1; i <= 10; i++)
     {
-      float v = value * i;
-      display.drawPagedToWindow(showValueBoxCallback, box_x, box_y, box_w, box_h, &v);
+      uint32_t v = value * i;
+      display.drawPagedToWindow(showValueBoxCallback, box_x, box_y, box_w, box_h, v);
       delay(500);
     }
     delay(1000);

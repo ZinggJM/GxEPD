@@ -45,9 +45,9 @@
 #define PU_DELAY 500
 
 GxGDEW075T8::GxGDEW075T8(GxIO& io, uint8_t rst, uint8_t busy)
-  : GxEPD(GxGDEW075T8_WIDTH, GxGDEW075T8_HEIGHT),
-    IO(io), _rst(rst), _busy(busy),
-    _current_page(-1), _using_partial_mode(false)
+  : GxEPD(GxGDEW075T8_WIDTH, GxGDEW075T8_HEIGHT), IO(io), 
+    _current_page(-1), _using_partial_mode(false),
+    _rst(rst), _busy(busy)
 {
 }
 
@@ -329,8 +329,6 @@ void GxGDEW075T8::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t
   // the screen limits are the hard limits
   uint16_t xde = min(GxGDEW075T8_WIDTH, xd + w) - 1;
   uint16_t yde = min(GxGDEW075T8_HEIGHT, yd + h) - 1;
-  uint16_t xds_d8 = xd / 8;
-  uint16_t xde_d8 = xde / 8;
   IO.writeCommandTransaction(0x91); // partial in
   // soft limits, must send as many bytes as set by _SetRamArea
   uint16_t yse = ys + yde - yd;
@@ -375,6 +373,7 @@ uint16_t GxGDEW075T8::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, ui
 void GxGDEW075T8::_waitWhileBusy(const char* comment)
 {
   unsigned long start = micros();
+  (void) start;
   while (1)
   { //=0 BUSY
     if (digitalRead(_busy) == 1) break;
