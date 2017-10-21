@@ -39,14 +39,10 @@
 #endif
 
 GxGDEW042T2::GxGDEW042T2(GxIO& io, uint8_t rst, uint8_t busy)
-  : GxEPD(GxGDEW042T2_WIDTH, GxGDEW042T2_HEIGHT),
-    IO(io), _rst(rst), _busy(busy),
-    _current_page(-1), _using_partial_mode(false)
+  : GxEPD(GxGDEW042T2_WIDTH, GxGDEW042T2_HEIGHT), IO(io),
+    _current_page(-1), _using_partial_mode(false),
+    _rst(rst), _busy(busy)
 {
-  _page_x = 0;
-  _page_y = 0;
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
 }
 
 template <typename T> static inline void
@@ -84,11 +80,9 @@ void GxGDEW042T2::drawPixel(int16_t x, int16_t y, uint16_t color)
   }
   else
   {
-    x -= _page_x;
-    y -= _page_y;
-    if ((x < 0) || (x >= _page_w)) return;
-    if ((y < 0) || (y >= _page_h)) return;
-    i = x / 8 + y * _page_w / 8;
+    y -= _current_page * GxGDEW042T2_PAGE_HEIGHT;
+    if ((y < 0) || (y >= GxGDEW042T2_PAGE_HEIGHT)) return;
+    i = x / 8 + y * GxGDEW042T2_WIDTH / 8;
   }
 
   if (!color)
@@ -107,10 +101,6 @@ void GxGDEW042T2::init(void)
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
   _using_partial_mode = false;
-  _page_x = 0;
-  _page_y = 0;
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
 }
 
 void GxGDEW042T2::fillScreen(uint16_t color)
@@ -148,10 +138,6 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 {
   if (_current_page != -1) return;
   if (mode & bm_default) mode |= bm_normal;
-  uint8_t ram_entry_mode = 0x03; // y-increment, x-increment : normal mode
-  if ((mode & bm_flip_y) && (mode & bm_flip_x)) ram_entry_mode = 0x00; // y-decrement, x-decrement
-  else if (mode & bm_flip_y) ram_entry_mode = 0x01; // y-decrement, x-increment
-  else if (mode & bm_flip_x) ram_entry_mode = 0x02; // y-increment, x-decrement
   if (mode & bm_partial_update)
   {
     _using_partial_mode = true; // remember
@@ -172,11 +158,31 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 #endif
         if (mode & bm_invert) data = ~data;
       }
-       IO.writeDataTransaction(data);
+      IO.writeDataTransaction(data);
     }
+    IO.writeCommandTransaction(0x92); // partial out
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
+    // update erase buffer
+    IO.writeCommandTransaction(0x91); // partial in
+    _setPartialRamArea(0, 0, GxGDEW042T2_WIDTH - 1, GxGDEW042T2_HEIGHT - 1);
+    IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+      uint8_t data = 0xFF; // white is 0xFF on device
+      if (i < size)
+      {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+        data = pgm_read_byte(&bitmap[i]);
+#else
+        data = bitmap[i];
+#endif
+        if (mode & bm_invert) data = ~data;
+      }
+      IO.writeDataTransaction(data);
+    }
     IO.writeCommandTransaction(0x92); // partial out
+    _waitWhileBusy("drawBitmap");
   }
   else
   {
@@ -195,7 +201,7 @@ void GxGDEW042T2::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode)
 #endif
         if (mode & bm_invert) data = ~data;
       }
-       IO.writeDataTransaction(data);
+      IO.writeDataTransaction(data);
     }
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
@@ -214,6 +220,11 @@ void GxGDEW042T2::eraseDisplay(bool using_partial_update)
     IO.writeCommandTransaction(0x91); // partial in
     _setPartialRamArea(0, 0, GxGDEW042T2_WIDTH - 1, GxGDEW042T2_HEIGHT - 1);
     IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
+    {
+      IO.writeDataTransaction(0xFF);
+    }
+    IO.writeCommandTransaction(0x10);
     for (uint32_t i = 0; i < GxGDEW042T2_BUFFER_SIZE; i++)
     {
       IO.writeDataTransaction(0xFF);
@@ -288,6 +299,35 @@ void GxGDEW042T2::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
   IO.writeCommandTransaction(0x92); // partial out
 }
 
+void GxGDEW042T2::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h)
+{
+  //Serial.printf("_writeToWindow(%d, %d, %d, %d, %d, %d)\n", xs, ys, xd, yd, w, h);
+  // the screen limits are the hard limits
+  if (xs >= GxGDEW042T2_WIDTH) return;
+  if (ys >= GxGDEW042T2_HEIGHT) return;
+  if (xd >= GxGDEW042T2_WIDTH) return;
+  if (yd >= GxGDEW042T2_HEIGHT) return;
+  uint16_t xde = min(GxGDEW042T2_WIDTH, xd + w) - 1;
+  uint16_t yde = min(GxGDEW042T2_HEIGHT, yd + h) - 1;
+  // soft limits, must send as many bytes as set by _SetRamArea
+  uint16_t yse = ys + yde - yd;
+  uint16_t xss_d8 = xs / 8;
+  IO.writeCommandTransaction(0x91); // partial in
+  uint16_t xse_d8 = xss_d8 + _setPartialRamArea(xd, yd, xde, yde);
+  IO.writeCommandTransaction(0x13);
+  for (int16_t y1 = ys; y1 <= yse; y1++)
+  {
+    for (int16_t x1 = xss_d8; x1 < xse_d8; x1++)
+    {
+      uint16_t idx = y1 * (GxGDEW042T2_WIDTH / 8) + x1;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      IO.writeDataTransaction(~data);
+    }
+  }
+  delay(2);
+  IO.writeCommandTransaction(0x92); // partial out
+}
+
 void GxGDEW042T2::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
 {
   if (using_rotation)
@@ -316,35 +356,11 @@ void GxGDEW042T2::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t
         break;
     }
   }
-  if (xs >= GxGDEW042T2_WIDTH) return;
-  if (ys >= GxGDEW042T2_HEIGHT) return;
-  if (xd >= GxGDEW042T2_WIDTH) return;
-  if (yd >= GxGDEW042T2_HEIGHT) return;
-  // the screen limits are the hard limits
-  uint16_t xde = min(GxGDEW042T2_WIDTH, xd + w) - 1;
-  uint16_t yde = min(GxGDEW042T2_HEIGHT, yd + h) - 1;
-  uint16_t xds_d8 = xd / 8;
-  uint16_t xde_d8 = xde / 8;
   _wakeUp();
   _using_partial_mode = true;
-  IO.writeCommandTransaction(0x91); // partial in
-  // soft limits, must send as many bytes as set by _SetRamArea
-  uint16_t yse = ys + yde - yd;
-  uint16_t xss_d8 = xs / 8;
-  uint16_t xse_d8 = xss_d8 + _setPartialRamArea(xd, yd, xde, yde);
-  IO.writeCommandTransaction(0x13);
-  for (int16_t y1 = ys; y1 <= yse; y1++)
-  {
-    for (int16_t x1 = xss_d8; x1 < xse_d8; x1++)
-    {
-      uint16_t idx = y1 * (_page_w / 8) + x1;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      IO.writeDataTransaction(~data);
-    }
-  }
+  _writeToWindow(xs, ys, xd, yd, w, h);
   IO.writeCommandTransaction(0x12);      //display refresh
-  _waitWhileBusy("updateWindow");
-  IO.writeCommandTransaction(0x92); // partial out
+  _waitWhileBusy("updateToWindow");
   delay(1000); // don't stress this display
 }
 
@@ -424,14 +440,9 @@ void GxGDEW042T2::drawPaged(void (*drawCallback)(void))
   if (_current_page != -1) return;
   _using_partial_mode = false;
   _wakeUp();
-  // paged vertical, not tiled, for full byte sequence
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
-  _page_x = 0;
   IO.writeCommandTransaction(0x13);
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_y = _page_h * _current_page;
     fillScreen(GxEPD_WHITE);
     drawCallback();
     for (int16_t y1 = 0; y1 < GxGDEW042T2_PAGE_HEIGHT; y1++)
@@ -455,14 +466,9 @@ void GxGDEW042T2::drawPaged(void (*drawCallback)(uint32_t), uint32_t p)
   if (_current_page != -1) return;
   _using_partial_mode = false;
   _wakeUp();
-  // paged vertical, not tiled, for full byte sequence
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
-  _page_x = 0;
   IO.writeCommandTransaction(0x13);
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_y = _page_h * _current_page;
     fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW042T2_PAGE_HEIGHT; y1++)
@@ -486,14 +492,9 @@ void GxGDEW042T2::drawPaged(void (*drawCallback)(const void*), const void* p)
   if (_current_page != -1) return;
   _using_partial_mode = false;
   _wakeUp();
-  // paged vertical, not tiled, for full byte sequence
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
-  _page_x = 0;
   IO.writeCommandTransaction(0x13);
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_y = _page_h * _current_page;
     fillScreen(GxEPD_WHITE);
     drawCallback(p);
     for (int16_t y1 = 0; y1 < GxGDEW042T2_PAGE_HEIGHT; y1++)
@@ -517,14 +518,9 @@ void GxGDEW042T2::drawPaged(void (*drawCallback)(const void*, const void*), cons
   if (_current_page != -1) return;
   _using_partial_mode = false;
   _wakeUp();
-  // paged vertical, not tiled, for full byte sequence
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
-  _page_x = 0;
   IO.writeCommandTransaction(0x13);
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_y = _page_h * _current_page;
     fillScreen(GxEPD_WHITE);
     drawCallback(p1, p2);
     for (int16_t y1 = 0; y1 < GxGDEW042T2_PAGE_HEIGHT; y1++)
@@ -574,30 +570,37 @@ void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  // use tiles to reduce number of updates to screen
-  _page_w = GxGDEW042T2_WIDTH / GxGDEW042T2_W_PAGES;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_H_PAGES;
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_x = _page_w * (_current_page % GxGDEW042T2_W_PAGES);
-    _page_y = _page_h * (_current_page / GxGDEW042T2_W_PAGES);
-    uint16_t xds = max(x, _page_x);
-    uint16_t xde = min(x + w, _page_x + _page_w);
-    uint16_t yds = max(y, _page_y);
-    uint16_t yde = min(y + h, _page_y + _page_h);
-    if ((xde > xds) && (yde > yds))
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
       drawCallback();
-      uint16_t xs = xds % _page_w;
-      uint16_t ys = yds % _page_h;
-      updateToWindow(xs, ys, xds, yds, xde - xds, yde - yds, false);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
+  IO.writeCommandTransaction(0x12); //display refresh
+  delay(2);
+  _waitWhileBusy("updateToWindow");
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback();
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(2);
+  _waitWhileBusy("updateToWindow");
   _current_page = -1;
-  _sleep();
 }
 
 void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t p)
@@ -610,31 +613,39 @@ void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  // use tiles to reduce number of updates to screen
-  _page_w = GxGDEW042T2_WIDTH / GxGDEW042T2_W_PAGES;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_H_PAGES;
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_x = _page_w * (_current_page % GxGDEW042T2_W_PAGES);
-    _page_y = _page_h * (_current_page / GxGDEW042T2_W_PAGES);
-    uint16_t xds = max(x, _page_x);
-    uint16_t xde = min(x + w, _page_x + _page_w);
-    uint16_t yds = max(y, _page_y);
-    uint16_t yde = min(y + h, _page_y + _page_h);
-    if ((xde > xds) && (yde > yds))
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
       drawCallback(p);
       //fillScreen(p);
-      uint16_t xs = xds % _page_w;
-      uint16_t ys = yds % _page_h;
-      updateToWindow(xs, ys, xds, yds, xde - xds, yde - yds, false);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
+  IO.writeCommandTransaction(0x12); //display refresh
+  delay(2);
+  _waitWhileBusy("updateToWindow");
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      //fillScreen(p);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(2);
+  _waitWhileBusy("updateToWindow");
   _current_page = -1;
-  _sleep();
 }
 
 void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p)
@@ -647,30 +658,37 @@ void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  // use tiles to reduce number of updates to screen
-  _page_w = GxGDEW042T2_WIDTH / GxGDEW042T2_W_PAGES;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_H_PAGES;
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_x = _page_w * (_current_page % GxGDEW042T2_W_PAGES);
-    _page_y = _page_h * (_current_page / GxGDEW042T2_W_PAGES);
-    uint16_t xds = max(x, _page_x);
-    uint16_t xde = min(x + w, _page_x + _page_w);
-    uint16_t yds = max(y, _page_y);
-    uint16_t yde = min(y + h, _page_y + _page_h);
-    if ((xde > xds) && (yde > yds))
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
       drawCallback(p);
-      uint16_t xs = xds % _page_w;
-      uint16_t ys = yds % _page_h;
-      updateToWindow(xs, ys, xds, yds, xde - xds, yde - yds, false);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
+  IO.writeCommandTransaction(0x12); //display refresh
+  delay(2);
+  _waitWhileBusy("updateToWindow");
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(2);
+  _waitWhileBusy("updateToWindow");
   _current_page = -1;
-  _sleep();
 }
 
 void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p1, const void* p2)
@@ -683,30 +701,37 @@ void GxGDEW042T2::drawPagedToWindow(void (*drawCallback)(const void*, const void
     eraseDisplay(true);
   }
   _using_partial_mode = true;
-  // use tiles to reduce number of updates to screen
-  _page_w = GxGDEW042T2_WIDTH / GxGDEW042T2_W_PAGES;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_H_PAGES;
   for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
   {
-    _page_x = _page_w * (_current_page % GxGDEW042T2_W_PAGES);
-    _page_y = _page_h * (_current_page / GxGDEW042T2_W_PAGES);
-    uint16_t xds = max(x, _page_x);
-    uint16_t xde = min(x + w, _page_x + _page_w);
-    uint16_t yds = max(y, _page_y);
-    uint16_t yde = min(y + h, _page_y + _page_h);
-    if ((xde > xds) && (yde > yds))
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
       drawCallback(p1, p2);
-      uint16_t xs = xds % _page_w;
-      uint16_t ys = yds % _page_h;
-      updateToWindow(xs, ys, xds, yds, xde - xds, yde - yds, false);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
     }
   }
-  _page_w = GxGDEW042T2_WIDTH;
-  _page_h = GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES;
+  IO.writeCommandTransaction(0x12); //display refresh
+  delay(2);
+  _waitWhileBusy("updateToWindow");
+  // update erase buffer
+  for (_current_page = 0; _current_page < GxGDEW042T2_PAGES; _current_page++)
+  {
+    uint16_t yds = max(y, _current_page * GxGDEW042T2_PAGE_HEIGHT);
+    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW042T2_PAGE_HEIGHT);
+    if (yde > yds)
+    {
+      fillScreen(GxEPD_WHITE);
+      drawCallback(p1, p2);
+      uint16_t ys = yds % GxGDEW042T2_PAGE_HEIGHT;
+      _writeToWindow(x, ys, x, yds, w, yde - yds);
+    }
+  }
+  delay(2);
+  _waitWhileBusy("updateToWindow");
   _current_page = -1;
-  _sleep();
 }
 
 void GxGDEW042T2::drawCornerTest(uint8_t em)

@@ -43,11 +43,6 @@
 #define GxGDEW042T2_PAGE_HEIGHT (GxGDEW042T2_HEIGHT / GxGDEW042T2_PAGES)
 #define GxGDEW042T2_PAGE_SIZE (GxGDEW042T2_BUFFER_SIZE / GxGDEW042T2_PAGES)
 
-// use tiles to reduce number of updates to screen with drawPagedToWindow()
-// divisors for AVR, should be factors of (GxGDEW042T2_WIDTH / 8), GxGDEW042T2_HEIGHT
-#define GxGDEW042T2_W_PAGES 5
-#define GxGDEW042T2_H_PAGES 4
-
 // mapping suggestion from Waveshare 2.9inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
@@ -94,6 +89,7 @@ class GxGDEW042T2 : public GxEPD
     void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0);
   private:
+    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
     uint16_t _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _wakeUp();
     void _sleep(void);
@@ -107,7 +103,6 @@ class GxGDEW042T2 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
-    int16_t _page_x, _page_y, _page_w, _page_h;
     bool _using_partial_mode;
     uint8_t _rst;
     uint8_t _busy;
