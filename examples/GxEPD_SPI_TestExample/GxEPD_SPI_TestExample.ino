@@ -82,11 +82,9 @@
 //static const uint8_t D5   = 14;
 
 // GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, D3, D4); // arbitrary selection of D3, D4 selected for default of GxEPD_Class
-// GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-GxEPD_Class display(io); // default selection of D4, D2
-// my IoT connection, busy on MISO
-//GxEPD_Class display(io, D4, D6);
+GxIO_Class io(SPI, SS, 0, 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+// GxGDEP015OC1(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
+GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
 
 #elif defined(ESP32)
 

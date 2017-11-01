@@ -11,7 +11,7 @@
 
    Controller: IL0373 : http://www.good-display.com/download_detail/downloadsId=535.html
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
+   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
 
    DESTM32-S2 pinout (top, component side view):
          |-------------------------------------------------
@@ -58,7 +58,9 @@ class GxGDEW0213Z16 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    GxGDEW0213Z16(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEW0213Z16(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    // use pin numbers, other ESP8266 than Wemos may not use Dx names
+    GxGDEW0213Z16(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
 #else
     GxGDEW0213Z16(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif

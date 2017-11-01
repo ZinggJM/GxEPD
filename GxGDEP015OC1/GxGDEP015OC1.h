@@ -62,7 +62,9 @@ class GxGDEP015OC1 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    // use pin numbers, other ESP8266 than Wemos may not use Dx names
+    GxGDEP015OC1(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
 #else
     GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif

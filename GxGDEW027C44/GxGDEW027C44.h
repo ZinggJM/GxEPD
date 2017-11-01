@@ -62,7 +62,9 @@ class GxGDEW027C44 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    GxGDEW027C44(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEW027C44(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    // use pin numbers, other ESP8266 than Wemos may not use Dx names
+    GxGDEW027C44(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
 #else
     GxGDEW027C44(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif

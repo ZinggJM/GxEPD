@@ -26,11 +26,11 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
-//#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
 // these displays do not fully support partial update
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
-#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
@@ -54,12 +54,10 @@
 //static const uint8_t D6   = 12;
 //static const uint8_t D5   = 14;
 
-//GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, D3, D4);
-// GxGDEP015OC1(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
-GxEPD_Class display(io);
-// or my IoT connection, busy on MISO
-//GxEPD_Class display(io, D4, D6);
+// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
+GxIO_Class io(SPI, SS, 0, 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+// GxGDEP015OC1(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
+GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
 
 #elif defined(ESP32)
 
@@ -137,7 +135,11 @@ GxEPD_Class display(io);
 
 void setup(void)
 {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println("setup");
   display.init();
+  Serial.println("setup done");
 }
 
 void loop()
