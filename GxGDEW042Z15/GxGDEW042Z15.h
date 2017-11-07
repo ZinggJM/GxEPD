@@ -1,5 +1,5 @@
 /************************************************************************************
-   class GxGDEW027C44 : Display class example for GDEW027C44 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+   class GxGDEW042Z15 : Display class example for GDEW027C44 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 
    based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=519.html
 
@@ -32,21 +32,21 @@
    note: for correct red color jumper J3 must be set on 0.47 side (towards FCP connector)
 
 */
-#ifndef _GxGDEW027C44_H_
-#define _GxGDEW027C44_H_
+#ifndef _GxGDEW042Z15_H_
+#define _GxGDEW042Z15_H_
 
 #include "../GxEPD.h"
 
-#define GxGDEW027C44_WIDTH 176
-#define GxGDEW027C44_HEIGHT 264
+#define GxGDEW042Z15_WIDTH 400
+#define GxGDEW042Z15_HEIGHT 300
 
-#define GxGDEW027C44_BUFFER_SIZE (uint32_t(GxGDEW027C44_WIDTH) * uint32_t(GxGDEW027C44_HEIGHT) / 8)
+#define GxGDEW042Z15_BUFFER_SIZE (uint32_t(GxGDEW042Z15_WIDTH) * uint32_t(GxGDEW042Z15_HEIGHT) / 8)
 
-// divisor for AVR, should be factor of GxGDEW027C44_HEIGHT
-#define GxGDEW027C44_PAGES 12
+// divisor for AVR, should be factor of GxGDEW042Z15_HEIGHT
+#define GxGDEW042Z15_PAGES 20
 
-#define GxGDEW027C44_PAGE_HEIGHT (GxGDEW027C44_HEIGHT / GxGDEW027C44_PAGES)
-#define GxGDEW027C44_PAGE_SIZE (GxGDEW027C44_BUFFER_SIZE / GxGDEW027C44_PAGES)
+#define GxGDEW042Z15_PAGE_HEIGHT (GxGDEW042Z15_HEIGHT / GxGDEW042Z15_PAGES)
+#define GxGDEW042Z15_PAGE_SIZE (GxGDEW042Z15_BUFFER_SIZE / GxGDEW042Z15_PAGES)
 
 // mapping suggestion from Waveshare 2.7inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
@@ -58,15 +58,15 @@
 // mapping suggestion for AVR, UNO, NANO etc.
 // BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
 
-class GxGDEW027C44 : public GxEPD
+class GxGDEW042Z15 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW027C44(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEW042Z15(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW027C44(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
+    GxGDEW042Z15(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
 #else
-    GxGDEW027C44(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+    GxGDEW042Z15(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -83,37 +83,32 @@ class GxGDEW027C44 : public GxEPD
     void eraseDisplay(bool using_partial_update = false); // parameter ignored
     // terminate cleanly, not needed as all screen drawing methods of this class do power down
     void powerDown();
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEW027C44_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW042Z15_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
     void drawPaged(void (*drawCallback)(const void*), const void*);
     void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
+    void clearFrame();
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
-    void _writeLUT();
     void _wakeUp();
     void _sleep();
     void _waitWhileBusy(const char* comment = 0);
   private:
 #if defined(__AVR)
-    uint8_t _black_buffer[GxGDEW027C44_PAGE_SIZE];
-    uint8_t _red_buffer[GxGDEW027C44_PAGE_SIZE];
+    uint8_t _black_buffer[GxGDEW042Z15_PAGE_SIZE];
+    uint8_t _red_buffer[GxGDEW042Z15_PAGE_SIZE];
 #else
-    uint8_t _black_buffer[GxGDEW027C44_BUFFER_SIZE];
-    uint8_t _red_buffer[GxGDEW027C44_BUFFER_SIZE];
+    uint8_t _black_buffer[GxGDEW042Z15_BUFFER_SIZE];
+    uint8_t _red_buffer[GxGDEW042Z15_BUFFER_SIZE];
 #endif
     GxIO& IO;
     int16_t _current_page;
     uint8_t _rst;
     uint8_t _busy;
-    static const uint8_t lut_vcomDC[];
-    static const uint8_t lut_ww[];
-    static const uint8_t lut_bw[];
-    static const uint8_t lut_bb[];
-    static const uint8_t lut_wb[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -124,12 +119,12 @@ class GxGDEW027C44 : public GxEPD
 #endif
 };
 
-#define GxEPD_Class GxGDEW027C44
+#define GxEPD_Class GxGDEW042Z15
 
-#define GxEPD_WIDTH GxGDEW027C44_WIDTH
-#define GxEPD_HEIGHT GxGDEW027C44_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEW027C44/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEW027C44/BitmapExamples.h"
+#define GxEPD_WIDTH GxGDEW042Z15_WIDTH
+#define GxEPD_HEIGHT GxGDEW042Z15_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEW042Z15/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEW042Z15/BitmapExamples.h"
 
 #endif
 
