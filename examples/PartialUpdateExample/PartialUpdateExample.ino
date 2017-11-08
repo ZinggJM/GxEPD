@@ -26,12 +26,16 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
-#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
 // these displays do not fully support partial update
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
+
+// IMPORTANT NOTE: This Fast Partial Update variant works with an experimental partial update waveform table
+//                 Side effects and life expectancy with this LUT are unknown, as it is NOT from the manufacturer!
+#include <GxGDEW042T2_FPU/GxGDEW042T2_FPU.cpp>      // 4.2" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -145,7 +149,7 @@ void setup(void)
 void loop()
 {
 #if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
- || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_))
+ || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW042T2_FPU_H_))
   showPartialUpdate_AVR();
 #else
   showPartialUpdate();
@@ -249,7 +253,7 @@ void showPartialUpdate()
 #endif
 
 #if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
- || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_))
+ || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW042T2_FPU_H_))
 
 // modified to avoid float; reduces program size ~2k (for GxGDEW042T2)
 

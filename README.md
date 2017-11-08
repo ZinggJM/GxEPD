@@ -51,6 +51,11 @@ Added classes for Waveshare and Good Display black / white / red SPI e-Paper dis
 Note for use with package ESP8266 or ESP32:
 - some ESP libraries #undef min and max, #include these libraries AFTER the GxEPD display class!
 
+Added Fast Partial Update variant GxGDEW042T2_FPU for 4.2 inch black/white display
+- NOTE: This Fast Partial Update variant works with an experimental partial update waveform table
+- Side effects and life expectancy with this LUT are unknown, as it is NOT from the manufacturer!
+
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
