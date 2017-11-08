@@ -150,15 +150,18 @@ void setup(void)
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
+#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+  // cope with code size limitation
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.setFont(&FreeMonoBold9pt7b);
+#else
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  display.setFont(&FreeMonoBold12pt7b);
+#endif
   // partial update to full screen to preset for partial update of box window
   // (this avoids strange background effects)
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
-#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
-  display.setFont(&FreeMonoBold9pt7b);
-#else
-  display.setFont(&FreeMonoBold12pt7b);
-#endif
   start_time = next_time = millis();
   next_full_update = start_time + full_update_period_s * 1000;
 }
@@ -172,7 +175,11 @@ void loop()
 #endif
   if (millis() >= next_full_update)
   {
+#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+    display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+#else
     display.update();
+#endif
     next_full_update += full_update_period_s * 1000;
   }
   next_time += partial_update_period_s * 1000;
