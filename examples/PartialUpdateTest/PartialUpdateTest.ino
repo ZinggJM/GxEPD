@@ -177,6 +177,7 @@ void loop()
   {
 #if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
     display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+    display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
 #else
     display.update();
 #endif
