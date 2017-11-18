@@ -5,9 +5,7 @@
 
    Author : J-M Zingg
 
-   modified by :
-
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -62,11 +60,11 @@ class GxGDEW027C44 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW027C44(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEW027C44(GxIO& io, int8_t rst = D4, int8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW027C44(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
+    GxGDEW027C44(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEW027C44(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+    GxGDEW027C44(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -91,6 +89,13 @@ class GxGDEW027C44 : public GxEPD
     void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
   private:
+    template <typename T> static inline void
+    swap(T& a, T& b)
+    {
+      T t = a;
+      a = b;
+      b = t;
+    }
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
     void _writeLUT();
@@ -107,8 +112,8 @@ class GxGDEW027C44 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
-    uint8_t _rst;
-    uint8_t _busy;
+    int8_t _rst;
+    int8_t _busy;
     static const uint8_t lut_vcomDC[];
     static const uint8_t lut_ww[];
     static const uint8_t lut_bw[];
@@ -124,12 +129,13 @@ class GxGDEW027C44 : public GxEPD
 #endif
 };
 
+#ifndef GxEPD_Class
 #define GxEPD_Class GxGDEW027C44
-
 #define GxEPD_WIDTH GxGDEW027C44_WIDTH
 #define GxEPD_HEIGHT GxGDEW027C44_HEIGHT
 #define GxEPD_BitmapExamples <GxGDEW027C44/BitmapExamples.h>
 #define GxEPD_BitmapExamplesQ "GxGDEW027C44/BitmapExamples.h"
+#endif
 
 #endif
 

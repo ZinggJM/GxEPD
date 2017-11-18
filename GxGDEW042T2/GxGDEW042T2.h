@@ -5,7 +5,7 @@
 
    Author : J-M Zingg
 
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -57,11 +57,11 @@ class GxGDEW042T2 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW042T2(GxIO& io, uint8_t rst = D4, uint8_t busy = D2);
+    //GxGDEW042T2(GxIO& io, int8_t rst = D4, int8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW042T2(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
+    GxGDEW042T2(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEW042T2(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
+    GxGDEW042T2(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -91,6 +91,13 @@ class GxGDEW042T2 : public GxEPD
     void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0);
   private:
+    template <typename T> static inline void
+    swap(T& a, T& b)
+    {
+      T t = a;
+      a = b;
+      b = t;
+    }
     void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
     uint16_t _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _wakeUp();
@@ -106,8 +113,8 @@ class GxGDEW042T2 : public GxEPD
     GxIO& IO;
     int16_t _current_page;
     bool _using_partial_mode;
-    uint8_t _rst;
-    uint8_t _busy;
+    int8_t _rst;
+    int8_t _busy;
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -118,12 +125,13 @@ class GxGDEW042T2 : public GxEPD
 #endif
 };
 
+#ifndef GxEPD_Class
 #define GxEPD_Class GxGDEW042T2
-
 #define GxEPD_WIDTH GxGDEW042T2_WIDTH
 #define GxEPD_HEIGHT GxGDEW042T2_HEIGHT
 #define GxEPD_BitmapExamples <GxGDEW042T2/BitmapExamples.h>
 #define GxEPD_BitmapExamplesQ "GxGDEW042T2/BitmapExamples.h"
+#endif
 
 #endif
 

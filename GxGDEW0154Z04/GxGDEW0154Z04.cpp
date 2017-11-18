@@ -5,7 +5,7 @@
 
    Author : J-M Zingg
 
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -32,6 +32,8 @@
 */
 #include "GxGDEW0154Z04.h"
 
+//#define DISABLE_DIAGNOSTIC_OUTPUT
+
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
 #else
@@ -55,18 +57,11 @@ const uint8_t GxGDEW0154Z04::bw2grey[] =
   0b11110000, 0b11110011, 0b11111100, 0b11111111,
 };
 
-GxGDEW0154Z04::GxGDEW0154Z04(GxIO& io, uint8_t rst, uint8_t busy)
-  : GxEPD(GxGDEW0154Z04_WIDTH, GxGDEW0154Z04_HEIGHT),
-    IO(io), _rst(rst), _busy(busy), _current_page(-1)
+GxGDEW0154Z04::GxGDEW0154Z04(GxIO& io, int8_t rst, int8_t busy)
+  : GxEPD(GxGDEW0154Z04_WIDTH, GxGDEW0154Z04_HEIGHT), IO(io),
+  _current_page(-1),
+  _rst(rst), _busy(busy) 
 {
-}
-
-template <typename T> static inline void
-swap(T& a, T& b)
-{
-  T t = a;
-  a = b;
-  b = t;
 }
 
 void GxGDEW0154Z04::drawPixel(int16_t x, int16_t y, uint16_t color)
@@ -121,8 +116,11 @@ void GxGDEW0154Z04::init(void)
 {
   IO.init();
   IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
-  digitalWrite(_rst, HIGH);
-  pinMode(_rst, OUTPUT);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, HIGH);
+    pinMode(_rst, OUTPUT);
+  }
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
@@ -312,20 +310,26 @@ void GxGDEW0154Z04::_waitWhileBusy(const char* comment)
   }
   if (comment)
   {
-    //unsigned long elapsed = micros() - start;
-    //Serial.print(comment);
-    //Serial.print(" : ");
-    //Serial.println(elapsed);
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
+    unsigned long elapsed = micros() - start;
+    Serial.print(comment);
+    Serial.print(" : ");
+    Serial.println(elapsed);
+#endif
   }
+  (void) start;
 }
 
 void GxGDEW0154Z04::_wakeUp()
 {
   // reset required for wakeup
-  digitalWrite(_rst, 0);
-  delay(10);
-  digitalWrite(_rst, 1);
-  delay(10);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, 0);
+    delay(10);
+    digitalWrite(_rst, 1);
+    delay(10);
+  }
 
   _writeCommand(0x01);
   _writeData(0x07);

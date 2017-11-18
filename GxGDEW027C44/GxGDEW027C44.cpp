@@ -5,7 +5,7 @@
 
    Author : J-M Zingg
 
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -31,6 +31,8 @@
 
 */
 #include "GxGDEW027C44.h"
+
+//#define DISABLE_DIAGNOSTIC_OUTPUT
 
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
@@ -90,19 +92,11 @@ const uint8_t GxGDEW027C44::lut_wb[] = {
   0x00	, 0x23	, 0x00	, 0x00	, 0x00	, 0x01
 };
 
-GxGDEW027C44::GxGDEW027C44(GxIO& io, uint8_t rst, uint8_t busy)
+GxGDEW027C44::GxGDEW027C44(GxIO& io, int8_t rst, int8_t busy)
   : GxEPD(GxGDEW027C44_WIDTH, GxGDEW027C44_HEIGHT),
-    IO(io), _current_page(-1), 
-    _rst(rst), _busy(busy) 
+    IO(io), _current_page(-1),
+    _rst(rst), _busy(busy)
 {
-}
-
-template <typename T> static inline void
-swap(T& a, T& b)
-{
-  T t = a;
-  a = b;
-  b = t;
 }
 
 void GxGDEW027C44::drawPixel(int16_t x, int16_t y, uint16_t color)
@@ -157,8 +151,11 @@ void GxGDEW027C44::init(void)
 {
   IO.init();
   IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
-  digitalWrite(_rst, 1);
-  pinMode(_rst, OUTPUT);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, HIGH);
+    pinMode(_rst, OUTPUT);
+  }
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
@@ -305,11 +302,6 @@ void GxGDEW027C44::powerDown()
 
 void GxGDEW027C44::_writeCommand(uint8_t command)
 {
-  if (!digitalRead(_busy))
-  {
-    String str = String("command 0x") + String(command, HEX);
-    _waitWhileBusy(str.c_str());
-  }
   IO.writeCommandTransaction(command);
 }
 
@@ -333,20 +325,26 @@ void GxGDEW027C44::_waitWhileBusy(const char* comment)
   }
   if (comment)
   {
-    //unsigned long elapsed = micros() - start;
-    //Serial.print(comment);
-    //Serial.print(" : ");
-    //Serial.println(elapsed);
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
+    unsigned long elapsed = micros() - start;
+    Serial.print(comment);
+    Serial.print(" : ");
+    Serial.println(elapsed);
+#endif
   }
+  (void) start;
 }
 
 void GxGDEW027C44::_wakeUp()
 {
   // reset required for wakeup
-  digitalWrite(_rst, 0);
-  delay(10);
-  digitalWrite(_rst, 1);
-  delay(10);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, 0);
+    delay(10);
+    digitalWrite(_rst, 1);
+    delay(10);
+  }
 
   _writeCommand(0x01);
   _writeData (0x03);
@@ -408,8 +406,13 @@ void GxGDEW027C44::_wakeUp()
 
 void GxGDEW027C44::_sleep(void)
 {
-  _writeCommand(0X07);   //power off
-  _writeData (0xa5);
+  _writeCommand(0x02); // power off
+  _waitWhileBusy("_sleep Power Off");
+  if (_rst >= 0)
+  {
+    _writeCommand(0x07); // deep sleep
+    _writeData (0xa5);
+  }
 }
 
 void GxGDEW027C44::_writeLUT(void)

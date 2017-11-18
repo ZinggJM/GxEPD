@@ -26,9 +26,13 @@
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
-#include <GxGDEH029A1/GxGDEH029A1.cpp>
+//#include <GxGDEH029A1/GxGDEH029A1.cpp>
 // this display does not fully support partial update
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
+
+// IMPORTANT NOTE: This Fast Partial Update variant works with an experimental partial update waveform table
+//                 Side effects and life expectancy with this LUT are unknown, as it is NOT from the manufacturer!
+#include <GxGDEW042T2_FPU/GxGDEW042T2_FPU.cpp>      // 4.2" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -127,7 +131,7 @@ GxEPD_Class display(io);
 #if defined(_GxGDEP015OC1_H_)
 const uint32_t partial_update_period_s = 1;
 const uint32_t full_update_period_s = 6 * 60 * 60;
-#elif defined(_GxGDEH029A1_H_)
+#elif defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_)
 const uint32_t partial_update_period_s = 2;
 const uint32_t full_update_period_s = 1 * 60 * 60;
 #endif
@@ -140,38 +144,60 @@ void setup(void)
 {
   Serial.begin(115200);
   Serial.println();
+  Serial.println("setup");
   display.init();
-  display.setFont(&FreeMonoBold12pt7b);
+  Serial.println("setup done");
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
+#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+  // cope with code size limitation
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.setFont(&FreeMonoBold9pt7b);
+#else
   display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
+  display.setFont(&FreeMonoBold12pt7b);
+#endif
   // partial update to full screen to preset for partial update of box window
   // (this avoids strange background effects)
-  display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
-  display.setRotation(1);
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
   start_time = next_time = millis();
   next_full_update = start_time + full_update_period_s * 1000;
 }
 
 void loop()
 {
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
+#if defined(__AVR)
   showPartialUpdate_AVR();
 #else
   showPartialUpdate();
 #endif
   if (millis() >= next_full_update)
   {
+#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+    display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+    display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
+#else
     display.update();
+#endif
     next_full_update += full_update_period_s * 1000;
   }
   next_time += partial_update_period_s * 1000;
+#if defined(ESP8266)
   Serial.printf("%ul %ul", millis(), next_time);
   Serial.println();
+#endif
   while (millis() < next_time) delay(100);
 }
+
+void print02d(uint32_t d)
+{
+  if (d < 10) display.print("0");
+  display.print(d);
+}
+
+#if !defined(__AVR)
 
 void showPartialUpdate()
 {
@@ -187,11 +213,12 @@ void showPartialUpdate()
   uint32_t days = (elapsed_seconds / 3600) / 24;
   display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
   display.setCursor(box_x, cursor_y);
-  display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
+  //display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
+  display.print(days); display.print("d "); print02d(hours); display.print(":"); print02d(minutes); display.print(":"); print02d(seconds);
   display.updateWindow(box_x, box_y, box_w, box_h, true);
 }
 
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_))
+#else
 
 void drawCallback()
 {
@@ -207,7 +234,8 @@ void drawCallback()
   uint32_t days = (elapsed_seconds / 3600) / 24;
   display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
   display.setCursor(box_x, cursor_y);
-  display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
+  //display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
+  display.print(days); display.print("d "); print02d(hours); display.print(":"); print02d(minutes); display.print(":"); print02d(seconds);
 }
 
 void showPartialUpdate_AVR()
@@ -221,4 +249,5 @@ void showPartialUpdate_AVR()
 }
 
 #endif
+
 
