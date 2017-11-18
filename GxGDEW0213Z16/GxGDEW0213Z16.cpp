@@ -5,7 +5,7 @@
 
    Author : J-M Zingg
 
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -30,6 +30,8 @@
 */
 #include "GxGDEW0213Z16.h"
 
+//#define DISABLE_DIAGNOSTIC_OUTPUT
+
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
 #else
@@ -37,21 +39,13 @@
 #endif
 
 // Partial Update Delay, may have an influence on degradation
-#define PU_DELAY 500
+#define GxGDEW0213Z16_PU_DELAY 500
 
-GxGDEW0213Z16::GxGDEW0213Z16(GxIO& io, uint8_t rst, uint8_t busy)
-  : GxEPD(GxGDEW0213Z16_WIDTH, GxGDEW0213Z16_HEIGHT),
-    IO(io), _rst(rst), _busy(busy),
-    _current_page(-1), _using_partial_mode(false)
+GxGDEW0213Z16::GxGDEW0213Z16(GxIO& io, int8_t rst, int8_t busy)
+  : GxEPD(GxGDEW0213Z16_WIDTH, GxGDEW0213Z16_HEIGHT), IO(io),
+    _current_page(-1), _using_partial_mode(false),
+    _rst(rst), _busy(busy)
 {
-}
-
-template <typename T> static inline void
-swap(T& a, T& b)
-{
-  T t = a;
-  a = b;
-  b = t;
 }
 
 void GxGDEW0213Z16::drawPixel(int16_t x, int16_t y, uint16_t color)
@@ -106,8 +100,11 @@ void GxGDEW0213Z16::init(void)
 {
   IO.init();
   IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
-  digitalWrite(_rst, HIGH);
-  pinMode(_rst, OUTPUT);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, HIGH);
+    pinMode(_rst, OUTPUT);
+  }
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
@@ -367,7 +364,7 @@ void GxGDEW0213Z16::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("updateWindow");
   IO.writeCommandTransaction(0x92); // partial out
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
@@ -377,7 +374,7 @@ void GxGDEW0213Z16::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16
   _writeToWindow(xs, ys, xd, yd, w, h, using_rotation);
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("updateToWindow");
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation)
@@ -415,8 +412,6 @@ void GxGDEW0213Z16::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16
   // the screen limits are the hard limits
   uint16_t xde = min(GxGDEW0213Z16_WIDTH, xd + w) - 1;
   uint16_t yde = min(GxGDEW0213Z16_HEIGHT, yd + h) - 1;
-  uint16_t xds_d8 = xd / 8;
-  uint16_t xde_d8 = xde / 8;
   IO.writeCommandTransaction(0x91); // partial in
   // soft limits, must send as many bytes as set by _SetRamArea
   uint16_t yse = ys + yde - yd;
@@ -494,20 +489,26 @@ void GxGDEW0213Z16::_waitWhileBusy(const char* comment)
   }
   if (comment)
   {
-    //unsigned long elapsed = micros() - start;
-    //Serial.print(comment);
-    //Serial.print(" : ");
-    //Serial.println(elapsed);
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
+    unsigned long elapsed = micros() - start;
+    Serial.print(comment);
+    Serial.print(" : ");
+    Serial.println(elapsed);
+#endif
   }
+  (void) start;
 }
 
 void GxGDEW0213Z16::_wakeUp()
 {
   // reset required for wakeup
-  digitalWrite(_rst, 0);
-  delay(10);
-  digitalWrite(_rst, 1);
-  delay(10);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, 0);
+    delay(10);
+    digitalWrite(_rst, 1);
+    delay(10);
+  }
 
   _writeCommand(0x06);
   _writeData (0x17);
@@ -529,8 +530,11 @@ void GxGDEW0213Z16::_sleep(void)
 {
   _writeCommand(0x02);      //power off
   _waitWhileBusy("_sleep Power Off");
-  _writeCommand(0X07);     //deep sleep
-  _writeData(0xA5);
+  if (_rst >= 0)
+  {
+    _writeCommand(0x07);     //deep sleep
+    _writeData(0xA5);
+  }
 }
 
 void GxGDEW0213Z16::drawPaged(void (*drawCallback)(void))
@@ -743,7 +747,7 @@ void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, ui
   _current_page = -1;
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("drawPagedToWindow");
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t p)
@@ -771,7 +775,7 @@ void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x
   _current_page = -1;
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("drawPagedToWindow");
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p)
@@ -799,7 +803,7 @@ void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(const void*), uint16_
   _current_page = -1;
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("drawPagedToWindow");
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void* p1, const void* p2)
@@ -827,7 +831,7 @@ void GxGDEW0213Z16::drawPagedToWindow(void (*drawCallback)(const void*, const vo
   _current_page = -1;
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("drawPagedToWindow");
-  delay(PU_DELAY); // don't stress this display
+  delay(GxGDEW0213Z16_PU_DELAY); // don't stress this display
 }
 
 void GxGDEW0213Z16::drawCornerTest(uint8_t em)

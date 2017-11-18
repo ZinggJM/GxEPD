@@ -5,7 +5,7 @@
 
    Author : J-M Zingg
 
-   Version : 2.2
+   Version : 2.3
 
    Support: limited, provided as example, no claim to be fit for serious use
 
@@ -30,7 +30,9 @@
 
 #include "GxGDEW042T2.h"
 
-#define BUSY_TIMEOUT 10000000
+//#define DISABLE_DIAGNOSTIC_OUTPUT
+
+#define GxGDEW042T2_BUSY_TIMEOUT 10000000
 
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
@@ -38,19 +40,11 @@
 #include <avr/pgmspace.h>
 #endif
 
-GxGDEW042T2::GxGDEW042T2(GxIO& io, uint8_t rst, uint8_t busy)
+GxGDEW042T2::GxGDEW042T2(GxIO& io, int8_t rst, int8_t busy)
   : GxEPD(GxGDEW042T2_WIDTH, GxGDEW042T2_HEIGHT), IO(io),
     _current_page(-1), _using_partial_mode(false),
     _rst(rst), _busy(busy)
 {
-}
-
-template <typename T> static inline void
-swap(T& a, T& b)
-{
-  T t = a;
-  a = b;
-  b = t;
 }
 
 void GxGDEW042T2::drawPixel(int16_t x, int16_t y, uint16_t color)
@@ -95,8 +89,11 @@ void GxGDEW042T2::init(void)
 {
   IO.init();
   IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
-  digitalWrite(_rst, HIGH);
-  pinMode(_rst, OUTPUT);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, HIGH);
+    pinMode(_rst, OUTPUT);
+  }
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
@@ -394,7 +391,7 @@ void GxGDEW042T2::_waitWhileBusy(const char* comment)
   { //=0 BUSY
     if (digitalRead(_busy) == 1) break;
     delay(1);
-    if (micros() - start > BUSY_TIMEOUT)
+    if (micros() - start > GxGDEW042T2_BUSY_TIMEOUT)
     {
       Serial.println("Busy Timeout!");
       break;
@@ -402,19 +399,25 @@ void GxGDEW042T2::_waitWhileBusy(const char* comment)
   }
   if (comment)
   {
-    //    unsigned long elapsed = micros() - start;
-    //    Serial.print(comment);
-    //    Serial.print(" : ");
-    //    Serial.println(elapsed);
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
+    unsigned long elapsed = micros() - start;
+    Serial.print(comment);
+    Serial.print(" : ");
+    Serial.println(elapsed);
+#endif
   }
+  (void) start;
 }
 
 void GxGDEW042T2::_wakeUp(void)
 {
-  digitalWrite(_rst, 0);
-  delay(10);
-  digitalWrite(_rst, 1);
-  delay(10);
+  if (_rst >= 0)
+  {
+    digitalWrite(_rst, 0);
+    delay(10);
+    digitalWrite(_rst, 1);
+    delay(10);
+  }
   IO.writeCommandTransaction(0x06); // boost
   IO.writeDataTransaction(0x17);
   IO.writeDataTransaction(0x17);
@@ -427,12 +430,15 @@ void GxGDEW042T2::_wakeUp(void)
 
 void GxGDEW042T2::_sleep(void)
 {
-  IO.writeCommandTransaction(0X50); // border floating
+  IO.writeCommandTransaction(0x50); // border floating
   IO.writeDataTransaction(0x17);
-  IO.writeCommandTransaction(0X02); // power off
+  IO.writeCommandTransaction(0x02); // power off
   _waitWhileBusy("Power Off");
-  IO.writeCommandTransaction(0X07); // deep sleep
-  IO.writeDataTransaction(0xA5);
+  if (_rst >= 0)
+  {
+    IO.writeCommandTransaction(0x07); // deep sleep
+    IO.writeDataTransaction(0xA5);
+  }
 }
 
 void GxGDEW042T2::drawPaged(void (*drawCallback)(void))
