@@ -90,7 +90,6 @@ class GxGDEW042Z15 : public GxEPD
     void drawPaged(void (*drawCallback)(const void*), const void*);
     void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
-    void clearFrame();
   private:
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
