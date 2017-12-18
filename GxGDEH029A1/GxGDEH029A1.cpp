@@ -109,7 +109,7 @@ void GxGDEH029A1::drawPixel(int16_t x, int16_t y, uint16_t color)
 void GxGDEH029A1::init(void)
 {
   IO.init();
-  IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
+  IO.setFrequency(4000000); // 4MHz
   if (_rst >= 0)
   {
     digitalWrite(_rst, HIGH);
@@ -272,8 +272,8 @@ void GxGDEH029A1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
   if (using_rotation) _rotate(x, y, w, h);
   if (x >= GxGDEH029A1_WIDTH) return;
   if (y >= GxGDEH029A1_HEIGHT) return;
-  uint16_t xe = min(GxGDEH029A1_WIDTH, x + w) - 1;
-  uint16_t ye = min(GxGDEH029A1_HEIGHT, y + h) - 1;
+  uint16_t xe = gx_uint16_min(GxGDEH029A1_WIDTH, x + w) - 1;
+  uint16_t ye = gx_uint16_min(GxGDEH029A1_HEIGHT, y + h) - 1;
   uint16_t xs_d8 = x / 8;
   uint16_t xe_d8 = xe / 8;
   _Init_Part(0x03);
@@ -317,10 +317,10 @@ void GxGDEH029A1::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t
   if (ys >= GxGDEH029A1_HEIGHT) return;
   if (xd >= GxGDEH029A1_WIDTH) return;
   if (yd >= GxGDEH029A1_HEIGHT) return;
-  w = min(w, GxGDEH029A1_WIDTH - xs);
-  w = min(w, GxGDEH029A1_WIDTH - xd);
-  h = min(h, GxGDEH029A1_HEIGHT - ys);
-  h = min(h, GxGDEH029A1_HEIGHT - yd);
+  w = gx_uint16_min(w, GxGDEH029A1_WIDTH - xs);
+  w = gx_uint16_min(w, GxGDEH029A1_WIDTH - xd);
+  h = gx_uint16_min(h, GxGDEH029A1_HEIGHT - ys);
+  h = gx_uint16_min(h, GxGDEH029A1_HEIGHT - yd);
   uint16_t xds_d8 = xd / 8;
   uint16_t xde_d8 = (xd + w - 1) / 8;
   uint16_t yde = yd + h - 1;
@@ -446,7 +446,7 @@ void GxGDEH029A1::_setRamDataEntryMode(uint8_t em)
 {
   const uint16_t xPixelsPar = GxGDEH029A1_X_PIXELS - 1;
   const uint16_t yPixelsPar = GxGDEH029A1_Y_PIXELS - 1;
-  em = min(em, 0x03);
+  em = gx_uint16_min(em, 0x03);
   _writeCommand(0x11);
   _writeData(em);
   switch (em)
@@ -683,8 +683,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
   _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -698,8 +698,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint
   // update erase buffer
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -726,8 +726,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
   _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -741,8 +741,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, 
   // update erase buffer
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -769,8 +769,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
   _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -784,8 +784,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t 
   // update erase buffer
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -812,8 +812,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*, const void
   _Init_Part(0x03);
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -827,8 +827,8 @@ void GxGDEH029A1::drawPagedToWindow(void (*drawCallback)(const void*, const void
   // update erase buffer
   for (_current_page = 0; _current_page < GxGDEH029A1_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEH029A1_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEH029A1_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);

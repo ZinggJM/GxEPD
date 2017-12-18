@@ -99,7 +99,7 @@ void GxGDEW029Z10::drawPixel(int16_t x, int16_t y, uint16_t color)
 void GxGDEW029Z10::init(void)
 {
   IO.init();
-  IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
+  IO.setFrequency(4000000); // 4MHz
   if (_rst >= 0)
   {
     digitalWrite(_rst, HIGH);
@@ -332,8 +332,8 @@ void GxGDEW029Z10::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
   if (x >= GxGDEW029Z10_WIDTH) return;
   if (y >= GxGDEW029Z10_HEIGHT) return;
   // x &= 0xFFF8; // byte boundary, not here, use encompassing rectangle
-  uint16_t xe = min(GxGDEW029Z10_WIDTH, x + w) - 1;
-  uint16_t ye = min(GxGDEW029Z10_HEIGHT, y + h) - 1;
+  uint16_t xe = gx_uint16_min(GxGDEW029Z10_WIDTH, x + w) - 1;
+  uint16_t ye = gx_uint16_min(GxGDEW029Z10_HEIGHT, y + h) - 1;
   // x &= 0xFFF8; // byte boundary, not needed here
   uint16_t xs_bx = x / 8;
   uint16_t xe_bx = (xe + 7) / 8;
@@ -410,8 +410,8 @@ void GxGDEW029Z10::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_
   if (xd >= GxGDEW029Z10_WIDTH) return;
   if (yd >= GxGDEW029Z10_HEIGHT) return;
   // the screen limits are the hard limits
-  uint16_t xde = min(GxGDEW029Z10_WIDTH, xd + w) - 1;
-  uint16_t yde = min(GxGDEW029Z10_HEIGHT, yd + h) - 1;
+  uint16_t xde = gx_uint16_min(GxGDEW029Z10_WIDTH, xd + w) - 1;
+  uint16_t yde = gx_uint16_min(GxGDEW029Z10_HEIGHT, yd + h) - 1;
   IO.writeCommandTransaction(0x91); // partial in
   // soft limits, must send as many bytes as set by _SetRamArea
   uint16_t yse = ys + yde - yd;
@@ -734,8 +734,8 @@ void GxGDEW029Z10::drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uin
   _using_partial_mode = true;
   for (_current_page = 0; _current_page < GxGDEW029Z10_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -762,8 +762,8 @@ void GxGDEW029Z10::drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x,
   _using_partial_mode = true;
   for (_current_page = 0; _current_page < GxGDEW029Z10_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -790,8 +790,8 @@ void GxGDEW029Z10::drawPagedToWindow(void (*drawCallback)(const void*), uint16_t
   _using_partial_mode = true;
   for (_current_page = 0; _current_page < GxGDEW029Z10_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);
@@ -818,8 +818,8 @@ void GxGDEW029Z10::drawPagedToWindow(void (*drawCallback)(const void*, const voi
   _using_partial_mode = true;
   for (_current_page = 0; _current_page < GxGDEW029Z10_PAGES; _current_page++)
   {
-    uint16_t yds = max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
-    uint16_t yde = min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yds = gx_uint16_max(y, _current_page * GxGDEW029Z10_PAGE_HEIGHT);
+    uint16_t yde = gx_uint16_min(y + h, (_current_page + 1) * GxGDEW029Z10_PAGE_HEIGHT);
     if (yde > yds)
     {
       fillScreen(GxEPD_WHITE);

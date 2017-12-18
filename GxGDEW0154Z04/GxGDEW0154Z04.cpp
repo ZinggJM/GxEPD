@@ -115,7 +115,7 @@ void GxGDEW0154Z04::drawPixel(int16_t x, int16_t y, uint16_t color)
 void GxGDEW0154Z04::init(void)
 {
   IO.init();
-  IO.setFrequency(4000000); // 4MHz : 250ns > 150ns min RD cycle
+  IO.setFrequency(4000000); // 4MHz
   if (_rst >= 0)
   {
     digitalWrite(_rst, HIGH);

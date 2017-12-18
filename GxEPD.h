@@ -30,9 +30,7 @@ class GxEPD : public Adafruit_GFX
       bm_r270 = bm_r90 | bm_r180,
       bm_partial_update = (1 << 6),
       bm_invert_red = (1 << 7),
-      // exchanged, will be removed, retained until all classes are updated
-      bm_flip_h = bm_flip_y,
-      bm_flip_v = bm_flip_x
+      bm_transparent = (1 << 8)
     };
   public:
     GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
@@ -67,6 +65,8 @@ class GxEPD : public Adafruit_GFX
     virtual void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true) {};
   protected:
     void drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m);
+    static inline uint16_t gx_uint16_min(uint16_t a, uint16_t b) {return (a < b ? a : b);};
+    static inline uint16_t gx_uint16_max(uint16_t a, uint16_t b) {return (a > b ? a : b);};
 };
 
 #endif
