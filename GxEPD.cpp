@@ -30,11 +30,14 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
 #endif
         }
         // transparent mode
-        if ((mode & bm_invert) ^ (byte & 0x80))
+        if (bool(mode & bm_invert) != bool(byte & 0x80))
+        //if (!(byte & 0x80))
         {
           uint16_t xd = x + i;
           uint16_t yd = y + j;
-          drawPixel(xd, yd, fg_color);
+          if (mode & bm_flip_x) xd = x + w - i;
+          if (mode & bm_flip_y) yd = y + h - j;
+          drawPixel(xd, yd, color);
         }
       }
     }
