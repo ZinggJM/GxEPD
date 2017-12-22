@@ -49,6 +49,9 @@
 // mapping suggestion from Waveshare 2.7inch e-Paper to Wemos D1 mini
 // BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
+// mapping suggestion from Waveshare 2.7inch e-Paper to generic ESP8266
+// BUSY -> GPIO4, RST -> GPIO2, DC -> GPIO0, CS -> GPIO15, CLK -> GPIO14, DIN -> GPIO13, GND -> GND, 3.3V -> 3.3V
+
 // mapping suggestion for ESP32, e.g. LOLIN32, see .../variants/.../pins_arduino.h for your board
 // NOTE: there are variants with different pins for SPI ! CHECK SPI PINS OF YOUR BOARD
 // BUSY -> 4, RST -> 16, DC -> 17, CS -> SS(5), CLK -> SCK(18), DIN -> MOSI(23), GND -> GND, 3.3V -> 3.3V
@@ -79,6 +82,10 @@ class GxGDEW027C44 : public GxEPD
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // only bm_normal, bm_invert modes implemented
     void eraseDisplay(bool using_partial_update = false); // parameter ignored
+    // partial update of rectangle from buffer to screen, does not power off
+    void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true);
+    // partial update of rectangle at (xs,ys) from buffer to screen at (xd,yd), does not power off
+    void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
     // terminate cleanly, not needed as all screen drawing methods of this class do power down
     void powerDown();
     // paged drawing, for limited RAM, drawCallback() is called GxGDEW027C44_PAGES times
@@ -87,6 +94,11 @@ class GxGDEW027C44 : public GxEPD
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
     void drawPaged(void (*drawCallback)(const void*), const void*);
     void drawPaged(void (*drawCallback)(const void*, const void*), const void*, const void*);
+    // paged drawing to screen rectangle at (x,y) using partial update
+    void drawPagedToWindow(void (*drawCallback)(void), uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void drawPagedToWindow(void (*drawCallback)(uint32_t), uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t);
+    void drawPagedToWindow(void (*drawCallback)(const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*);
+    void drawPagedToWindow(void (*drawCallback)(const void*, const void*), uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void*, const void*);
     void drawCornerTest(uint8_t em = 0x01);
   private:
     template <typename T> static inline void
@@ -96,12 +108,16 @@ class GxGDEW027C44 : public GxEPD
       a = b;
       b = t;
     }
+    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
+    void _setPartialRamArea(uint8_t command, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+    void _refreshWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
     void _writeLUT();
     void _wakeUp();
     void _sleep();
     void _waitWhileBusy(const char* comment = 0);
+    void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
 #if defined(__AVR)
     uint8_t _black_buffer[GxGDEW027C44_PAGE_SIZE];
@@ -112,13 +128,14 @@ class GxGDEW027C44 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
+    bool _using_partial_mode;
     int8_t _rst;
     int8_t _busy;
-    static const uint8_t lut_vcomDC[];
-    static const uint8_t lut_ww[];
-    static const uint8_t lut_bw[];
-    static const uint8_t lut_bb[];
-    static const uint8_t lut_wb[];
+    static const uint8_t lut_20_vcomDC[];
+    static const uint8_t lut_21[];
+    static const uint8_t lut_22_red[];
+    static const uint8_t lut_23_white[];
+    static const uint8_t lut_24_black[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
