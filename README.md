@@ -53,6 +53,9 @@ Added Fast Partial Update variant GxGDEW042T2_FPU for 4.2 inch black/white displ
 
 Added Support for multiple e-paper displays on one Arduino (with enough RAM, e.g. ESP32)
 
+Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Paper
+- The display class supports partial update, but display update is full screen (controller issue)
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
