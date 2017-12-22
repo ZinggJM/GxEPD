@@ -56,6 +56,8 @@ Added Support for multiple e-paper displays on one Arduino (with enough RAM, e.g
 Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Paper
 - The display class supports partial update, but display update is full screen (controller issue)
 
+Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
+
 --------------------------------------------------------------------------------------------
 
 Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.

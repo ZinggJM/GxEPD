@@ -37,7 +37,8 @@
 // these displays do not fully support partial update
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
-#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
+//#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
+#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
