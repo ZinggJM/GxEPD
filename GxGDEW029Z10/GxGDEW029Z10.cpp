@@ -16,7 +16,7 @@
    DESTM32-S2 pinout (top, component side view):
          |-------------------------------------------------
          |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
+         |  GND  |o o| GND     GND
          |  3.3  |o o| 3.3     3.3V
          |  nc   |o o| nc
          |  nc   |o o| nc
@@ -42,7 +42,7 @@
 #define GxGDEW029Z10_PU_DELAY 500
 
 GxGDEW029Z10::GxGDEW029Z10(GxIO& io, int8_t rst, int8_t busy)
-  : GxEPD(GxGDEW029Z10_WIDTH, GxGDEW029Z10_HEIGHT), IO(io), 
+  : GxEPD(GxGDEW029Z10_WIDTH, GxGDEW029Z10_HEIGHT), IO(io),
   _current_page(-1), _using_partial_mode(false),
   _rst(rst), _busy(busy)
 {

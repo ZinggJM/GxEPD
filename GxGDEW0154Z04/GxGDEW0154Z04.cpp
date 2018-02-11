@@ -16,7 +16,7 @@
    DESTM32-S2 pinout (top, component side view):
          |-------------------------------------------------
          |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
+         |  GND  |o o| GND     GND
          |  3.3  |o o| 3.3     3.3V
          |  nc   |o o| nc
          |  nc   |o o| nc
@@ -60,7 +60,7 @@ const uint8_t GxGDEW0154Z04::bw2grey[] =
 GxGDEW0154Z04::GxGDEW0154Z04(GxIO& io, int8_t rst, int8_t busy)
   : GxEPD(GxGDEW0154Z04_WIDTH, GxGDEW0154Z04_HEIGHT), IO(io),
   _current_page(-1),
-  _rst(rst), _busy(busy) 
+  _rst(rst), _busy(busy)
 {
 }
 
