@@ -16,7 +16,7 @@
    DESTM32-S2 pinout (top, component side view):
          |-------------------------------------------------
          |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
+         |  GND  |o o| GND     GND
          |  3.3  |o o| 3.3     3.3V
          |  nc   |o o| nc
          |  nc   |o o| nc

@@ -16,7 +16,7 @@
    DESTM32-S2 pinout (top, component side view):
          |-------------------------------------------------
          |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
+         |  GND  |o o| GND     GND
          |  3.3  |o o| 3.3     3.3V
          |  nc   |o o| nc
          |  nc   |o o| nc
@@ -61,7 +61,7 @@ const uint8_t GxGDEP015OC1::DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
 const uint8_t GxGDEP015OC1::Gatetime[] = {0x3b, 0x08}; // 2us per line
 
 GxGDEP015OC1::GxGDEP015OC1(GxIO& io, int8_t rst, int8_t busy) :
-  GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT), IO(io), 
+  GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT), IO(io),
   _current_page(-1), _using_partial_mode(false),
   _rst(rst), _busy(busy)
 {
