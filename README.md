@@ -1,10 +1,17 @@
 # GxEPD
 A simple E-Paper display library with common base class and separate IO class for Arduino.
 
+## For SPI e-paper displays from Dalian Good Display 
+## and SPI e-paper boards from Waveshare
+
+### important note :
+### - these displays are for 3.3V supply and 3.3V data lines
+### - never connect data lines directly to 5V Arduino data pins, you may use e.g. 4k7 series resistor
+### - do not forget to connect GND
 
 The E-Paper display base class is a subclass of Adafruit_GFX, to have graphics and text rendering.
 
-It needs roughly 20kB available RAM to buffer the black/white image for the SPI displays.
+It needs up to 30kB available RAM to buffer the black/white image for the SPI displays.
 ESP8266 or STM32 systems have just enough free RAM, e.g. Arduino Due, ESP8266 or STM32.
 I use it with Wemos D1 mini, STM32F103RB-Nucleo, and STMF103C8T6 (BluePill) systems.
 
@@ -69,7 +76,7 @@ Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
 --------------------------------------------------------------------------------------------
 
-Added support for HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
+## For HD E-Paper displays from Dalian Good Display Inc. with parallel interface.
 
 - GDE060BA 6 inch 800 x 600 pixel 4 gray level
 - GDEW080T5 8 inch 1024 x 768 pixel 4 gray level
