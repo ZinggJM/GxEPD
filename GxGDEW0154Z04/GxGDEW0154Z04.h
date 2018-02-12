@@ -1,35 +1,16 @@
-/************************************************************************************
-   class GxGDEW0154Z04 : Display class example for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
 
-   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=528.html
-
-   Author : J-M Zingg
-
-   Version : 2.3
-
-   Support: limited, provided as example, no claim to be fit for serious use
-
-   Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
-
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
-
-   note: for correct red color jumper J3 must be set on 0.47 side (towards FCP connector)
-
-*/
 #ifndef _GxGDEW0154Z04_H_
 #define _GxGDEW0154Z04_H_
 
@@ -45,16 +26,6 @@
 
 #define GxGDEW0154Z04_PAGE_HEIGHT (GxGDEW0154Z04_HEIGHT / GxGDEW0154Z04_PAGES)
 #define GxGDEW0154Z04_PAGE_SIZE (GxGDEW0154Z04_BUFFER_SIZE / GxGDEW0154Z04_PAGES)
-
-// mapping suggestion from Waveshare 1.54inch e-Paper to Wemos D1 mini
-// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
-
-// mapping suggestion for ESP32, e.g. LOLIN32, see .../variants/.../pins_arduino.h for your board
-// NOTE: there are variants with different pins for SPI ! CHECK SPI PINS OF YOUR BOARD
-// BUSY -> 4, RST -> 16, DC -> 17, CS -> SS(5), CLK -> SCK(18), DIN -> MOSI(23), GND -> GND, 3.3V -> 3.3V
-
-// mapping suggestion for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
 
 class GxGDEW0154Z04 : public GxEPD
 {

@@ -1,33 +1,16 @@
-/************************************************************************************
-   class GxGDEW0213Z16 : Display class example for GDEW0213Z16 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW0213Z16 : Display class for GDEW0213Z16 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Controller: IL0373 : http://www.good-display.com/download_detail/downloadsId=535.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
 
-   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=529.html
-
-   Author : J-M Zingg
-
-   Version : 2.3
-
-   Support: limited, provided as example, no claim to be fit for serious use
-
-   Controller: IL0373 : http://www.good-display.com/download_detail/downloadsId=535.html
-
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from GoodDisplay
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
-
-*/
 #include "GxGDEW0213Z16.h"
 
 //#define DISABLE_DIAGNOSTIC_OUTPUT

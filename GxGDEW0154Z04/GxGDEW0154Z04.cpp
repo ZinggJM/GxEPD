@@ -1,35 +1,16 @@
-/************************************************************************************
-   class GxGDEW0154Z04 : Display class example for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
 
-   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=528.html
-
-   Author : J-M Zingg
-
-   Version : 2.3
-
-   Support: limited, provided as example, no claim to be fit for serious use
-
-   Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
-
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
-
-   note: for correct red color jumper J3 must be set on 0.47 side (towards FCP connector)
-
-*/
 #include "GxGDEW0154Z04.h"
 
 //#define DISABLE_DIAGNOSTIC_OUTPUT

@@ -1,32 +1,16 @@
-/************************************************************************************
-   class GxGDEW075T8 : Display class example for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW075T8 : Display class for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
 
-   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=525.html
-
-   Author : J-M Zingg
-
-   Version : 2.3
-
-   Support: limited, provided as example, no claim to be fit for serious use
-
-   Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
-
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
-*/
 #ifndef _GxGDEW075T8_H_
 #define _GxGDEW075T8_H_
 
@@ -42,12 +26,6 @@
 
 #define GxGDEW075T8_PAGE_HEIGHT (GxGDEW075T8_HEIGHT / GxGDEW075T8_PAGES)
 #define GxGDEW075T8_PAGE_SIZE (GxGDEW075T8_BUFFER_SIZE / GxGDEW075T8_PAGES)
-
-// mapping example from Waveshare 7.5inch e-Paper to Wemos D1 mini
-// BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
-
-// mapping example for AVR, UNO, NANO etc.
-// BUSY -> 7, RST -> 9, DC -> 8, C S-> 10, CLK -> 13, DIN -> 11
 
 class GxGDEW075T8 : public GxEPD
 {

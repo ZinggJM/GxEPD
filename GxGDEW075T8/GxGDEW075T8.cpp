@@ -1,32 +1,15 @@
-/************************************************************************************
-   class GxGDEW075T8 : Display class example for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
-
-   based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=525.html
-
-   Author : J-M Zingg
-
-   Version : 2.3
-
-   Support: limited, provided as example, no claim to be fit for serious use
-
-   Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
-
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
-*/
+// class GxGDEW075T8 : Display class for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
 
 // note 28.8.2017 : the controller UC8159 seems to know command 90H Partial Window, but neither 91H Partial In nor 92H Partial Out
 // the GDEW075T8 specification does not contain these commands.
