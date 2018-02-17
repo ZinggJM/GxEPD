@@ -9,13 +9,22 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### - never connect data lines directly to 5V Arduino data pins, you may use e.g. 4k7 series resistor
 ### - do not forget to connect GND
 
-The E-Paper display base class is a subclass of Adafruit_GFX, to have graphics and text rendering.
+### Paged Drawing, Picture Loop for AVR
+#### - This library uses paged drawing to cope with RAM restriction and missing single pixel update support
+#### - Paged drawing is implemented using callbacks to callback functions in the user application code,
+#### - the picture loop is internal to the display classes and calls the callback function as many times as needed,
+#### - this is a different implementation compared to the picture loop in U8G2 (Oliver Kraus)
+#### - see also https://github.com/olikraus/u8glib/wiki/tpictureloop
+
+
+### The E-Paper display base class is a subclass of Adafruit_GFX, to have graphics and text rendering.
 
 It needs up to 30kB available RAM to buffer the black/white image for the SPI displays.
 ESP8266 or STM32 systems have just enough free RAM, e.g. Arduino Due, ESP8266 or STM32.
 I use it with Wemos D1 mini, STM32F103RB-Nucleo, and STMF103C8T6 (BluePill) systems.
+- Paged Drawing is available to cope with RAM restriction on AVR processors.
 
-Supporting Arduino Forum Topics:
+### Supporting Arduino Forum Topics:
 
 - Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
 - Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
