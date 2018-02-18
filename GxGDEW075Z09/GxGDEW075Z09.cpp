@@ -228,15 +228,23 @@ void GxGDEW075Z09::_waitWhileBusy(const char* comment)
   while (1)
   { //=0 BUSY
     if (digitalRead(_busy) == 1) break;
-    delay(1);
+     delay(1);
+    if (micros() - start > 20000000)
+    {
+      Serial.println("Busy Timeout!");
+      break;
+    }
   }
-  //if (comment)
+  if (comment)
   {
-//    unsigned long elapsed = micros() - start;
-//    Serial.print(comment);
-//    Serial.print(" : ");
-//    Serial.println(elapsed);
+#if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
+    unsigned long elapsed = micros() - start;
+    Serial.print(comment);
+    Serial.print(" : ");
+    Serial.println(elapsed);
+#endif
   }
+  (void) start;
 }
 
 void GxGDEW075Z09::_wakeUp(bool partial)

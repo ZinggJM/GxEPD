@@ -353,11 +353,15 @@ uint16_t GxGDEW075T8::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, ui
 void GxGDEW075T8::_waitWhileBusy(const char* comment)
 {
   unsigned long start = micros();
-  (void) start;
   while (1)
   { //=0 BUSY
     if (digitalRead(_busy) == 1) break;
-    delay(1);
+     delay(1);
+    if (micros() - start > 10000000)
+    {
+      Serial.println("Busy Timeout!");
+      break;
+    }
   }
   if (comment)
   {
