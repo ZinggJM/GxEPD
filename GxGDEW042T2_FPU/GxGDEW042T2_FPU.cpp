@@ -28,7 +28,7 @@
 
 GxGDEW042T2_FPU::GxGDEW042T2_FPU(GxIO& io, int8_t rst, int8_t busy)
   : GxEPD(GxGDEW042T2_FPU_WIDTH, GxGDEW042T2_FPU_HEIGHT), IO(io),
-    _current_page(-1), _using_partial_mode(false),
+    _current_page(-1), _initial(true), _using_partial_mode(false),
     _rst(rst), _busy(busy)
 {
 }
@@ -82,6 +82,7 @@ void GxGDEW042T2_FPU::init(void)
   }
   pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
+  _initial = true;
   _current_page = -1;
   _using_partial_mode = false;
 }
@@ -108,6 +109,18 @@ void GxGDEW042T2_FPU::update(void)
   }
   IO.writeCommandTransaction(0x12);      //display refresh
   _waitWhileBusy("update");
+  if (_initial)
+  {
+    _initial = false;
+    IO.writeCommandTransaction(0x13);
+    for (uint32_t i = 0; i < GxGDEW042T2_FPU_BUFFER_SIZE; i++)
+    {
+      uint8_t data = i < sizeof(_buffer) ? _buffer[i] : 0x00;
+      IO.writeDataTransaction(~data);
+    }
+    IO.writeCommandTransaction(0x12);      //display refresh
+    _waitWhileBusy("update");
+  }
   _sleep();
 }
 
@@ -189,6 +202,27 @@ void GxGDEW042T2_FPU::drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t m
     }
     IO.writeCommandTransaction(0x12);      //display refresh
     _waitWhileBusy("drawBitmap");
+    if (_initial)
+    {
+      _initial = false;
+      IO.writeCommandTransaction(0x13);
+      for (uint32_t i = 0; i < GxGDEW042T2_FPU_BUFFER_SIZE; i++)
+      {
+        uint8_t data = 0xFF; // white is 0xFF on device
+        if (i < size)
+        {
+#if defined(__AVR) || defined(ESP8266) || defined(ESP32)
+          data = pgm_read_byte(&bitmap[i]);
+#else
+          data = bitmap[i];
+#endif
+          if (mode & bm_invert) data = ~data;
+        }
+        IO.writeDataTransaction(data);
+      }
+      IO.writeCommandTransaction(0x12);      //display refresh
+      _waitWhileBusy("drawBitmap");
+    }
     _sleep();
   }
 }
@@ -427,8 +461,9 @@ void GxGDEW042T2_FPU::_wakeUp(void)
   IO.writeDataTransaction(0x17);
   IO.writeCommandTransaction(0x04);
   _waitWhileBusy("Power On");
-  IO.writeCommandTransaction(0x00);
-  IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
+  //IO.writeCommandTransaction(0x00);
+  //IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
+  _Init_FullUpdate();
 }
 
 void GxGDEW042T2_FPU::_sleep(void)
@@ -768,8 +803,36 @@ void GxGDEW042T2_FPU::drawCornerTest(uint8_t em)
 
 void GxGDEW042T2_FPU::_Init_FullUpdate()
 {
+  //IO.writeCommandTransaction(0x00);
+  //IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
   IO.writeCommandTransaction(0x00);
-  IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
+  IO.writeDataTransaction(0x3F); //300x400 B/W mode, LUT set by register
+  unsigned int count;
+  IO.writeCommandTransaction(0x20); //vcom
+  for (count = 0; count < 44; count++)
+  {
+    IO.writeDataTransaction(lut_vcom0_full[count]);
+  }
+  IO.writeCommandTransaction(0x21); //ww --
+  for (count = 0; count < 42; count++)
+  {
+    IO.writeDataTransaction(lut_ww_full[count]);
+  }
+  IO.writeCommandTransaction(0x22); //bw r
+  for (count = 0; count < 42; count++)
+  {
+    IO.writeDataTransaction(lut_bw_full[count]);
+  }
+  IO.writeCommandTransaction(0x23); //wb w
+  for (count = 0; count < 42; count++)
+  {
+    IO.writeDataTransaction(lut_wb_full[count]);
+  }
+  IO.writeCommandTransaction(0x24); //bb b
+  for (count = 0; count < 42; count++)
+  {
+    IO.writeDataTransaction(lut_bb_full[count]);
+  }
 }
 
 void GxGDEW042T2_FPU::_Init_PartialUpdate()
@@ -803,6 +866,61 @@ void GxGDEW042T2_FPU::_Init_PartialUpdate()
     IO.writeDataTransaction(lut_bb_partial[count]);
   }
 }
+
+const unsigned char GxGDEW042T2_FPU::lut_vcom0_full[] =
+{
+0x40, 0x17, 0x00, 0x00, 0x00, 0x02,        
+0x00, 0x17, 0x17, 0x00, 0x00, 0x02,        
+0x00, 0x0A, 0x01, 0x00, 0x00, 0x01,        
+0x00, 0x0E, 0x0E, 0x00, 0x00, 0x02,        
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,        
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,        
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+const unsigned char GxGDEW042T2_FPU::lut_ww_full[] =
+{
+0x40, 0x17, 0x00, 0x00, 0x00, 0x02,
+0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+0x40, 0x0A, 0x01, 0x00, 0x00, 0x01,
+0xA0, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+const unsigned char GxGDEW042T2_FPU::lut_bw_full[] =
+{
+0x40, 0x17, 0x00, 0x00, 0x00, 0x02,
+0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+0x40, 0x0A, 0x01, 0x00, 0x00, 0x01,
+0xA0, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     
+};
+
+const unsigned char GxGDEW042T2_FPU::lut_wb_full[] =
+{
+0x80, 0x17, 0x00, 0x00, 0x00, 0x02,
+0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+0x80, 0x0A, 0x01, 0x00, 0x00, 0x01,
+0x50, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,         
+};
+
+const unsigned char GxGDEW042T2_FPU::lut_bb_full[] =
+{
+0x80, 0x17, 0x00, 0x00, 0x00, 0x02,
+0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+0x80, 0x0A, 0x01, 0x00, 0x00, 0x01,
+0x50, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00,        
+};
 
 #define TP0A  2 // sustain phase for bb and ww, change phase for bw and wb
 #define TP0B 45 // change phase for bw and wb

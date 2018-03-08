@@ -77,6 +77,8 @@ class GxGDEW042T2 : public GxEPD
     void _wakeUp();
     void _sleep(void);
     void _waitWhileBusy(const char* comment = 0);
+    void _Init_FullUpdate();
+    void _Init_PartialUpdate();
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
 #if defined(__AVR)
@@ -86,9 +88,19 @@ class GxGDEW042T2 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
-    bool _using_partial_mode;
+    bool _initial, _using_partial_mode;
     int8_t _rst;
     int8_t _busy;
+    static const unsigned char lut_vcom0_full[];
+    static const unsigned char lut_ww_full[];
+    static const unsigned char lut_bw_full[];
+    static const unsigned char lut_bb_full[];
+    static const unsigned char lut_wb_full[];
+    static const unsigned char lut_vcom0_partial[];
+    static const unsigned char lut_ww_partial[];
+    static const unsigned char lut_bw_partial[];
+    static const unsigned char lut_bb_partial[];
+    static const unsigned char lut_wb_partial[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes

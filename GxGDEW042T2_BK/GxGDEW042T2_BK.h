@@ -1,4 +1,4 @@
-// class GxGDEW042T2_FPU : Display class for GDEW042T2 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW042T2_BK : Display class for GDEW042T2 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 //
 // based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
 // Controller: IL0398 : http://www.good-display.com/download_detail/downloadsId=537.html
@@ -14,31 +14,31 @@
 // IMPORTANT NOTE: This Fast Partial Update variant works with an experimental partial update waveform table
 //                 Side effects and life expectancy with this LUT are unknown, as it is NOT from the manufacturer!
 
-#ifndef _GxGDEW042T2_FPU_H_
-#define _GxGDEW042T2_FPU_H_
+#ifndef _GxGDEW042T2_BK_H_
+#define _GxGDEW042T2_BK_H_
 
 #include "../GxEPD.h"
 
-#define GxGDEW042T2_FPU_WIDTH 400
-#define GxGDEW042T2_FPU_HEIGHT 300
+#define GxGDEW042T2_BK_WIDTH 400
+#define GxGDEW042T2_BK_HEIGHT 300
 
-#define GxGDEW042T2_FPU_BUFFER_SIZE (uint32_t(GxGDEW042T2_FPU_WIDTH) * uint32_t(GxGDEW042T2_FPU_HEIGHT) / 8)
+#define GxGDEW042T2_BK_BUFFER_SIZE (uint32_t(GxGDEW042T2_BK_WIDTH) * uint32_t(GxGDEW042T2_BK_HEIGHT) / 8)
 
-// divisor for AVR, should be factor of GxGDEW042T2_FPU_HEIGHT
-#define GxGDEW042T2_FPU_PAGES 20
+// divisor for AVR, should be factor of GxGDEW042T2_BK_HEIGHT
+#define GxGDEW042T2_BK_PAGES 20
 
-#define GxGDEW042T2_FPU_PAGE_HEIGHT (GxGDEW042T2_FPU_HEIGHT / GxGDEW042T2_FPU_PAGES)
-#define GxGDEW042T2_FPU_PAGE_SIZE (GxGDEW042T2_FPU_BUFFER_SIZE / GxGDEW042T2_FPU_PAGES)
+#define GxGDEW042T2_BK_PAGE_HEIGHT (GxGDEW042T2_BK_HEIGHT / GxGDEW042T2_BK_PAGES)
+#define GxGDEW042T2_BK_PAGE_SIZE (GxGDEW042T2_BK_BUFFER_SIZE / GxGDEW042T2_BK_PAGES)
 
-class GxGDEW042T2_FPU : public GxEPD
+class GxGDEW042T2_BK : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW042T2_FPU(GxIO& io, int8_t rst = D4, int8_t busy = D2);
+    //GxGDEW042T2_BK(GxIO& io, int8_t rst = D4, int8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW042T2_FPU(GxIO& io, int8_t rst = 2, int8_t busy = 4);
+    GxGDEW042T2_BK(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEW042T2_FPU(GxIO& io, int8_t rst = 9, int8_t busy = 7);
+    GxGDEW042T2_BK(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(void);
@@ -55,7 +55,7 @@ class GxGDEW042T2_FPU : public GxEPD
     void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
     // terminate cleanly updateWindow or updateToWindow before removing power or long delays
     void powerDown();
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEW042T2_FPU_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW042T2_BK_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
@@ -85,25 +85,30 @@ class GxGDEW042T2_FPU : public GxEPD
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
 #if defined(__AVR)
-    uint8_t _buffer[GxGDEW042T2_FPU_PAGE_SIZE];
+    uint8_t _buffer[GxGDEW042T2_BK_PAGE_SIZE];
 #else
-    uint8_t _buffer[GxGDEW042T2_FPU_BUFFER_SIZE];
+    uint8_t _buffer[GxGDEW042T2_BK_BUFFER_SIZE];
 #endif
     GxIO& IO;
     int16_t _current_page;
     bool _initial, _using_partial_mode;
     int8_t _rst;
     int8_t _busy;
-    static const unsigned char lut_vcom0_full[];
-    static const unsigned char lut_ww_full[];
-    static const unsigned char lut_bw_full[];
-    static const unsigned char lut_bb_full[];
-    static const unsigned char lut_wb_full[];
     static const unsigned char lut_vcom0_partial[];
     static const unsigned char lut_ww_partial[];
     static const unsigned char lut_bw_partial[];
     static const unsigned char lut_bb_partial[];
     static const unsigned char lut_wb_partial[];
+    static const unsigned char lut_vcom0[];
+    static const unsigned char lut_vcom0_quick[];
+    static const unsigned char lut_ww[];
+    static const unsigned char lut_ww_quick[];
+    static const unsigned char lut_bw[];
+    static const unsigned char lut_bw_quick[];
+    static const unsigned char lut_bb[];
+    static const unsigned char lut_bb_quick[];
+    static const unsigned char lut_wb[];
+    static const unsigned char lut_wb_quick[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -115,11 +120,11 @@ class GxGDEW042T2_FPU : public GxEPD
 };
 
 #ifndef GxEPD_Class
-#define GxEPD_Class GxGDEW042T2_FPU
-#define GxEPD_WIDTH GxGDEW042T2_FPU_WIDTH
-#define GxEPD_HEIGHT GxGDEW042T2_FPU_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEW042T2_FPU/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEW042T2_FPU/BitmapExamples.h"
+#define GxEPD_Class GxGDEW042T2_BK
+#define GxEPD_WIDTH GxGDEW042T2_BK_WIDTH
+#define GxEPD_HEIGHT GxGDEW042T2_BK_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEW042T2_BK/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEW042T2_BK/BitmapExamples.h"
 #endif
 
 #endif
