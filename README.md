@@ -83,6 +83,8 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
+### Version 2.3.5
+- GxFont_GFX : Font Rendering Graphics Switch and Bridge Class
 --------------------------------------------------------------------------------------------
 
 ## For HD E-Paper displays from Dalian Good Display Inc. with parallel interface.

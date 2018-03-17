@@ -1,3 +1,15 @@
+// class GxEPD : Base Class for Display Classes for e-Paper Displays from Dalian Good Display Co., Ltd.: www.good-display.com
+//
+// based on Demo Examples from Good Display, available here: http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+//
+// Author : J-M Zingg
+//
+// Version : see library.properties
+//
+// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
+//
+// Library: https://github.com/ZinggJM/GxEPD
+
 #ifndef _GxEPD_H_
 #define _GxEPD_H_
 
@@ -5,6 +17,7 @@
 #include <SPI.h>
 #include "GxIO/GxIO.h"
 #include <Adafruit_GFX.h>
+#include "GxFont_GFX.h"
 
 // the only colors supported by any of these displays; mapping of other colors is class specific
 #define GxEPD_BLACK     0x0000
@@ -13,7 +26,8 @@
 #define GxEPD_WHITE     0xFFFF
 #define GxEPD_RED       0xF800      /* 255,   0,   0 */
 
-class GxEPD : public Adafruit_GFX
+//class GxEPD : public Adafruit_GFX
+class GxEPD : public GxFont_GFX
 {
   public:
     // bitmap presentation modes may be partially implemented by subclasses
@@ -33,7 +47,8 @@ class GxEPD : public Adafruit_GFX
       bm_transparent = (1 << 8)
     };
   public:
-    GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
+    //GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
+    GxEPD(int16_t w, int16_t h) : GxFont_GFX(w, h) {};
     virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
     virtual void init(void) = 0;
     virtual void fillScreen(uint16_t color) = 0; // to buffer
