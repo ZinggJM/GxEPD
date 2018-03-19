@@ -60,6 +60,9 @@ mapping suggestion from Waveshare SPI e-Paper to generic ESP8266:
 mapping suggestion (by G6EJD) from Waveshare SPI e-Paper to ESP8266 Huzzah:
 - BUSY -> 03, RST -> 15, DC -> 02, CS -> 00, CLK -> 14, DIN -> 13, GND -> GND, 3.3V -> 3.3V
 
+mapping suggestion from Waveshare SPI e-Paper to ESP8266 NodeMCU:
+- BUSY -> D2, RST  -> D4, DC   -> D3, CS   -> D8, CLK  -> D5, DIN  -> D7, GND  -> GND, 3.3v -> 3.3v
+
 new mapping suggestion for STM32F1, e.g. STM32F103C8T6 "BluePill"
 - BUSY -> A1, RST -> A2, DC -> A3, CS-> A4, CLK -> A5, DIN -> A7
 
