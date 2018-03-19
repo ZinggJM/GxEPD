@@ -2,11 +2,15 @@
 //
 // This class allows to connect GxEPD to additional font rendering classes.
 //
-// Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
-// need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
+// U8G2_FOR_ADAFRUIT_GFX: Arduino Library that makes all U8G2 fonts available (Oliver Kraus)
+// avaliable from: https://github.com/olikraus/U8g2_for_Adafruit_GFX
 //
 // GxFont_GFX_TFT_eSPI: fonts and font rendering of TFT_eSPI library (Bodmer)
 // available here: https://github.com/ZinggJM/GxFont_GFX_TFT_eSPI
+//
+// Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
+// need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
+// (no additional fonts, as all are now part of Adafruit_GFX)
 //
 // Author : J-M Zingg
 //
@@ -22,6 +26,7 @@
 #include <Adafruit_GFX.h>
 
 // select the library/libraries to add, none to preserve code space
+//#include <U8g2_for_Adafruit_GFX.h>
 //#include <Adafruit_ftGFX.h>
 //#include <GxFont_GFX_TFT_eSPI.h>
 
@@ -30,6 +35,9 @@ class GxFont_GFX : public Adafruit_GFX
   public:
     GxFont_GFX(int16_t w, int16_t h);
     void setFont(const GFXfont *f = NULL);
+#if defined(U8g2_for_Adafruit_GFX_h)
+    void setFont(const uint8_t *font); // set u8g2 font
+#endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
     void setFont(uint8_t f);
 #endif
@@ -42,16 +50,29 @@ class GxFont_GFX : public Adafruit_GFX
     void setTextFont(uint8_t font);
 #endif
 #endif
+#if defined(U8g2_for_Adafruit_GFX_h) || defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)
+    void setCursor(int16_t x, int16_t y); 
+    size_t write(uint8_t);
+#endif
+#if defined(U8g2_for_Adafruit_GFX_h)
+    void home(void); 
+    void setFontMode(uint8_t is_transparent);      // is_transparent==0: Background is not drawn
+    void setFontDirection(uint8_t d);              // 0; 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degree
+    void setForegroundColor(uint8_t fg);           // Use this color to draw the text
+    void setBackgroundColor(uint8_t bg);           // only used for setFontMode(0)
+    int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
+    int16_t drawStr(int16_t x, int16_t y, const char *s);
+    int16_t drawUTF8(int16_t x, int16_t y, const char *str);
+    uint16_t utf8_next(uint8_t b);
+#endif
 #if defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)
     void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size);
-    void setCursor(int16_t x, int16_t y);
     void setTextColor(uint16_t c);
     void setTextColor(uint16_t c, uint16_t bg);
     void setTextSize(uint8_t s);
     void setTextWrap(boolean w);
     int16_t getCursorX(void) const;
     int16_t getCursorY(void) const;
-    size_t write(uint8_t);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
     void setTextDatum(uint8_t datum);
@@ -78,6 +99,9 @@ class GxFont_GFX : public Adafruit_GFX
     int16_t fontHeight(int16_t font);
 #endif
   private:
+#if defined(U8g2_for_Adafruit_GFX_h)
+    U8G2_FOR_ADAFRUIT_GFX _U8G2_FOR_ADAFRUIT_GFX;
+#endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
     class GxF_Adafruit_tfGFX : public Adafruit_tfGFX
     {

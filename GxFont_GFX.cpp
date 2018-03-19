@@ -2,12 +2,16 @@
 //
 // This class allows to connect GxEPD to additional font rendering classes.
 //
-// Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
-// need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
+// U8G2_FOR_ADAFRUIT_GFX: Arduino Library that makes all U8G2 fonts available (Oliver Kraus)
+// avaliable from: https://github.com/olikraus/U8g2_for_Adafruit_GFX
 //
 // GxFont_GFX_TFT_eSPI: fonts and font rendering of TFT_eSPI library (Bodmer)
 // available here: https://github.com/ZinggJM/GxFont_GFX_TFT_eSPI
 //
+// Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
+// need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
+// (no additional fonts, as all are now part of Adafruit_GFX)
+// 
 // Author : J-M Zingg
 //
 // Version : see library.properties
@@ -26,7 +30,7 @@
 
 enum eFont_GFX
 {
-  Adafruit_GFX_font_gfx, Adafruit_tfGFX_font_gfx, GxFont_GFX_TFT_eSPI_font_gfx
+  U8g2_for_Adafruit_GFX_font_gfx, Adafruit_GFX_font_gfx, Adafruit_tfGFX_font_gfx, GxFont_GFX_TFT_eSPI_font_gfx
 };
 
 GxFont_GFX::GxFont_GFX(int16_t w, int16_t h) : Adafruit_GFX(w, h)
@@ -39,6 +43,23 @@ GxFont_GFX::GxFont_GFX(int16_t w, int16_t h) : Adafruit_GFX(w, h)
 {
   _font_gfx = Adafruit_GFX_font_gfx;
 }
+
+void GxFont_GFX::setFont(const GFXfont *f)
+{
+  _font_gfx = Adafruit_GFX_font_gfx;
+  Adafruit_GFX::setFont(f);
+}
+
+#if defined(U8g2_for_Adafruit_GFX_h)
+
+void GxFont_GFX::setFont(const uint8_t *font)
+{
+  _font_gfx = U8g2_for_Adafruit_GFX_font_gfx;
+  _U8G2_FOR_ADAFRUIT_GFX.begin(*this); // can savely be called multiple times
+  _U8G2_FOR_ADAFRUIT_GFX.setFont(font);
+}
+
+#endif
 
 #if defined(_ADAFRUIT_TF_GFX_H_)
 
@@ -106,10 +127,98 @@ void GxFont_GFX::setTextFont(uint8_t font)
 
 #endif
 
-void GxFont_GFX::setFont(const GFXfont *f)
+#if defined(U8g2_for_Adafruit_GFX_h) || defined(_GxFont_GFX_TFT_eSPI_H_)|| defined(_ADAFRUIT_TF_GFX_H_) 
+
+void GxFont_GFX::setCursor(int16_t x, int16_t y)
 {
-  Adafruit_GFX::setFont(f);
+  Adafruit_GFX::setCursor(x, y);
+#if defined(U8g2_for_Adafruit_GFX_h)
+  _U8G2_FOR_ADAFRUIT_GFX.setCursor(x, y);
+#endif
+#if defined(_ADAFRUIT_TF_GFX_H_)
+  _GxF_Adafruit_tfGFX.setCursor(x, y);
+#endif
+#if defined(_GxFont_GFX_TFT_eSPI_H_)
+  _GxF_GxFont_GFX_TFT_eSPI.setCursor(x, y);
+#endif
 }
+
+size_t GxFont_GFX::write(uint8_t v)
+{
+  DIAG (Serial.write(v); Serial.println();)
+  switch (_font_gfx)
+  {
+    case Adafruit_GFX_font_gfx:
+      Adafruit_GFX::write(v);
+      break;
+#if defined(U8g2_for_Adafruit_GFX_h)
+    case U8g2_for_Adafruit_GFX_font_gfx:
+      _U8G2_FOR_ADAFRUIT_GFX.write(v);
+      break;
+#endif
+#if defined(_ADAFRUIT_TF_GFX_H_)
+    case Adafruit_tfGFX_font_gfx:
+      _GxF_Adafruit_tfGFX.write(v);
+      break;
+#endif
+#if defined(_GxFont_GFX_TFT_eSPI_H_)
+    case GxFont_GFX_TFT_eSPI_font_gfx:
+      _GxF_GxFont_GFX_TFT_eSPI.write(v);
+      break;
+#endif
+  }
+}
+
+#endif
+
+#if defined(U8g2_for_Adafruit_GFX_h)
+
+void GxFont_GFX::home(void)
+{
+  _U8G2_FOR_ADAFRUIT_GFX.home();
+}
+
+void GxFont_GFX::setFontMode(uint8_t is_transparent)
+{
+  _U8G2_FOR_ADAFRUIT_GFX.setFontMode(is_transparent);
+}
+
+void GxFont_GFX::setFontDirection(uint8_t d)
+{
+  _U8G2_FOR_ADAFRUIT_GFX.setFontDirection(d);
+}
+
+void GxFont_GFX::setForegroundColor(uint8_t fg)
+{
+  _U8G2_FOR_ADAFRUIT_GFX.setForegroundColor(fg);
+}
+
+void GxFont_GFX::setBackgroundColor(uint8_t bg)
+{
+  _U8G2_FOR_ADAFRUIT_GFX.setBackgroundColor(bg);
+}
+
+int16_t GxFont_GFX::drawGlyph(int16_t x, int16_t y, uint16_t e)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawGlyph(x, y, e) : 0);
+}
+
+int16_t GxFont_GFX::drawStr(int16_t x, int16_t y, const char *s)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawStr(x, y, s) : 0);
+}
+
+int16_t GxFont_GFX::drawUTF8(int16_t x, int16_t y, const char *str)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawUTF8(x, y, str) : 0);
+}
+
+uint16_t GxFont_GFX::utf8_next(uint8_t b)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.utf8_next(b) : 0);
+}
+
+#endif
 
 #if defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)
 
@@ -131,17 +240,6 @@ void GxFont_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
       break;
 #endif
   }
-}
-
-void GxFont_GFX::setCursor(int16_t x, int16_t y)
-{
-  Adafruit_GFX::setCursor(x, y);
-#if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setCursor(x, y);
-#endif
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-  _GxF_GxFont_GFX_TFT_eSPI.setCursor(x, y);
-#endif
 }
 
 void GxFont_GFX::setTextColor(uint16_t c)
@@ -218,28 +316,6 @@ int16_t GxFont_GFX::getCursorY(void) const
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
     case GxFont_GFX_TFT_eSPI_font_gfx:
       return _GxF_GxFont_GFX_TFT_eSPI.getCursorY();
-#endif
-  }
-}
-
-size_t GxFont_GFX::write(uint8_t v)
-{
-  DIAG (Serial.write(v); Serial.println();)
-  //delay(1);
-  switch (_font_gfx)
-  {
-    case Adafruit_GFX_font_gfx:
-      Adafruit_GFX::write(v);
-      break;
-#if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_tfGFX_font_gfx:
-      _GxF_Adafruit_tfGFX.write(v);
-      break;
-#endif
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-    case GxFont_GFX_TFT_eSPI_font_gfx:
-      _GxF_GxFont_GFX_TFT_eSPI.write(v);
-      break;
 #endif
   }
 }
