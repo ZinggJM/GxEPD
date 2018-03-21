@@ -54,6 +54,9 @@ Support for partial update and paged drawing (AVR, low RAM).
 mapping suggestion from Waveshare SPI e-Paper to Wemos D1 mini:
 - BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
 
+mapping suggestion from Waveshare SPI e-Paper to ESP8266 NodeMCU:
+- BUSY -> D2, RST -> D4, DC -> D3, CS -> D8, CLK -> D5, DIN -> D7, GND -> GND, 3.3V -> 3.3V
+
 mapping suggestion from Waveshare SPI e-Paper to generic ESP8266:
 - BUSY -> GPIO4, RST -> GPIO2, DC -> GPIO0, CS -> GPIO15, CLK -> GPIO14, DIN -> GPIO13, GND -> GND, 3.3V -> 3.3V
 
