@@ -58,8 +58,8 @@ class GxFont_GFX : public Adafruit_GFX
     void home(void); 
     void setFontMode(uint8_t is_transparent);      // is_transparent==0: Background is not drawn
     void setFontDirection(uint8_t d);              // 0; 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degree
-    void setForegroundColor(uint8_t fg);           // Use this color to draw the text
-    void setBackgroundColor(uint8_t bg);           // only used for setFontMode(0)
+    void setForegroundColor(uint16_t fg);           // Use this color to draw the text
+    void setBackgroundColor(uint16_t bg);           // only used for setFontMode(0)
     int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
     int16_t drawStr(int16_t x, int16_t y, const char *s);
     int16_t drawUTF8(int16_t x, int16_t y, const char *str);
@@ -103,15 +103,15 @@ class GxFont_GFX : public Adafruit_GFX
     U8G2_FOR_ADAFRUIT_GFX _U8G2_FOR_ADAFRUIT_GFX;
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    class GxF_Adafruit_tfGFX : public Adafruit_tfGFX
+    class GxF_Adafruit_ftGFX : public Adafruit_ftGFX
     {
       public:
-        GxF_Adafruit_tfGFX(GxFont_GFX& container, int16_t w, int16_t h) : Adafruit_tfGFX(w, h), _container(container) {};
+        GxF_Adafruit_ftGFX(GxFont_GFX& container, int16_t w, int16_t h) : Adafruit_ftGFX(w, h), _container(container) {};
         void drawPixel(int16_t x, int16_t y, uint16_t color);
       private:
         GxFont_GFX& _container;
     };
-    GxF_Adafruit_tfGFX _GxF_Adafruit_tfGFX;
+    GxF_Adafruit_ftGFX _GxF_Adafruit_ftGFX;
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
     class GxF_GxFont_GFX_TFT_eSPI : public GxFont_GFX_TFT_eSPI

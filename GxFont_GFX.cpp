@@ -30,12 +30,12 @@
 
 enum eFont_GFX
 {
-  U8g2_for_Adafruit_GFX_font_gfx, Adafruit_GFX_font_gfx, Adafruit_tfGFX_font_gfx, GxFont_GFX_TFT_eSPI_font_gfx
+  U8g2_for_Adafruit_GFX_font_gfx, Adafruit_GFX_font_gfx, Adafruit_ftGFX_font_gfx, GxFont_GFX_TFT_eSPI_font_gfx
 };
 
 GxFont_GFX::GxFont_GFX(int16_t w, int16_t h) : Adafruit_GFX(w, h)
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  , _GxF_Adafruit_tfGFX(*this, w, h)
+  , _GxF_Adafruit_ftGFX(*this, w, h)
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   , _GxF_GxFont_GFX_TFT_eSPI(*this, w, h)
@@ -63,15 +63,15 @@ void GxFont_GFX::setFont(const uint8_t *font)
 
 #if defined(_ADAFRUIT_TF_GFX_H_)
 
-void GxFont_GFX::GxF_Adafruit_tfGFX::drawPixel(int16_t x, int16_t y, uint16_t color)
+void GxFont_GFX::GxF_Adafruit_ftGFX::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
   _container.drawPixel(x, y, color);
 }
 
 void GxFont_GFX::setFont(uint8_t f)
 {
-  _font_gfx = Adafruit_tfGFX_font_gfx;
-  _GxF_Adafruit_tfGFX.setFont(f);
+  _font_gfx = Adafruit_ftGFX_font_gfx;
+  _GxF_Adafruit_ftGFX.setFont(f);
 }
 
 #endif
@@ -136,7 +136,7 @@ void GxFont_GFX::setCursor(int16_t x, int16_t y)
   _U8G2_FOR_ADAFRUIT_GFX.setCursor(x, y);
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setCursor(x, y);
+  _GxF_Adafruit_ftGFX.setCursor(x, y);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setCursor(x, y);
@@ -157,8 +157,8 @@ size_t GxFont_GFX::write(uint8_t v)
       break;
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_tfGFX_font_gfx:
-      _GxF_Adafruit_tfGFX.write(v);
+    case Adafruit_ftGFX_font_gfx:
+      _GxF_Adafruit_ftGFX.write(v);
       break;
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
@@ -188,12 +188,12 @@ void GxFont_GFX::setFontDirection(uint8_t d)
   _U8G2_FOR_ADAFRUIT_GFX.setFontDirection(d);
 }
 
-void GxFont_GFX::setForegroundColor(uint8_t fg)
+void GxFont_GFX::setForegroundColor(uint16_t fg)
 {
   _U8G2_FOR_ADAFRUIT_GFX.setForegroundColor(fg);
 }
 
-void GxFont_GFX::setBackgroundColor(uint8_t bg)
+void GxFont_GFX::setBackgroundColor(uint16_t bg)
 {
   _U8G2_FOR_ADAFRUIT_GFX.setBackgroundColor(bg);
 }
@@ -230,8 +230,8 @@ void GxFont_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
       Adafruit_GFX::drawChar(x, y, c, color, bg, size);
       break;
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_tfGFX_font_gfx:
-      _GxF_Adafruit_tfGFX.drawChar(x, y, c, color, bg, size);
+    case Adafruit_ftGFX_font_gfx:
+      _GxF_Adafruit_ftGFX.drawChar(x, y, c, color, bg, size);
       break;
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
@@ -246,7 +246,7 @@ void GxFont_GFX::setTextColor(uint16_t c)
 {
   Adafruit_GFX::setTextColor(c);
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setTextColor(c);
+  _GxF_Adafruit_ftGFX.setTextColor(c);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setTextColor(c);
@@ -257,7 +257,7 @@ void GxFont_GFX::setTextColor(uint16_t c, uint16_t bg)
 {
   Adafruit_GFX::setTextColor(c, bg);
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setTextColor(c, bg);
+  _GxF_Adafruit_ftGFX.setTextColor(c, bg);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setTextColor(c, bg);
@@ -268,7 +268,7 @@ void GxFont_GFX::setTextSize(uint8_t s)
 {
   Adafruit_GFX::setTextSize(s);
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setTextSize(s);
+  _GxF_Adafruit_ftGFX.setTextSize(s);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setTextSize(s);
@@ -279,7 +279,7 @@ void GxFont_GFX::setTextWrap(boolean w)
 {
   Adafruit_GFX::setTextWrap(w);
 #if defined(_ADAFRUIT_TF_GFX_H_)
-  _GxF_Adafruit_tfGFX.setTextWrap(w);
+  _GxF_Adafruit_ftGFX.setTextWrap(w);
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setTextWrap(w);
@@ -293,7 +293,7 @@ int16_t GxFont_GFX::getCursorX(void) const
     case Adafruit_GFX_font_gfx:
       return Adafruit_GFX::getCursorX();
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_tfGFX_font_gfx:
+    case Adafruit_ftGFX_font_gfx:
       return 0; // doesn't know
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
@@ -310,7 +310,7 @@ int16_t GxFont_GFX::getCursorY(void) const
     case Adafruit_GFX_font_gfx:
       return Adafruit_GFX::getCursorY();
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_tfGFX_font_gfx:
+    case Adafruit_ftGFX_font_gfx:
       return 0; // doesn't know
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
