@@ -63,7 +63,6 @@
 #include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
-//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
 #if !defined(_GxFont_GFX_TFT_eSPI_H_)
 // FreeFonts from Adafruit_GFX
@@ -253,8 +252,6 @@ void showFont(const char name[], const GFXfont* f)
 #if defined(U8g2_for_Adafruit_GFX_h)
 void showFont(const char name[], const uint8_t *f)
 {
-  uint16_t y = 0;
-  uint16_t dy = 22;
   display.setRotation(0);
   display.fillScreen(GxEPD_WHITE);
   display.setFontMode(1);                   // use u8g2 transparent mode (this is default)
@@ -262,29 +259,32 @@ void showFont(const char name[], const uint8_t *f)
   display.setForegroundColor(GxEPD_BLACK);  // apply Adafruit GFX color
   display.setBackgroundColor(GxEPD_WHITE);  // apply Adafruit GFX color
   display.setFont(f); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  display.setCursor(0, y += dy);
+  uint16_t dy = display.getFontAscent() - display.getFontDescent();
+  Serial.print("display.getFontAscent() returns "); Serial.println(display.getFontAscent());
+  Serial.print("display.getFontDescent() returns "); Serial.println(display.getFontDescent());
+  Serial.print("dy = "); Serial.println(dy);
+  display.setCursor(0, 0);
   display.println();
+  display.setCursor(0, display.getCursorY() + dy);
   display.println(name);
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println(" !\"#$%&'()*+,-./");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println("0123456789:;<=>?");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println("@ABCDEFGHIJKLMNO");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println("PQRSTUVWXYZ[\\]^_");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
 #if defined(HAS_RED_COLOR)
   display.setForegroundColor(GxEPD_RED);
 #endif
   display.println("`abcdefghijklmno");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println("pqrstuvwxyz{|}~ ");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.println("Umlaut ÄÖÜäéöü");
-  display.setCursor(0, y += dy);
-  display.println("Umlaut ÄÖÜäéöü");
-  display.setCursor(0, y += dy);
+  display.setCursor(0, display.getCursorY() + dy);
   display.update();
 }
 #endif

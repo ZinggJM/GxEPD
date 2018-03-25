@@ -53,6 +53,8 @@ class GxFont_GFX : public Adafruit_GFX
 #if defined(U8g2_for_Adafruit_GFX_h) || defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)
     void setCursor(int16_t x, int16_t y); 
     size_t write(uint8_t);
+    int16_t getCursorX(void) const;
+    int16_t getCursorY(void) const;
 #endif
 #if defined(U8g2_for_Adafruit_GFX_h)
     void home(void); 
@@ -60,6 +62,8 @@ class GxFont_GFX : public Adafruit_GFX
     void setFontDirection(uint8_t d);              // 0; 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degree
     void setForegroundColor(uint16_t fg);           // Use this color to draw the text
     void setBackgroundColor(uint16_t bg);           // only used for setFontMode(0)
+    int8_t getFontAscent(void);
+    int8_t getFontDescent(void);
     int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
     int16_t drawStr(int16_t x, int16_t y, const char *s);
     int16_t drawUTF8(int16_t x, int16_t y, const char *str);
@@ -71,8 +75,6 @@ class GxFont_GFX : public Adafruit_GFX
     void setTextColor(uint16_t c, uint16_t bg);
     void setTextSize(uint8_t s);
     void setTextWrap(boolean w);
-    int16_t getCursorX(void) const;
-    int16_t getCursorY(void) const;
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
     void setTextDatum(uint8_t datum);

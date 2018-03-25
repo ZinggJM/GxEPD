@@ -27,12 +27,7 @@
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>
-// this display does not fully support partial update
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
-
-// IMPORTANT NOTE: This Fast Partial Update variant works with an experimental partial update waveform table
-//                 Side effects and life expectancy with this LUT are unknown, as it is NOT from the manufacturer!
-#include <GxGDEW042T2_FPU/GxGDEW042T2_FPU.cpp>      // 4.2" b/w
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>

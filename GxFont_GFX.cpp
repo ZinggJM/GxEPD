@@ -11,7 +11,7 @@
 // Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
 // need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
 // (no additional fonts, as all are now part of Adafruit_GFX)
-// 
+//
 // Author : J-M Zingg
 //
 // Version : see library.properties
@@ -127,7 +127,7 @@ void GxFont_GFX::setTextFont(uint8_t font)
 
 #endif
 
-#if defined(U8g2_for_Adafruit_GFX_h) || defined(_GxFont_GFX_TFT_eSPI_H_)|| defined(_ADAFRUIT_TF_GFX_H_) 
+#if defined(U8g2_for_Adafruit_GFX_h) || defined(_GxFont_GFX_TFT_eSPI_H_)|| defined(_ADAFRUIT_TF_GFX_H_)
 
 void GxFont_GFX::setCursor(int16_t x, int16_t y)
 {
@@ -169,6 +169,48 @@ size_t GxFont_GFX::write(uint8_t v)
   }
 }
 
+int16_t GxFont_GFX::getCursorX(void) const
+{
+  switch (_font_gfx)
+  {
+    case Adafruit_GFX_font_gfx:
+      return Adafruit_GFX::getCursorX();
+#if defined(U8g2_for_Adafruit_GFX_h)
+    case U8g2_for_Adafruit_GFX_font_gfx:
+      return const_cast<U8G2_FOR_ADAFRUIT_GFX&>(_U8G2_FOR_ADAFRUIT_GFX).getCursorX();
+#endif
+#if defined(_ADAFRUIT_TF_GFX_H_)
+    case Adafruit_ftGFX_font_gfx:
+      return _GxF_Adafruit_ftGFX.getCursorX();
+#endif
+#if defined(_GxFont_GFX_TFT_eSPI_H_)
+    case GxFont_GFX_TFT_eSPI_font_gfx:
+      return _GxF_GxFont_GFX_TFT_eSPI.getCursorX();
+#endif
+  }
+}
+
+int16_t GxFont_GFX::getCursorY(void) const
+{
+  switch (_font_gfx)
+  {
+    case Adafruit_GFX_font_gfx:
+      return Adafruit_GFX::getCursorY();
+#if defined(U8g2_for_Adafruit_GFX_h)
+    case U8g2_for_Adafruit_GFX_font_gfx:
+      return const_cast<U8G2_FOR_ADAFRUIT_GFX&>(_U8G2_FOR_ADAFRUIT_GFX).getCursorY();
+#endif
+#if defined(_ADAFRUIT_TF_GFX_H_)
+    case Adafruit_ftGFX_font_gfx:
+      return _GxF_Adafruit_ftGFX.getCursorY();
+#endif
+#if defined(_GxFont_GFX_TFT_eSPI_H_)
+    case GxFont_GFX_TFT_eSPI_font_gfx:
+      return _GxF_GxFont_GFX_TFT_eSPI.getCursorY();
+#endif
+  }
+}
+
 #endif
 
 #if defined(U8g2_for_Adafruit_GFX_h)
@@ -196,6 +238,16 @@ void GxFont_GFX::setForegroundColor(uint16_t fg)
 void GxFont_GFX::setBackgroundColor(uint16_t bg)
 {
   _U8G2_FOR_ADAFRUIT_GFX.setBackgroundColor(bg);
+}
+
+int8_t GxFont_GFX::getFontAscent(void)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.getFontAscent() : 0);
+}
+
+int8_t GxFont_GFX::getFontDescent(void)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.getFontDescent() : 0);
 }
 
 int16_t GxFont_GFX::drawGlyph(int16_t x, int16_t y, uint16_t e)
@@ -284,40 +336,6 @@ void GxFont_GFX::setTextWrap(boolean w)
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
   _GxF_GxFont_GFX_TFT_eSPI.setTextWrap(w);
 #endif
-}
-
-int16_t GxFont_GFX::getCursorX(void) const
-{
-  switch (_font_gfx)
-  {
-    case Adafruit_GFX_font_gfx:
-      return Adafruit_GFX::getCursorX();
-#if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_ftGFX_font_gfx:
-      return 0; // doesn't know
-#endif
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-    case GxFont_GFX_TFT_eSPI_font_gfx:
-      return _GxF_GxFont_GFX_TFT_eSPI.getCursorX();
-#endif
-  }
-}
-
-int16_t GxFont_GFX::getCursorY(void) const
-{
-  switch (_font_gfx)
-  {
-    case Adafruit_GFX_font_gfx:
-      return Adafruit_GFX::getCursorY();
-#if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_ftGFX_font_gfx:
-      return 0; // doesn't know
-#endif
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-    case GxFont_GFX_TFT_eSPI_font_gfx:
-      return _GxF_GxFont_GFX_TFT_eSPI.getCursorY();
-#endif
-  }
 }
 
 #endif

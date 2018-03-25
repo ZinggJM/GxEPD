@@ -5,25 +5,10 @@
 
    Author : J-M Zingg
 
-   Version : 2.0
+   Version : see library.properties
 
    Support: limited, provided as example, no claim to be fit for serious use
 
-   connection to the e-Paper display is through DESTM32-S2 connection board, available from Good Display
-
-   DESTM32-S2 pinout (top, component side view):
-         |-------------------------------------------------
-         |  VCC  |o o| VCC 5V  not needed
-         |  GND  |o o| GND
-         |  3.3  |o o| 3.3     3.3V
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-         |  nc   |o o| nc
-   MOSI  |  DIN  |o o| CLK     SCK
-   SS    |  CS   |o o| DC      e.g. D3
-   D4    |  RST  |o o| BUSY    e.g. D2
-         |  nc   |o o| BS      GND
-         |-------------------------------------------------
 */
 
 // Supporting Arduino Forum Topics:
@@ -61,7 +46,6 @@
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
-//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
 #include GxEPD_BitmapExamples
 
