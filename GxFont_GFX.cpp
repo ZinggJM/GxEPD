@@ -34,6 +34,9 @@ enum eFont_GFX
 };
 
 GxFont_GFX::GxFont_GFX(int16_t w, int16_t h) : Adafruit_GFX(w, h)
+#if defined(U8g2_for_Adafruit_GFX_h)
+  , _U8G2_FONTS_GFX(*this)
+#endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
   , _GxF_Adafruit_ftGFX(*this, w, h)
 #endif
@@ -55,8 +58,7 @@ void GxFont_GFX::setFont(const GFXfont *f)
 void GxFont_GFX::setFont(const uint8_t *font)
 {
   _font_gfx = U8g2_for_Adafruit_GFX_font_gfx;
-  _U8G2_FOR_ADAFRUIT_GFX.begin(*this); // can savely be called multiple times
-  _U8G2_FOR_ADAFRUIT_GFX.setFont(font);
+  _U8G2_FONTS_GFX.setFont(font);
 }
 
 #endif
@@ -133,7 +135,7 @@ void GxFont_GFX::setCursor(int16_t x, int16_t y)
 {
   Adafruit_GFX::setCursor(x, y);
 #if defined(U8g2_for_Adafruit_GFX_h)
-  _U8G2_FOR_ADAFRUIT_GFX.setCursor(x, y);
+  _U8G2_FONTS_GFX.setCursor(x, y);
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
   _GxF_Adafruit_ftGFX.setCursor(x, y);
@@ -153,7 +155,7 @@ size_t GxFont_GFX::write(uint8_t v)
       break;
 #if defined(U8g2_for_Adafruit_GFX_h)
     case U8g2_for_Adafruit_GFX_font_gfx:
-      _U8G2_FOR_ADAFRUIT_GFX.write(v);
+      _U8G2_FONTS_GFX.write(v);
       break;
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
@@ -177,7 +179,7 @@ int16_t GxFont_GFX::getCursorX(void) const
       return Adafruit_GFX::getCursorX();
 #if defined(U8g2_for_Adafruit_GFX_h)
     case U8g2_for_Adafruit_GFX_font_gfx:
-      return const_cast<U8G2_FOR_ADAFRUIT_GFX&>(_U8G2_FOR_ADAFRUIT_GFX).getCursorX();
+      return const_cast<U8G2_FONTS_GFX&>(_U8G2_FONTS_GFX).getCursorX();
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
     case Adafruit_ftGFX_font_gfx:
@@ -198,7 +200,7 @@ int16_t GxFont_GFX::getCursorY(void) const
       return Adafruit_GFX::getCursorY();
 #if defined(U8g2_for_Adafruit_GFX_h)
     case U8g2_for_Adafruit_GFX_font_gfx:
-      return const_cast<U8G2_FOR_ADAFRUIT_GFX&>(_U8G2_FOR_ADAFRUIT_GFX).getCursorY();
+      return const_cast<U8G2_FONTS_GFX&>(_U8G2_FONTS_GFX).getCursorY();
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
     case Adafruit_ftGFX_font_gfx:
@@ -217,57 +219,62 @@ int16_t GxFont_GFX::getCursorY(void) const
 
 void GxFont_GFX::home(void)
 {
-  _U8G2_FOR_ADAFRUIT_GFX.home();
+  _U8G2_FONTS_GFX.home();
 }
 
 void GxFont_GFX::setFontMode(uint8_t is_transparent)
 {
-  _U8G2_FOR_ADAFRUIT_GFX.setFontMode(is_transparent);
+  _U8G2_FONTS_GFX.setFontMode(is_transparent);
 }
 
 void GxFont_GFX::setFontDirection(uint8_t d)
 {
-  _U8G2_FOR_ADAFRUIT_GFX.setFontDirection(d);
+  _U8G2_FONTS_GFX.setFontDirection(d);
 }
 
 void GxFont_GFX::setForegroundColor(uint16_t fg)
 {
-  _U8G2_FOR_ADAFRUIT_GFX.setForegroundColor(fg);
+  _U8G2_FONTS_GFX.setForegroundColor(fg);
 }
 
 void GxFont_GFX::setBackgroundColor(uint16_t bg)
 {
-  _U8G2_FOR_ADAFRUIT_GFX.setBackgroundColor(bg);
+  _U8G2_FONTS_GFX.setBackgroundColor(bg);
 }
 
 int8_t GxFont_GFX::getFontAscent(void)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.getFontAscent() : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.getFontAscent() : 0);
 }
 
 int8_t GxFont_GFX::getFontDescent(void)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.getFontDescent() : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.getFontDescent() : 0);
+}
+
+int8_t GxFont_GFX::getFontHeight(void)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.u8g2.font_info.max_char_height : 0);
 }
 
 int16_t GxFont_GFX::drawGlyph(int16_t x, int16_t y, uint16_t e)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawGlyph(x, y, e) : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.drawGlyph(x, y, e) : 0);
 }
 
 int16_t GxFont_GFX::drawStr(int16_t x, int16_t y, const char *s)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawStr(x, y, s) : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.drawStr(x, y, s) : 0);
 }
 
 int16_t GxFont_GFX::drawUTF8(int16_t x, int16_t y, const char *str)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.drawUTF8(x, y, str) : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.drawUTF8(x, y, str) : 0);
 }
 
 uint16_t GxFont_GFX::utf8_next(uint8_t b)
 {
-  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FOR_ADAFRUIT_GFX.utf8_next(b) : 0);
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.utf8_next(b) : 0);
 }
 
 #endif

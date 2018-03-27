@@ -19,7 +19,7 @@
 // void void setTextFont(uint8_t font); // selects rendering and fonts from library GxFont_GFX_TFT_eSPI
 //
 // void setFont(uint8_t f); // selects rendering and fonts from library Adafruit_tfGFX
-// (no additional fonts, as all are now part of Adafruit_GFX)
+// (no additional fonts, as all are now part of Adafruit_GFX, but fonts above 7bit character set)
 //
 // void setFont(const GFXfont *f = NULL); // reverts back to Adafruit_GFX FreeFonts
 // use setFont((void*)NULL); // to select Adafruit_GFX classic font
@@ -259,32 +259,19 @@ void showFont(const char name[], const uint8_t *f)
   display.setForegroundColor(GxEPD_BLACK);  // apply Adafruit GFX color
   display.setBackgroundColor(GxEPD_WHITE);  // apply Adafruit GFX color
   display.setFont(f); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  uint16_t dy = display.getFontAscent() - display.getFontDescent();
-  Serial.print("display.getFontAscent() returns "); Serial.println(display.getFontAscent());
-  Serial.print("display.getFontDescent() returns "); Serial.println(display.getFontDescent());
-  Serial.print("dy = "); Serial.println(dy);
   display.setCursor(0, 0);
   display.println();
-  display.setCursor(0, display.getCursorY() + dy);
   display.println(name);
-  display.setCursor(0, display.getCursorY() + dy);
   display.println(" !\"#$%&'()*+,-./");
-  display.setCursor(0, display.getCursorY() + dy);
   display.println("0123456789:;<=>?");
-  display.setCursor(0, display.getCursorY() + dy);
   display.println("@ABCDEFGHIJKLMNO");
-  display.setCursor(0, display.getCursorY() + dy);
   display.println("PQRSTUVWXYZ[\\]^_");
-  display.setCursor(0, display.getCursorY() + dy);
 #if defined(HAS_RED_COLOR)
   display.setForegroundColor(GxEPD_RED);
 #endif
   display.println("`abcdefghijklmno");
-  display.setCursor(0, display.getCursorY() + dy);
   display.println("pqrstuvwxyz{|}~ ");
-  display.setCursor(0, display.getCursorY() + dy);
   display.println("Umlaut ÄÖÜäéöü");
-  display.setCursor(0, display.getCursorY() + dy);
   display.update();
 }
 #endif

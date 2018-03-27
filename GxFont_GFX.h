@@ -10,7 +10,7 @@
 //
 // Adafruit_ftGFX: a Adafruit_GFX variant with different fonts.
 // need to use modified clone from: https://github.com/ZinggJM/Adafruit_ftGFX
-// (no additional fonts, as all are now part of Adafruit_GFX)
+// (no additional fonts, as all are now part of Adafruit_GFX, but fonts above 7bit character set)
 //
 // Author : J-M Zingg
 //
@@ -51,19 +51,20 @@ class GxFont_GFX : public Adafruit_GFX
 #endif
 #endif
 #if defined(U8g2_for_Adafruit_GFX_h) || defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)
-    void setCursor(int16_t x, int16_t y); 
+    void setCursor(int16_t x, int16_t y);
     size_t write(uint8_t);
     int16_t getCursorX(void) const;
     int16_t getCursorY(void) const;
 #endif
 #if defined(U8g2_for_Adafruit_GFX_h)
-    void home(void); 
+    void home(void);
     void setFontMode(uint8_t is_transparent);      // is_transparent==0: Background is not drawn
     void setFontDirection(uint8_t d);              // 0; 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degree
     void setForegroundColor(uint16_t fg);           // Use this color to draw the text
     void setBackgroundColor(uint16_t bg);           // only used for setFontMode(0)
     int8_t getFontAscent(void);
     int8_t getFontDescent(void);
+    int8_t getFontHeight(void);
     int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
     int16_t drawStr(int16_t x, int16_t y, const char *s);
     int16_t drawUTF8(int16_t x, int16_t y, const char *str);
@@ -102,7 +103,52 @@ class GxFont_GFX : public Adafruit_GFX
 #endif
   private:
 #if defined(U8g2_for_Adafruit_GFX_h)
-    U8G2_FOR_ADAFRUIT_GFX _U8G2_FOR_ADAFRUIT_GFX;
+    class U8G2_FONTS_GFX : public U8G2_FOR_ADAFRUIT_GFX
+    {
+      public:
+        U8G2_FONTS_GFX(Adafruit_GFX& gfx) : _gfx(gfx)
+        {
+          begin(gfx);
+        };
+        void drawPixel(int16_t x, int16_t y, uint16_t color)
+        {
+          _gfx.drawPixel(x, y, color);
+        };
+        size_t write(uint8_t v)
+        {
+          if (v == '\n') // Newline?
+          {
+            switch (u8g2.font_decode.dir)
+            {
+              case 0:
+                tx = 0;
+                ty += u8g2.font_info.max_char_height;
+                break;
+              // these need to be verified
+              case 1:
+                tx += u8g2.font_info.max_char_height;
+                ty = 0;
+                break;
+              case 2:
+                tx = 0;
+                ty -= u8g2.font_info.max_char_height;
+                break;
+              case 3:
+                tx -= u8g2.font_info.max_char_height;
+                ty = 0;
+                break;
+            }
+            return 1;
+          }
+          else
+          {
+            return U8G2_FOR_ADAFRUIT_GFX::write(v);
+          }
+        };
+      private:
+        Adafruit_GFX& _gfx;
+    };
+    U8G2_FONTS_GFX _U8G2_FONTS_GFX;
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
     class GxF_Adafruit_ftGFX : public Adafruit_ftGFX
