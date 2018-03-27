@@ -86,7 +86,10 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.7
+### Version 2.3.8
+- Serial Diagnostic Output selectable by parameter of init() call:
+- void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
+#### Version 2.3.7
 - additional font support, e.g. from https://github.com/olikraus/U8g2_for_Adafruit_GFX
 #### Version 2.3.6
 - fixes and cleanup

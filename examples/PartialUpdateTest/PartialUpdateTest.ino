@@ -140,7 +140,7 @@ void setup(void)
   Serial.begin(115200);
   Serial.println();
   Serial.println("setup");
-  display.init();
+  display.init(115200); // enable diagnostic output on Serial
   Serial.println("setup done");
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);

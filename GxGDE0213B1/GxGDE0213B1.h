@@ -46,7 +46,7 @@ class GxGDE0213B1 : public GxEPD
     GxGDE0213B1(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
-    void init(void);
+    void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
     void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
     void update(void);
     // to buffer, may be cropped, drawPixel() used, update needed
@@ -106,6 +106,7 @@ class GxGDE0213B1 : public GxEPD
     GxIO& IO;
     int16_t _current_page;
     bool _using_partial_mode;
+    bool _diag_enabled;
     int8_t _rst;
     int8_t _busy;
     static const uint8_t LUTDefault_full[];

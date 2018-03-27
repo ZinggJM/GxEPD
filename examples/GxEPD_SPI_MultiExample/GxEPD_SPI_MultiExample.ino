@@ -328,11 +328,11 @@ void setup()
   digitalWrite(RST_PIN, HIGH);
   delay(20);
 
-  display1.init();
-  display2.init();
-  display3.init();
+  display1.init(115200); // enable diagnostic output on Serial
+  display2.init(115200); // enable diagnostic output on Serial
+  display3.init(115200); // enable diagnostic output on Serial
 #if defined(ESP32)
-  display4.init();
+  display4.init(115200); // enable diagnostic output on Serial
 #endif
 
   Serial.println("setup done");

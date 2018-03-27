@@ -50,7 +50,7 @@ class GxEPD : public GxFont_GFX
     //GxEPD(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
     GxEPD(int16_t w, int16_t h) : GxFont_GFX(w, h) {};
     virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
-    virtual void init(void) = 0;
+    virtual void init(uint32_t serial_diag_bitrate = 0) = 0; // = 0 : disabled
     virtual void fillScreen(uint16_t color) = 0; // to buffer
     virtual void update(void) = 0;
     // to buffer, may be cropped, drawPixel() used, update needed, subclass may support some modes

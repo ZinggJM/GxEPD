@@ -25,13 +25,14 @@
 
 GxGDEW042T2::GxGDEW042T2(GxIO& io, int8_t rst, int8_t busy)
   : GxEPD(GxGDEW042T2_WIDTH, GxGDEW042T2_HEIGHT), IO(io),
-    _current_page(-1), _initial(true), _using_partial_mode(false),
+    _current_page(-1), _initial(true), _using_partial_mode(false), _diag_enabled(false),
     _rst(rst), _busy(busy)
 {
 }
 
 void GxGDEW042T2::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
+
   if ((x < 0) || (x >= width()) || (y < 0) || (y >= height())) return;
 
   // check rotation, move pixel around if necessary
@@ -68,8 +69,13 @@ void GxGDEW042T2::drawPixel(int16_t x, int16_t y, uint16_t color)
     _buffer[i] = (_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
 }
 
-void GxGDEW042T2::init(void)
+void GxGDEW042T2::init(uint32_t serial_diag_bitrate)
 {
+  if (serial_diag_bitrate > 0)
+  {
+    Serial.begin(serial_diag_bitrate);
+    _diag_enabled = true;
+  }
   IO.init();
   IO.setFrequency(4000000); // 4MHz
   if (_rst >= 0)
@@ -427,17 +433,20 @@ void GxGDEW042T2::_waitWhileBusy(const char* comment)
     delay(1);
     if (micros() - start > GxGDEW042T2_BUSY_TIMEOUT)
     {
-      Serial.println("Busy Timeout!");
+      if (_diag_enabled) Serial.println("Busy Timeout!");
       break;
     }
   }
   if (comment)
   {
 #if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
-    unsigned long elapsed = micros() - start;
-    Serial.print(comment);
-    Serial.print(" : ");
-    Serial.println(elapsed);
+    if (_diag_enabled)
+    {
+      unsigned long elapsed = micros() - start;
+      Serial.print(comment);
+      Serial.print(" : ");
+      Serial.println(elapsed);
+    }
 #endif
   }
   (void) start;
