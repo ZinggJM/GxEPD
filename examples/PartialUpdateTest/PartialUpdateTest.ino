@@ -24,7 +24,7 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-//#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
+#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>
@@ -126,26 +126,31 @@ GxEPD_Class display(io);
 #if defined(_GxGDEP015OC1_H_)
 const uint32_t partial_update_period_s = 1;
 const uint32_t full_update_period_s = 6 * 60 * 60;
-#elif defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_)
+#elif defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_)
 const uint32_t partial_update_period_s = 2;
 const uint32_t full_update_period_s = 1 * 60 * 60;
 #endif
 
 uint32_t start_time;
 uint32_t next_time;
-uint32_t next_full_update;
+uint32_t previous_time;
+uint32_t previous_full_update;
+
+uint32_t total_seconds = 0;
+uint32_t seconds, minutes, hours, days;
 
 void setup(void)
 {
   Serial.begin(115200);
   Serial.println();
   Serial.println("setup");
-  display.init(115200); // enable diagnostic output on Serial
+  //display.init(115200); // enable diagnostic output on Serial
+  display.init(); // disable diagnostic output on Serial
   Serial.println("setup done");
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(0);
   // draw background
-#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+#if defined(__AVR) && defined(_GxGDEW042T2_H_)
   // cope with code size limitation
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
   display.setFont(&FreeMonoBold9pt7b);
@@ -157,33 +162,47 @@ void setup(void)
   // partial update to full screen to preset for partial update of box window
   // (this avoids strange background effects)
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
-  start_time = next_time = millis();
-  next_full_update = start_time + full_update_period_s * 1000;
+  start_time = next_time = previous_time = previous_full_update = millis();
+  display.setRotation(1);
 }
 
 void loop()
 {
-#if defined(__AVR)
-  showPartialUpdate_AVR();
-#else
-  showPartialUpdate();
-#endif
-  if (millis() >= next_full_update)
+  uint32_t actual = millis();
+  while (actual < next_time)
   {
-#if defined(__AVR) && (defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_))
+    // the "BlinkWithoutDelay" method works also for overflowed millis
+    if ((actual - previous_time) > (partial_update_period_s * 1000))
+    {
+      //Serial.print(actual - previous_time); Serial.print(" > "); Serial.println(partial_update_period_s * 1000);
+      break;
+    }
+    delay(100);
+    actual = millis();
+  }
+  //Serial.print("actual: "); Serial.print(actual); Serial.print(" previous: "); Serial.println(previous_time);
+  if ((actual - previous_full_update) > full_update_period_s * 1000)
+  {
+#if defined(__AVR) && defined(_GxGDEW042T2_H_)
     display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
     display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
 #else
     display.update();
 #endif
-    next_full_update += full_update_period_s * 1000;
+    previous_full_update = actual;
   }
-  next_time += partial_update_period_s * 1000;
-#if defined(ESP8266)
-  Serial.printf("%ul %ul", millis(), next_time);
-  Serial.println();
+  previous_time = actual;
+  next_time += uint32_t(partial_update_period_s * 1000);
+  total_seconds += partial_update_period_s;
+  seconds = total_seconds % 60;
+  minutes = (total_seconds / 60) % 60;
+  hours = (total_seconds / 3600) % 24;
+  days = (total_seconds / 3600) / 24;
+#if defined(__AVR)
+  showPartialUpdate_AVR();
+#else
+  showPartialUpdate();
 #endif
-  while (millis() < next_time) delay(100);
 }
 
 void print02d(uint32_t d)
@@ -201,14 +220,8 @@ void showPartialUpdate()
   uint16_t box_w = 170;
   uint16_t box_h = 20;
   uint16_t cursor_y = box_y + 16;
-  uint32_t elapsed_seconds = (millis() - start_time) / 1000;
-  uint32_t seconds = elapsed_seconds % 60;
-  uint32_t minutes = (elapsed_seconds / 60) % 60;
-  uint32_t hours = (elapsed_seconds / 3600) % 24;
-  uint32_t days = (elapsed_seconds / 3600) / 24;
   display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
   display.setCursor(box_x, cursor_y);
-  //display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
   display.print(days); display.print("d "); print02d(hours); display.print(":"); print02d(minutes); display.print(":"); print02d(seconds);
   display.updateWindow(box_x, box_y, box_w, box_h, true);
 }
@@ -222,14 +235,8 @@ void drawCallback()
   uint16_t box_w = 170;
   uint16_t box_h = 20;
   uint16_t cursor_y = box_y + 16;
-  uint32_t elapsed_seconds = (millis() - start_time) / 1000;
-  uint32_t seconds = elapsed_seconds % 60;
-  uint32_t minutes = (elapsed_seconds / 60) % 60;
-  uint32_t hours = (elapsed_seconds / 3600) % 24;
-  uint32_t days = (elapsed_seconds / 3600) / 24;
   display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
   display.setCursor(box_x, cursor_y);
-  //display.printf("%0dd %02d:%02d:%02d", days, hours, minutes, seconds);
   display.print(days); display.print("d "); print02d(hours); display.print(":"); print02d(minutes); display.print(":"); print02d(seconds);
 }
 
