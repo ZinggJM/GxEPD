@@ -1,6 +1,6 @@
 // class GxGDEW075T8 : Display class for GDEW075T8 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 //
-// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=525.html
 // Controller: IL0371 : http://www.good-display.com/download_detail/downloadsId=536.html
 //
 // Author : J-M Zingg
@@ -138,6 +138,7 @@ void GxGDEW075T8::drawBitmap(const uint8_t* bitmap, uint32_t size, int16_t mode)
     _wakeUp();
     IO.writeCommandTransaction(0x91); // partial in
     _setPartialRamArea(0, 0, GxGDEW075T8_WIDTH - 1, GxGDEW075T8_HEIGHT - 1);
+    IO.writeCommandTransaction(0x10);
     for (uint32_t i = 0; i < GxGDEW075T8_BUFFER_SIZE; i++)
     {
       uint8_t data = 0x00; // white is 0x00 on device

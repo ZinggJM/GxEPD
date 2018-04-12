@@ -86,7 +86,12 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.8
+### Version 2.3.9
+- new version for 7.5" 3-color display GxGDEW075Z09
+- GxGDEW075Z09 runs with full buffer on ESP32, Arduino Due, STM32F4
+- runs with reduced buffer on ESP8266, STM32F1, AVR : will show buffer content as stripes
+- supports paged display on AVR, ESP8266, STM32F1
+#### Version 2.3.8
 - Serial Diagnostic Output selectable by parameter of init() call:
 - void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
 #### Version 2.3.7

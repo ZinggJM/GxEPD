@@ -39,10 +39,11 @@
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
-#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
+//#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
+//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -55,20 +56,13 @@
 #if defined(ESP8266)
 
 // generic/common.h
-//static const uint8_t SS    = 15;
-//static const uint8_t MOSI  = 13;
-//static const uint8_t MISO  = 12;
-//static const uint8_t SCK   = 14;
-// pins_arduino.h
-//static const uint8_t D8   = 15;
-//static const uint8_t D7   = 13;
-//static const uint8_t D6   = 12;
-//static const uint8_t D5   = 14;
+//static const uint8_t SS    = 15; // D8
+//static const uint8_t MOSI  = 13; // D7
+//static const uint8_t MISO  = 12; // D6
+//static const uint8_t SCK   = 14; // D5
 
-// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 0, 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
-// GxGDEP015OC1(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
-GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
+GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), D2(=4)
 
 #elif defined(ESP32)
 
@@ -78,8 +72,8 @@ GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
 //static const uint8_t MISO  = 19;
 //static const uint8_t SCK   = 18;
 
-GxIO_Class io(SPI, SS, 17, 16);
-GxEPD_Class display(io, 16, 4);
+GxIO_Class io(SPI, /*CS=5*/ SS, /*DC=*/ 17, /*RST=*/ 16); // arbitrary selection of 17, 16
+GxEPD_Class display(io, /*RST=*/ 16, /*BUSY=*/ 4); // arbitrary selection of (16), 4
 
 #elif defined(ARDUINO_ARCH_SAMD)
 
@@ -94,13 +88,12 @@ GxEPD_Class display(io, 16, 4);
 //#define PIN_SPI_SCK   (9u)
 //#define PIN_SPI_SS    (4u)
 
-GxIO_Class io(SPI, 4, 7, 6);
-GxEPD_Class display(io, 6, 5);
+GxIO_Class io(SPI, /*CS=*/ 4, /*DC=*/ 7, /*RST=*/ 6);
+GxEPD_Class display(io, /*RST=*/ 6, /*BUSY=*/ 5);
 
-#elif defined(_BOARD_GENERIC_STM32F103C_H_)
+#elif defined(ARDUINO_GENERIC_STM32F103C) && defined(MCU_STM32F103C8)
 
-// STM32 Boards (STM32duino.com)
-// Generic STM32F103C series
+// STM32 Boards(STM32duino.com) Generic STM32F103C series STM32F103C8
 // aka BluePill
 // board.h
 //#define BOARD_SPI1_NSS_PIN        PA4
@@ -119,10 +112,26 @@ GxEPD_Class display(io, 6, 5);
 //static const uint8_t MISO = BOARD_SPI1_MISO_PIN;
 //static const uint8_t SCK  = BOARD_SPI1_SCK_PIN;
 
-//GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 8, 9);
-//  GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
-GxEPD_Class display(io, 9, 3);
+// new mapping suggestion for STM32F1, e.g. STM32F103C8T6 "BluePill"
+// BUSY -> A1, RST -> A2, DC -> A3, CS-> A4, CLK -> A5, DIN -> A7
+
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 3, /*RST=*/ 2);
+GxEPD_Class display(io, /*RST=*/ 2, /*BUSY=*/ 1);
+
+#elif defined(ARDUINO_GENERIC_STM32F103V) && defined(MCU_STM32F103VB)
+
+// board.h
+//#define BOARD_SPI1_NSS_PIN        PA4
+//#define BOARD_SPI1_MOSI_PIN       PA7
+//#define BOARD_SPI1_MISO_PIN       PA6
+//#define BOARD_SPI1_SCK_PIN        PA5
+
+// STM32 Boards(STM32duino.com) Generic STM32F103V series STM32F103VB
+// Good Display DESPI-M01
+// note: needs jumper wires from SS=PA4->CS, SCK=PA5->SCK, MOSI=PA7->SDI
+
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ PE15, /*RST=*/ PE14); // DC, RST as wired by DESPI-M01
+GxEPD_Class display(io, /*RST=*/ PE14, /*BUSY=*/ PE13); // RST, BUSY as wired by DESPI-M01
 
 #else
 
@@ -132,8 +141,8 @@ GxEPD_Class display(io, 9, 3);
 //#define PIN_SPI_MISO  (12)
 //#define PIN_SPI_SCK   (13)
 
-GxIO_Class io(SPI, SS, 8, 9);
-GxEPD_Class display(io);
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+GxEPD_Class display(io /*RST=9*/ /*BUSY=7*/); // default selection of (9), 7
 
 #endif
 
@@ -179,7 +188,7 @@ void showFontCallback()
   display.println("0123456789:;<=>?");
   display.println("@ABCDEFGHIJKLMNO");
   display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_) || defined(_GxGDEW042Z15_H_)
+#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_) || defined(_GxGDEW042Z15_H_) || defined(_GxGDEW075Z09_H_)
   display.setTextColor(GxEPD_RED);
 #endif
   display.println("`abcdefghijklmno");

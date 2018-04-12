@@ -7,6 +7,8 @@
 #include <avr/pgmspace.h>
 #endif
 
+#include "BitmapPicture_3C.h"
+
 const unsigned char BitmapExample1[] PROGMEM =
 {
 0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,

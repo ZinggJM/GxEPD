@@ -34,7 +34,7 @@
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
-#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
+//#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 // these displays do not fully support partial update
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
@@ -42,6 +42,7 @@
 //#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
+//#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
 #include <GxIO/GxIO.cpp>
@@ -54,20 +55,13 @@
 #if defined(ESP8266)
 
 // generic/common.h
-//static const uint8_t SS    = 15;
-//static const uint8_t MOSI  = 13;
-//static const uint8_t MISO  = 12;
-//static const uint8_t SCK   = 14;
-// pins_arduino.h
-//static const uint8_t D8   = 15;
-//static const uint8_t D7   = 13;
-//static const uint8_t D6   = 12;
-//static const uint8_t D5   = 14;
+//static const uint8_t SS    = 15; // D8
+//static const uint8_t MOSI  = 13; // D7
+//static const uint8_t MISO  = 12; // D6
+//static const uint8_t SCK   = 14; // D5
 
-// GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 0, 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
-// GxGDEP015OC1(GxIO& io, uint8_t rst = 2, uint8_t busy = 4);
-GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
+GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), D2(=4)
 
 #elif defined(ESP32)
 
@@ -77,8 +71,8 @@ GxEPD_Class display(io); // default selection of D4(=2), D2(=4)
 //static const uint8_t MISO  = 19;
 //static const uint8_t SCK   = 18;
 
-GxIO_Class io(SPI, SS, 17, 16);
-GxEPD_Class display(io, 16, 4);
+GxIO_Class io(SPI, /*CS=5*/ SS, /*DC=*/ 17, /*RST=*/ 16); // arbitrary selection of 17, 16
+GxEPD_Class display(io, /*RST=*/ 16, /*BUSY=*/ 4); // arbitrary selection of (16), 4
 
 #elif defined(ARDUINO_ARCH_SAMD)
 
@@ -93,13 +87,12 @@ GxEPD_Class display(io, 16, 4);
 //#define PIN_SPI_SCK   (9u)
 //#define PIN_SPI_SS    (4u)
 
-GxIO_Class io(SPI, 4, 7, 6);
-GxEPD_Class display(io, 6, 5);
+GxIO_Class io(SPI, /*CS=*/ 4, /*DC=*/ 7, /*RST=*/ 6);
+GxEPD_Class display(io, /*RST=*/ 6, /*BUSY=*/ 5);
 
-#elif defined(_BOARD_GENERIC_STM32F103C_H_)
+#elif defined(ARDUINO_GENERIC_STM32F103C) && defined(MCU_STM32F103C8)
 
-// STM32 Boards (STM32duino.com)
-// Generic STM32F103C series
+// STM32 Boards(STM32duino.com) Generic STM32F103C series STM32F103C8
 // aka BluePill
 // board.h
 //#define BOARD_SPI1_NSS_PIN        PA4
@@ -118,10 +111,26 @@ GxEPD_Class display(io, 6, 5);
 //static const uint8_t MISO = BOARD_SPI1_MISO_PIN;
 //static const uint8_t SCK  = BOARD_SPI1_SCK_PIN;
 
-//GxIO_SPI(SPIClass& spi, int8_t cs, int8_t dc, int8_t rst = -1, int8_t bl = -1);
-GxIO_Class io(SPI, SS, 8, 9);
-//  GxGDEP015OC1(GxIO& io, uint8_t rst = 9, uint8_t busy = 7);
-GxEPD_Class display(io, 9, 3);
+// new mapping suggestion for STM32F1, e.g. STM32F103C8T6 "BluePill"
+// BUSY -> A1, RST -> A2, DC -> A3, CS-> A4, CLK -> A5, DIN -> A7
+
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 3, /*RST=*/ 2);
+GxEPD_Class display(io, /*RST=*/ 2, /*BUSY=*/ 1);
+
+#elif defined(ARDUINO_GENERIC_STM32F103V) && defined(MCU_STM32F103VB)
+
+// board.h
+//#define BOARD_SPI1_NSS_PIN        PA4
+//#define BOARD_SPI1_MOSI_PIN       PA7
+//#define BOARD_SPI1_MISO_PIN       PA6
+//#define BOARD_SPI1_SCK_PIN        PA5
+
+// STM32 Boards(STM32duino.com) Generic STM32F103V series STM32F103VB
+// Good Display DESPI-M01
+// note: needs jumper wires from SS=PA4->CS, SCK=PA5->SCK, MOSI=PA7->SDI
+
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ PE15, /*RST=*/ PE14); // DC, RST as wired by DESPI-M01
+GxEPD_Class display(io, /*RST=*/ PE14, /*BUSY=*/ PE13); // RST, BUSY as wired by DESPI-M01
 
 #else
 
@@ -131,10 +140,8 @@ GxEPD_Class display(io, 9, 3);
 //#define PIN_SPI_MISO  (12)
 //#define PIN_SPI_SCK   (13)
 
-GxIO_Class io(SPI, SS, 8, 9);
-//GxIO_DESTM32L io;
-//GxIO_GreenSTM32F103V io;
-GxEPD_Class display(io);
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+GxEPD_Class display(io /*RST=9*/ /*BUSY=7*/); // default selection of (9), 7
 
 #endif
 
@@ -154,9 +161,12 @@ void setup(void)
 
 void loop()
 {
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
- || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW042T2_FPU_H_) || defined(_GxGDEW042Z15_H_))
-  showPartialUpdate_AVR();
+#if defined(__AVR)
+  showPartialUpdatePaged();
+#elif defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
+  showPartialUpdatePaged();
+#elif defined(_GxGDEW075Z09_H_)
+  showPartialUpdate_75Z09();
 #else
   showPartialUpdate();
 #endif
@@ -260,8 +270,95 @@ void showPartialUpdate()
 
 #endif
 
-#if defined(__AVR) && (defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_) \
- || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW042T2_FPU_H_))
+#if defined(_GxGDEW075Z09_H_) && !(defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
+
+void showPartialUpdate_75Z09()
+{
+  // use asymmetric values for test
+  uint16_t box_x = 10;
+  uint16_t box_y = 15;
+  uint16_t box_w = 70;
+  uint16_t box_h = 20;
+  uint16_t cursor_y = box_y + box_h - 6;
+  float value = 13.95;
+  display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+  display.setRotation(0);
+  // draw background, partial update to full screen to preset for partial update of box window
+  // (updateWindow() would clear display if partial update not set, to avoid strange background effect)
+  display.drawExamplePicture_3C(BitmapPicture_3C, sizeof(BitmapPicture_3C), GxEPD::bm_partial_update);
+  // show where the update box is
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_BLACK);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+    delay(1000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
+  // show updates in the update box
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    // reset the background
+    display.setRotation(0);
+    display.drawExamplePicture_3C(BitmapPicture_3C, sizeof(BitmapPicture_3C), GxEPD::bm_partial_update);
+    display.setRotation(r);
+    for (uint16_t i = 1; i <= 10; i++)
+    {
+      display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+      display.setCursor(box_x, cursor_y);
+      display.print(value * i, 2);
+      display.updateWindow(box_x, box_y, box_w, box_h, true);
+      delay(2000);
+    }
+    delay(2000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
+  // should have checked this, too
+  box_x = GxEPD_HEIGHT - box_x - box_w - 1; // not valid for all corners
+  // should show on right side of long side
+  // reset the background
+  display.setRotation(0);
+  display.drawExamplePicture_3C(BitmapPicture_3C, sizeof(BitmapPicture_3C), GxEPD::bm_partial_update);
+  // show where the update box is
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    display.setRotation(r);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_BLACK);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+    delay(1000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
+  // show updates in the update box
+  for (uint16_t r = 0; r < 4; r++)
+  {
+    // reset the background
+    display.setRotation(0);
+    display.drawExamplePicture_3C(BitmapPicture_3C, sizeof(BitmapPicture_3C), GxEPD::bm_partial_update);
+    display.setRotation(r);
+    if (box_x >= display.width()) continue; // avoid delay
+    for (uint16_t i = 1; i <= 10; i++)
+    {
+      display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+      display.setCursor(box_x, cursor_y);
+      display.print(value * i, 2);
+      display.updateWindow(box_x, box_y, box_w, box_h, true);
+      delay(2000);
+    }
+    delay(2000);
+    display.fillRect(box_x, box_y, box_w, box_h, GxEPD_WHITE);
+    display.updateWindow(box_x, box_y, box_w, box_h, true);
+  }
+  display.setRotation(0);
+  display.powerDown();
+}
+
+#endif
+
+#if defined(__AVR) || defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
 
 // modified to avoid float; reduces program size ~2k (for GxGDEW042T2)
 
@@ -288,7 +385,7 @@ void showValueBoxCallback(const uint32_t v)
   display.print(v % 100);
 }
 
-void showPartialUpdate_AVR()
+void showPartialUpdatePaged()
 {
   uint16_t box_x = 10;
   uint16_t box_y = 15;
