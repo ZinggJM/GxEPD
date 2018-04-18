@@ -57,7 +57,7 @@
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
-//#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
+#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
 //#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
 //#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
