@@ -86,7 +86,7 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.9
+### Version 2.3.10
 - added GxGDEW0154Z17 for 1.54" 3-color 152x152 display
 - NOT tested on GDEW0154Z17, I don't have this display
 - tested on 2.9" 3-color display, same controller IL0373
