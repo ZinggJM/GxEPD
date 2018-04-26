@@ -36,7 +36,8 @@
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
-//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r
+//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r 200x200
+//#include <GxGDEW0154Z17/GxGDEW0154Z17.cpp>  // 1.54" b/w/r 152x152
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
@@ -208,6 +209,18 @@ void showBitmapExample()
 #endif
   display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
   delay(5000);
+}
+#endif
+
+#if defined(_GxGDEW0154Z17_H_)
+#define HAS_RED_COLOR
+void showBitmapExample()
+{
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  delay(5000);
+  display.drawExamplePicture(BitmapExample3, BitmapExample4, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  delay(5000);
+  //display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
 }
 #endif
 

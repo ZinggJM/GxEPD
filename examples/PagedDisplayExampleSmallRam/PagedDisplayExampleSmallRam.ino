@@ -33,7 +33,8 @@
 #include <GxEPD.h>
 
 //#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
-//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r
+//#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r 200x200
+//#include <GxGDEW0154Z17/GxGDEW0154Z17.cpp>  // 1.54" b/w/r 152x152
 //#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
