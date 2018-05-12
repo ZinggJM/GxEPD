@@ -46,6 +46,7 @@
 //#include <GxGDEW027W3/GxGDEW027W3.cpp>      // 2.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.cpp>    // 4.2" b/w/r
+//#include <GxGDEW0583T7/GxGDEW0583T7.cpp>    // 5.83" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
 //#include <GxGDEW075Z09/GxGDEW075Z09.cpp>    // 7.5" b/w/r
 
@@ -379,6 +380,21 @@ void showBitmapExample()
   delay(5000);
   display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+#endif
+}
+#endif
+
+#if defined(_GxGDEW0583T7_H_)
+void showBitmapExample()
+{
+#if defined(__AVR)
+  //display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+#else
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.fillScreen(GxEPD_WHITE);
   display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
 #endif

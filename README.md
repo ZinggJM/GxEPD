@@ -86,7 +86,11 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.11
+### Version 2.3.12
+- added GxGDEW0583T7 for 5.83" b/w 600x448 display
+- my GDEW0583T7 panel has a refresh time of ~15 seconds
+- please report if you got this display with faster refresh time, or got faster driver or demo
+#### Version 2.3.11
 - fix GxGDEW042T2 to avoid double full refresh after reset (deep sleep wakeup)
 #### Version 2.3.10
 - added GxGDEW0154Z17 for 1.54" 3-color 152x152 display
