@@ -86,7 +86,10 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.12
+### Version 2.3.13
+- added "no BUSY" support to GxGDEP015OC1 for Heltec E-Paper 1.54" b/w without BUSY
+- set BUSY parameter to -1 for Heltec E-Paper 1.54" b/w without BUSY
+#### Version 2.3.12
 - added GxGDEW0583T7 for 5.83" b/w 600x448 display
 - my GDEW0583T7 panel has a refresh time of ~15 seconds
 - please report if you got this display with faster refresh time, or got faster driver or demo

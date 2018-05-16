@@ -72,6 +72,8 @@
 
 GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
 GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), D2(=4)
+// Heltec E-Paper 1.54" b/w without BUSY
+//GxEPD_Class display(io, /*RST=D4*/ 2, /*BUSY=D2*/ -1); // default selection of D4(=2), no BUSY
 
 #elif defined(ESP32)
 

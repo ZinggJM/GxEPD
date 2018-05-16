@@ -85,7 +85,7 @@ class GxGDEP015OC1 : public GxEPD
     void _SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1);
     void _PowerOn(void);
     void _PowerOff(void);
-    void _waitWhileBusy(const char* comment = 0);
+    void _waitWhileBusy(const char* comment, uint16_t busy_time);
     void _setRamDataEntryMode(uint8_t em);
     void _InitDisplay(uint8_t em);
     void _Init_Full(uint8_t em);
@@ -113,6 +113,10 @@ class GxGDEP015OC1 : public GxEPD
     static const uint8_t VCOMVol[];
     static const uint8_t DummyLine[];
     static const uint8_t Gatetime[];
+    static const uint16_t power_on_time = 80; // ms, e.g. 73508us
+    static const uint16_t power_off_time = 80; // ms, e.g. 68982us
+    static const uint16_t full_refresh_time = 1200; // ms, e.g. 1113273us
+    static const uint16_t partial_refresh_time = 300; // ms, e.g. 290867us
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes

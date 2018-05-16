@@ -45,7 +45,7 @@ const uint8_t GxGDEP015OC1::DummyLine[] = {0x3a, 0x1a}; // 4 dummy line per gate
 const uint8_t GxGDEP015OC1::Gatetime[] = {0x3b, 0x08}; // 2us per line
 
 GxGDEP015OC1::GxGDEP015OC1(GxIO& io, int8_t rst, int8_t busy) :
-  GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT), IO(io), 
+  GxEPD(GxGDEP015OC1_WIDTH, GxGDEP015OC1_HEIGHT), IO(io),
   _current_page(-1), _using_partial_mode(false), _diag_enabled(false),
   _rst(rst), _busy(busy)
 {
@@ -103,7 +103,7 @@ void GxGDEP015OC1::init(uint32_t serial_diag_bitrate)
     digitalWrite(_rst, HIGH);
     pinMode(_rst, OUTPUT);
   }
-  pinMode(_busy, INPUT);
+  if (_busy >= 0) pinMode(_busy, INPUT);
   fillScreen(GxEPD_WHITE);
   _current_page = -1;
   _using_partial_mode = false;
@@ -266,7 +266,7 @@ void GxGDEP015OC1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
   _Init_Part(0x03);
   _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
   _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
-  _waitWhileBusy();
+  _waitWhileBusy(0, 100); // needed ?
   _writeCommand(0x24);
   for (int16_t y1 = y; y1 <= ye; y1++)
   {
@@ -282,7 +282,7 @@ void GxGDEP015OC1::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
   // update erase buffer
   _SetRamArea(xs_d8, xe_d8, y % 256, y / 256, ye % 256, ye / 256); // X-source area,Y-gate area
   _SetRamPointer(xs_d8, y % 256, y / 256); // set ram
-  _waitWhileBusy();
+  _waitWhileBusy(0, 100); // needed ?
   _writeCommand(0x24);
   for (int16_t y1 = y; y1 <= ye; y1++)
   {
@@ -316,7 +316,7 @@ void GxGDEP015OC1::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_
   uint16_t yse = ys + h - 1;
   _SetRamArea(xds_d8, xde_d8, yd % 256, yd / 256, yde % 256, yde / 256); // X-source area,Y-gate area
   _SetRamPointer(xds_d8, yd % 256, yd / 256); // set ram
-  _waitWhileBusy();
+  _waitWhileBusy(0, 100); // needed ?
   _writeCommand(0x24);
   for (int16_t y1 = ys; y1 <= yse; y1++)
   {
@@ -374,10 +374,10 @@ void GxGDEP015OC1::powerDown()
 
 void GxGDEP015OC1::_writeCommand(uint8_t command)
 {
-  if (digitalRead(_busy))
+  if ((_busy >= 0) && digitalRead(_busy))
   {
     String str = String("command 0x") + String(command, HEX);
-    _waitWhileBusy(str.c_str());
+    _waitWhileBusy(str.c_str(), 100); // needed?
   }
   IO.writeCommandTransaction(command);
 }
@@ -389,10 +389,10 @@ void GxGDEP015OC1::_writeData(uint8_t data)
 
 void GxGDEP015OC1::_writeCommandData(const uint8_t* pCommandData, uint8_t datalen)
 {
-  if (digitalRead(_busy))
+  if ((_busy >= 0) && digitalRead(_busy))
   {
     String str = String("command 0x") + String(pCommandData[0], HEX);
-    _waitWhileBusy(str.c_str());
+    _waitWhileBusy(str.c_str(), 100); // needed?
   }
   IO.startTransaction();
   IO.writeCommand(*pCommandData++);
@@ -404,32 +404,36 @@ void GxGDEP015OC1::_writeCommandData(const uint8_t* pCommandData, uint8_t datale
 
 }
 
-void GxGDEP015OC1::_waitWhileBusy(const char* comment)
+void GxGDEP015OC1::_waitWhileBusy(const char* comment, uint16_t busy_time)
 {
-  unsigned long start = micros();
-  while (1)
+  if (_busy >= 0)
   {
-    if (!digitalRead(_busy)) break;
-    delay(1);
-    if (micros() - start > 10000000)
+    unsigned long start = micros();
+    while (1)
     {
-      if (_diag_enabled) Serial.println("Busy Timeout!");
-      break;
+      if (!digitalRead(_busy)) break;
+      delay(1);
+      if (micros() - start > 10000000)
+      {
+        if (_diag_enabled) Serial.println("Busy Timeout!");
+        break;
+      }
     }
-  }
-  if (comment)
-  {
+    if (comment)
+    {
 #if !defined(DISABLE_DIAGNOSTIC_OUTPUT)
-    if (_diag_enabled)
-    {
-      unsigned long elapsed = micros() - start;
-      Serial.print(comment);
-      Serial.print(" : ");
-      Serial.println(elapsed);
-    }
+      if (_diag_enabled)
+      {
+        unsigned long elapsed = micros() - start;
+        Serial.print(comment);
+        Serial.print(" : ");
+        Serial.println(elapsed);
+      }
 #endif
+    }
+    (void) start;
   }
-  (void) start;
+  else delay(busy_time);
 }
 
 void GxGDEP015OC1::_setRamDataEntryMode(uint8_t em)
@@ -486,7 +490,7 @@ void GxGDEP015OC1::_PowerOn(void)
   _writeCommand(0x22);
   _writeData(0xc0);
   _writeCommand(0x20);
-  _waitWhileBusy("_PowerOn");
+  _waitWhileBusy("_PowerOn", power_on_time);
 }
 
 void GxGDEP015OC1::_PowerOff(void)
@@ -494,7 +498,7 @@ void GxGDEP015OC1::_PowerOff(void)
   _writeCommand(0x22);
   _writeData(0xc3);
   _writeCommand(0x20);
-  _waitWhileBusy("_PowerOff");
+  _waitWhileBusy("_PowerOff", power_off_time);
 }
 
 void GxGDEP015OC1::_InitDisplay(uint8_t em)
@@ -526,7 +530,7 @@ void GxGDEP015OC1::_Update_Full(void)
   _writeCommand(0x22);
   _writeData(0xc4);
   _writeCommand(0x20);
-  _waitWhileBusy("_Update_Full");
+  _waitWhileBusy("_Update_Full", full_refresh_time);
   _writeCommand(0xff);
 }
 
@@ -535,7 +539,7 @@ void GxGDEP015OC1::_Update_Part(void)
   _writeCommand(0x22);
   _writeData(0x04);
   _writeCommand(0x20);
-  _waitWhileBusy("_Update_Part");
+  _waitWhileBusy("_Update_Part", partial_refresh_time);
   _writeCommand(0xff);
 }
 
