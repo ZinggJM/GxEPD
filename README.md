@@ -86,6 +86,8 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
+### Version 2.3.14
+- added GxEPD_SD_BitmapExample
 ### Version 2.3.13
 - added "no BUSY" support to GxGDEP015OC1 for Heltec E-Paper 1.54" b/w without BUSY
 - set BUSY parameter to -1 for Heltec E-Paper 1.54" b/w without BUSY

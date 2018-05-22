@@ -3,8 +3,6 @@
 // Created by Jean-Marc Zingg based on demo code from Good Display,
 // available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
 //
-// and of spitftbitmap.ino from Adafruit, part of Adafruit_ST7735_Library. See copyright notice at the end.
-//
 // The e-paper displays are available from:
 //
 // https://www.aliexpress.com/store/product/Wholesale-1-54inch-E-Ink-display-module-with-embedded-controller-200x200-Communicate-via-SPI-interface-Supports/216233_32824535312.html
@@ -176,11 +174,9 @@ void setup(void)
   }
   Serial.println("SD OK!");
 
-  // change the name here!
   drawBitmapFromSD("parrot.bmp", 0, 0);
   delay(5000);
   drawBitmapFromSD("betty_1.bmp", 0, 0);
-  // wait 5 seconds
   delay(5000);
 }
 
@@ -197,201 +193,148 @@ struct Parameters
   uint8_t y;
 };
 
-void drawBitmapFromSD_Callback(const void* params)
+void drawBitmap_SD_Callback(const void* params)
 {
   const Parameters* p = reinterpret_cast<const Parameters*>(params);
-  bmpDraw(p->filename, p->x, p->y);
+  drawBitmap_SD(p->filename, p->x, p->y);
 }
 
-void drawBitmapFromSD(char *filename, uint8_t x, uint8_t y)
+void drawBitmapFromSD(const char *filename, uint8_t x, uint8_t y)
 {
   Parameters params{filename, x, y};
-  display.drawPaged(drawBitmapFromSD_Callback, &params);
+  display.drawPaged(drawBitmap_SD_Callback, &params);
 }
 
 #else
 
-void drawBitmapFromSD(char *filename, uint8_t x, uint8_t y)
+void drawBitmapFromSD(const char *filename, uint8_t x, uint8_t y)
 {
-  bmpDraw(filename, x, y);
+  drawBitmap_SD(filename, x, y);
   display.update();
 }
 
 #endif
 
-#define BUFFPIXEL 20
+#define SD_BUFFER_PIXELS 20
 
-void bmpDraw(char *filename, uint8_t x, uint8_t y)
+void drawBitmap_SD(const char *filename, uint8_t x, uint8_t y)
 {
-  File     bmpFile;
-  int      bmpWidth, bmpHeight;   // W+H in pixels
-  uint8_t  bmpDepth;              // Bit depth (currently must be 24)
-  uint32_t bmpImageoffset;        // Start of image data in file
-  uint32_t rowSize;               // Not always = bmpWidth; may have padding
-  uint8_t  sdbuffer[3 * BUFFPIXEL]; // pixel buffer (R+G+B per pixel)
-  uint8_t  buffidx = sizeof(sdbuffer); // Current position in sdbuffer
-  boolean  goodBmp = false;       // Set to true on valid header parse
-  boolean  flip    = true;        // BMP is stored bottom-to-top
-  int      w, h, row, col;
-  uint16_t r, g, b;               // uint16_t for calculations
-  uint32_t pos = 0, startTime = millis();
-
+  File file;
+  uint8_t buffer[3 * SD_BUFFER_PIXELS]; // pixel buffer, size for r,g,b
+  bool valid = false; // valid format to be handled
+  bool flip = true; // bitmap is stored bottom-to-top
+  uint32_t pos = 0;
+  uint32_t startTime = millis();
   if ((x >= display.width()) || (y >= display.height())) return;
-
   Serial.println();
   Serial.print("Loading image '");
   Serial.print(filename);
   Serial.println('\'');
-
-  // Open requested file on SD card
-  if ((bmpFile = SD.open(filename)) == NULL)
+  file = SD.open(filename);
+  if (!file)
   {
     Serial.print("File not found");
     return;
   }
-
   // Parse BMP header
-  if (read16(bmpFile) == 0x4D42) // BMP signature
+  if (read16(file) == 0x4D42) // BMP signature
   {
-    Serial.print("File size: "); Serial.println(read32(bmpFile));
-    (void)read32(bmpFile); // Read & ignore creator bytes
-    bmpImageoffset = read32(bmpFile); // Start of image data
-    Serial.print("Image Offset: "); Serial.println(bmpImageoffset, DEC);
-    // Read DIB header
-    Serial.print("Header size: "); Serial.println(read32(bmpFile));
-    bmpWidth  = read32(bmpFile);
-    bmpHeight = read32(bmpFile);
-    if (read16(bmpFile) == 1) // # planes -- must be '1'
+    uint32_t fileSize = read32(file);
+    uint32_t creatorBytes = read32(file);
+    uint32_t imageOffset = read32(file); // Start of image data
+    uint32_t headerSize = read32(file);
+    uint32_t width  = read32(file);
+    uint32_t height = read32(file);
+    uint16_t planes = read16(file);
+    uint16_t depth = read16(file); // bits per pixel
+    uint32_t format = read32(file);
+    if ((planes == 1) && (format == 0)) // uncompressed is handled
     {
-      bmpDepth = read16(bmpFile); // bits per pixel
-      Serial.print("Bit Depth: "); Serial.println(bmpDepth);
+      Serial.print("File size: "); Serial.println(fileSize);
+      Serial.print("Image Offset: "); Serial.println(imageOffset);
+      Serial.print("Header size: "); Serial.println(headerSize);
+      Serial.print("Bit Depth: "); Serial.println(depth);
       Serial.print("Image size: ");
-      Serial.print(bmpWidth);
+      Serial.print(width);
       Serial.print('x');
-      Serial.println(bmpHeight);
-      if (read32(bmpFile) == 0) // 0 = uncompressed
+      Serial.println(height);
+      // BMP rows are padded (if needed) to 4-byte boundary
+      uint32_t rowSize = (width * depth / 8 + 3) & ~3;
+      if (height < 0)
       {
-        switch (bmpDepth)
-        {
-          case 1: // one bit per pixel b/w format
-            {
-              goodBmp = true; // Supported BMP format -- proceed!
-              // BMP rows are padded (if needed) to 4-byte boundary
-              //rowSize = (((bmpWidth + 7) / 8) + 3) & ~3;
-              rowSize = (bmpWidth * bmpDepth / 8 + 3) & ~3;
-              // If bmpHeight is negative, image is in top-down order.
-              // This is not canon but has been observed in the wild.
-              if (bmpHeight < 0)
-              {
-                bmpHeight = -bmpHeight;
-                flip      = false;
-              }
-              // Crop area to be loaded
-              w = bmpWidth;
-              h = bmpHeight;
-              if ((x + w - 1) >= display.width())  w = display.width()  - x;
-              if ((y + h - 1) >= display.height()) h = display.height() - y;
-              for (row = 0; row < h; row++) // For each scanline...
-              {
-                if (flip) // Bitmap is stored bottom-to-top order (normal BMP)
-                  pos = bmpImageoffset + (bmpHeight - 1 - row) * rowSize;
-                else     // Bitmap is stored top-to-bottom
-                  pos = bmpImageoffset + row * rowSize;
-                if (bmpFile.position() != pos)
-                { // Need seek?
-                  bmpFile.seek(pos);
-                  buffidx = sizeof(sdbuffer); // Force buffer reload
-                }
-                uint8_t bits;
-                for (col = 0; col < w; col++) // For each pixel...
-                {
-                  // Time to read more pixel data?
-                  if (buffidx >= sizeof(sdbuffer))
-                  {
-                    // Indeed
-                    bmpFile.read(sdbuffer, sizeof(sdbuffer));
-                    buffidx = 0; // Set index to beginning
-                  }
-                  if (0 == col % 8)
-                  {
-                    bits = sdbuffer[buffidx++];
-                  }
-                  uint16_t bw_color = bits & 0x80 ? GxEPD_WHITE : GxEPD_BLACK;
-                  display.drawPixel(col, row, bw_color);
-                  bits <<= 1;
-                } // end pixel
-              } // end scanline
-              Serial.print("Loaded in ");
-              Serial.print(millis() - startTime);
-              Serial.println(" ms");
-            } // end goodBmp
-            break;
-          case 24: // standard BMP format
-            {
-              goodBmp = true; // Supported BMP format -- proceed!
-              // BMP rows are padded (if needed) to 4-byte boundary
-              //rowSize = (bmpWidth * 3 + 3) & ~3;
-              rowSize = (bmpWidth * bmpDepth / 8 + 3) & ~3;
-              // If bmpHeight is negative, image is in top-down order.
-              // This is not canon but has been observed in the wild.
-              if (bmpHeight < 0)
-              {
-                bmpHeight = -bmpHeight;
-                flip      = false;
-              }
-              // Crop area to be loaded
-              w = bmpWidth;
-              h = bmpHeight;
-              if ((x + w - 1) >= display.width())  w = display.width()  - x;
-              if ((y + h - 1) >= display.height()) h = display.height() - y;
-              for (row = 0; row < h; row++) // For each scanline...
-              {
-                if (flip) // Bitmap is stored bottom-to-top order (normal BMP)
-                  pos = bmpImageoffset + (bmpHeight - 1 - row) * rowSize;
-                else     // Bitmap is stored top-to-bottom
-                  pos = bmpImageoffset + row * rowSize;
-                if (bmpFile.position() != pos)
-                { // Need seek?
-                  bmpFile.seek(pos);
-                  buffidx = sizeof(sdbuffer); // Force buffer reload
-                }
-                for (col = 0; col < w; col++) // For each pixel...
-                {
-                  // Time to read more pixel data?
-                  if (buffidx >= sizeof(sdbuffer))
-                  {
-                    // Indeed
-                    bmpFile.read(sdbuffer, sizeof(sdbuffer));
-                    buffidx = 0; // Set index to beginning
-                  }
-                  // Convert pixel from BMP to TFT format, push to display
-                  b = sdbuffer[buffidx++];
-                  g = sdbuffer[buffidx++];
-                  r = sdbuffer[buffidx++];
-                  uint16_t bw_color = ((r + g + b) / 3 > 0xFF  / 2) ? GxEPD_WHITE : GxEPD_BLACK;
-                  display.drawPixel(col, row, bw_color);
-                } // end pixel
-              } // end scanline
-              Serial.print("Loaded in ");
-              Serial.print(millis() - startTime);
-              Serial.println(" ms");
-            } // end goodBmp
-            break;
-        }
+        height = -height;
+        flip = false;
       }
+      uint16_t w = width;
+      uint16_t h = height;
+      if ((x + w - 1) >= display.width())  w = display.width()  - x;
+      if ((y + h - 1) >= display.height()) h = display.height() - y;
+      size_t buffidx = sizeof(buffer); // force buffer load
+      for (uint16_t row = 0; row < h; row++) // for each line
+      {
+        if (flip) // Bitmap is stored bottom-to-top order (normal BMP)
+          pos = imageOffset + (height - 1 - row) * rowSize;
+        else     // Bitmap is stored top-to-bottom
+          pos = imageOffset + row * rowSize;
+        if (file.position() != pos)
+        { // Need seek?
+          file.seek(pos);
+          buffidx = sizeof(buffer); // force buffer reload
+        }
+        uint8_t bits;
+        for (uint16_t col = 0; col < w; col++) // for each pixel
+        {
+          // Time to read more pixel data?
+          if (buffidx >= sizeof(buffer))
+          {
+            file.read(buffer, sizeof(buffer));
+            buffidx = 0; // Set index to beginning
+          }
+          switch (depth)
+          {
+            case 1: // one bit per pixel b/w format
+              {
+                valid = true;
+                if (0 == col % 8)
+                {
+                  bits = buffer[buffidx++];
+                }
+                uint16_t bw_color = bits & 0x80 ? GxEPD_WHITE : GxEPD_BLACK;
+                display.drawPixel(col, row, bw_color);
+                bits <<= 1;
+              }
+              break;
+            case 24: // standard BMP format
+              {
+                valid = true;
+                uint16_t b = buffer[buffidx++];
+                uint16_t g = buffer[buffidx++];
+                uint16_t r = buffer[buffidx++];
+                uint16_t bw_color = ((r + g + b) / 3 > 0xFF  / 2) ? GxEPD_WHITE : GxEPD_BLACK;
+                display.drawPixel(col, row, bw_color);
+              }
+              break;
+          }
+        } // end pixel
+      } // end line
     }
   }
-
-  bmpFile.close();
-  if (!goodBmp) Serial.println("BMP format not recognized.");
+  file.close();
+  if (valid)
+  {
+    Serial.println("bitmap format not handled.");
+  }
+  else
+  {
+    Serial.print("loaded in ");
+    Serial.print(millis() - startTime);
+    Serial.println(" ms");
+  }
 }
-
-// These read 16- and 32-bit types from the SD card file.
-// BMP data is stored little-endian, Arduino is little-endian too.
-// May need to reverse subscript order if porting elsewhere.
 
 uint16_t read16(File f)
 {
+  // BMP data is stored little-endian, same as Arduino.
   uint16_t result;
   ((uint8_t *)&result)[0] = f.read(); // LSB
   ((uint8_t *)&result)[1] = f.read(); // MSB
@@ -400,6 +343,7 @@ uint16_t read16(File f)
 
 uint32_t read32(File f)
 {
+  // BMP data is stored little-endian, same as Arduino.
   uint32_t result;
   ((uint8_t *)&result)[0] = f.read(); // LSB
   ((uint8_t *)&result)[1] = f.read();
@@ -407,27 +351,4 @@ uint32_t read32(File f)
   ((uint8_t *)&result)[3] = f.read(); // MSB
   return result;
 }
-
-/***************************************************
-  This is a library for the Adafruit 1.8" SPI display.
-
-  This library works with the Adafruit 1.8" TFT Breakout w/SD card
-  ----> http://www.adafruit.com/products/358
-  The 1.8" TFT shield
-  ----> https://www.adafruit.com/product/802
-  The 1.44" TFT breakout
-  ----> https://www.adafruit.com/product/2088
-  as well as Adafruit raw 1.8" TFT display
-  ----> http://www.adafruit.com/products/618
-
-  Check out the links above for our tutorials and wiring diagrams
-  These displays use SPI to communicate, 4 or 5 pins are required to
-  interface (RST is optional)
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  MIT license, all text above must be included in any redistribution
- ****************************************************/
 
