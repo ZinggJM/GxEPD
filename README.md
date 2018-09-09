@@ -86,7 +86,11 @@ Added GxGDEW042Z15 display class for 4.2inch 400 x 300 black / white / red e-Pap
 
 Added GxGDEW027W3 display class for 2.7inch 264 x 176 black / white e-Paper
 
-### Version 2.3.15
+### Version 2.3.16
+- added GxGDEW0213I5F for 2.13" b/w 104x212 flexible display
+- NOT tested on GxGDEW0213I5F, I don't have this display
+- tested on 2.9" 3-color display, has same controller IL0373
+#### Version 2.3.15
 - added GxEPD_SD_Example and GxEPD_WiFi_Example
 - GxEPD_SD_Example replaces GxEPD_SD_BitmapExample with more BMP depths
 - GxEPD_SD_Example does not work on small RAM AVR
