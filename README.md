@@ -27,7 +27,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
 - Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
 
-### Supported SPI e-paper panels from Good display:
+### Supported SPI e-paper panels from Good Display:
 - GDEP015OC1      1.54" b/w
 - GDEW0154Z04   1.54" b/w/r 200x200
 - GDEW0154Z17   1.54" b/w/r 152x152
