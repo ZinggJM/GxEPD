@@ -1,14 +1,15 @@
-/************************************************************************************
-   GxEPD_SPI_MultiExample : test example for e-Paper displays from Dalian Good Display Co., Ltd.: www.good-display.com
-
-   based on Demo Example from Good Display, now available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
-
-   Author : J-M Zingg
-
-   Version : see library.properties
-
-   Support: limited, provided as example, no claim to be fit for serious use
-*/
+// GxEPD_MultiDisplayExample : test example for e-Paper displays from Waveshare and from Dalian Good Display Inc.
+//
+// Created by Jean-Marc Zingg based on demo code from Good Display,
+// available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+//
+// The e-paper displays are available from:
+//
+// https://www.aliexpress.com/store/product/Wholesale-1-54inch-E-Ink-display-module-with-embedded-controller-200x200-Communicate-via-SPI-interface-Supports/216233_32824535312.html
+//
+// http://www.buy-lcd.com/index.php?route=product/product&path=2897_8363&product_id=35120
+// or https://www.aliexpress.com/store/product/E001-1-54-inch-partial-refresh-Small-size-dot-matrix-e-paper-display/600281_32815089163.html
+//
 
 // Supporting Arduino Forum Topics:
 // Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
@@ -28,16 +29,20 @@
 #include <GxEPD.h>
 
 // select the display classes to use
-#include <GxGDEP015OC1/GxGDEP015OC1.cpp>    // 1.54" b/w
-#include <GxGDEW0154Z04/GxGDEW0154Z04.cpp>  // 1.54" b/w/r
-#include <GxGDE0213B1/GxGDE0213B1.cpp>      // 2.13" b/w
-#include <GxGDEW0213Z16/GxGDEW0213Z16.cpp>  // 2.13" b/w/r
-#include <GxGDEH029A1/GxGDEH029A1.cpp>      // 2.9" b/w
-#include <GxGDEW029Z10/GxGDEW029Z10.cpp>    // 2.9" b/w/r
-#include <GxGDEW027C44/GxGDEW027C44.cpp>    // 2.7" b/w/r
-#include <GxGDEW042T2/GxGDEW042T2.cpp>      // 4.2" b/w
-#include <GxGDEW042T2_FPU/GxGDEW042T2_FPU.cpp>      // 4.2" b/w
-#include <GxGDEW075T8/GxGDEW075T8.cpp>      // 7.5" b/w
+#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
+#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
+#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
+#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
+#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
+#include <GxGDEW029Z10/GxGDEW029Z10.h>    // 2.9" b/w/r
+#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r
+#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
+#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
+#include <GxGDEW042Z15/GxGDEW042Z15.h>    // 4.2" b/w/r
+#include <GxGDEW0583T7/GxGDEW0583T7.h>    // 5.83" b/w
+#include <GxGDEW075T8/GxGDEW075T8.h>      // 7.5" b/w
+#include <GxGDEW075Z09/GxGDEW075Z09.h>    // 7.5" b/w/r
 
 // FreeFonts from Adafruit_GFX
 #include <Fonts/FreeMonoBold9pt7b.h>
@@ -45,8 +50,8 @@
 #include <Fonts/FreeMonoBold18pt7b.h>
 #include <Fonts/FreeMonoBold24pt7b.h>
 
-#include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
-#include <GxIO/GxIO.cpp>
+#include <GxIO/GxIO_SPI/GxIO_SPI.h>
+#include <GxIO/GxIO.h>
 
 #if defined(ESP8266)
 
@@ -90,7 +95,6 @@ GxGDE0213B1 display3(io3, -1, 4); // BUSY = 4, or-ed
 //GxGDEW027C44 display4(io4, -1, 15); // BUSY = 15, active LOW
 //GxGDEW029Z10 display4(io4, -1, 15); // BUSY = 15, or-ed
 GxGDEW042T2 display4(io4, -1, 15); // BUSY = 15, or-ed
-//GxGDEW042T2_FPU display4(io4, -1, 15); // BUSY = 15, or-ed
 //GxGDEW075T8 display4(io4, -1, 15); // BUSY = 15, or-ed
 //GxGDEW0154Z04 display4(io4, -1, 15); // BUSY = 15, or-ed
 //GxGDEW0213Z16 display4(io4, -1, 15); // BUSY = 15, or-ed

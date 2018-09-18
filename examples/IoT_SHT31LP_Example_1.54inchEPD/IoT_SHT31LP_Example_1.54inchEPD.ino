@@ -43,9 +43,9 @@
 // include library, include base class, make path known
 #include <GxEPD.h>
 // select the display class to use
-#include <GxGDEP015OC1/GxGDEP015OC1.cpp>
-#include <GxIO/GxIO_SPI/GxIO_SPI.cpp>
-#include <GxIO/GxIO.cpp>
+#include <GxGDEP015OC1/GxGDEP015OC1.h>
+#include <GxIO/GxIO_SPI/GxIO_SPI.h>
+#include <GxIO/GxIO.h>
 
 GxIO_Class io(SPI, SS, D3, D4);
 // D2 reserved for SDA, use D6 (MISO) instead
