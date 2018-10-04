@@ -51,7 +51,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### for pin mapping suggestions see ConnectingHardware.md
 
 
-### Version 3.0.0
+### Version 3.0.1
+- update comments in GxFont_GFX_Example for UTF-8 use, e.g. Umlauts ÄÖÜäéöü
+- NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
+#### Version 3.0.0
 - new src directory structure avoids the need for .cpp includes
 - only header files includes are needed
 - Arduino IDE 1.8.x automatically includes needed code from .cpp files

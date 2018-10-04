@@ -22,8 +22,12 @@
 
 #include "GxFont_GFX.h"
 
+//#define DIAG_UTF8(x) x
 //#define DIAG(x) x
 
+#ifndef DIAG_UTF8
+#define DIAG_UTF8(x)
+#endif
 #ifndef DIAG
 #define DIAG(x)
 #endif
@@ -148,6 +152,7 @@ void GxFont_GFX::setCursor(int16_t x, int16_t y)
 size_t GxFont_GFX::write(uint8_t v)
 {
   DIAG (Serial.write(v); Serial.println();)
+  DIAG_UTF8(if (v > 127) Serial.println(v, HEX);)
   switch (_font_gfx)
   {
     case Adafruit_GFX_font_gfx:

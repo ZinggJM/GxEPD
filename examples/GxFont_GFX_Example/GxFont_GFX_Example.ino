@@ -7,6 +7,9 @@
 // License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
 //
 // Library: https://github.com/ZinggJM/GxEPD
+//
+// NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
+//       e.g. for Umlauts
 
 // for use of additional fonts you need to enable these in file GxFont_GFX.h
 // and install the library
@@ -51,8 +54,12 @@
 // include library, include base class, make path known
 #include <GxEPD.h>
 
+//
+// NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
+//       e.g. for Umlauts
+
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
