@@ -35,9 +35,10 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
+//#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
@@ -221,14 +222,14 @@ void showBitmapExample()
 #if defined(_GxGDEW0213I5F_H_)
 void showBitmapExample()
 {
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
-  delay(2000);
+  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_invert);
+  delay(5000);
   display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
   delay(5000);
 #if !defined(__AVR)
   display.drawBitmap(BitmapExample3, sizeof(BitmapExample3));
   delay(5000);
-  display.drawBitmap(BitmapWaveshare, sizeof(BitmapWaveshare), GxEPD::bm_invert);
+  display.drawBitmap(BitmapExample4, sizeof(BitmapExample4));
   delay(5000);
 #endif
   display.fillScreen(GxEPD_WHITE);
@@ -523,5 +524,3 @@ void showBoat()
   delay(1000);
 }
 #endif
-
-

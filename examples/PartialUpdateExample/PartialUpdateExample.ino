@@ -31,7 +31,8 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
@@ -131,7 +132,7 @@ void setup(void)
 
 void loop()
 {
-#if defined(__AVR)
+#if defined(__AVR) || false
   showPartialUpdatePaged();
 #elif defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
   showPartialUpdatePaged();
@@ -328,7 +329,7 @@ void showPartialUpdate_75Z09()
 
 #endif
 
-#if defined(__AVR) || defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
+#if defined(__AVR) || defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1)) || false
 
 // modified to avoid float; reduces program size ~2k (for GxGDEW042T2)
 
@@ -372,7 +373,7 @@ void showPartialUpdatePaged()
 
   // partial update to full screen to preset for partial update of box window
   // (this avoids strange background effects)
-  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_flip_x | GxEPD::bm_partial_update);
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
   delay(1000);
 
   // show where the update box is
@@ -380,13 +381,15 @@ void showPartialUpdatePaged()
   {
     display.setRotation(r);
     display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_BLACK);
-    //display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_BLACK);
     delay(1000);
     display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_WHITE);
   }
+
   // show updates in the update box
   for (uint16_t r = 0; r < 4; r++)
   {
+    // reset the background
+    display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
     display.setRotation(r);
     for (uint16_t i = 1; i <= 10; i++)
     {
@@ -397,9 +400,10 @@ void showPartialUpdatePaged()
     delay(1000);
     display.drawPagedToWindow(showBlackBoxCallback, box_x, box_y, box_w, box_h, GxEPD_WHITE);
   }
+  // reset the background
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1), GxEPD::bm_default | GxEPD::bm_partial_update);
   display.setRotation(0);
   display.powerDown();
 }
 
 #endif
-

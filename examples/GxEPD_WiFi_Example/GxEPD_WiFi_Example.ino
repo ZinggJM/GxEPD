@@ -39,9 +39,10 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
-#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
+//#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
@@ -79,7 +80,9 @@ GxEPD_Class display(io, /*RST=*/ 16, /*BUSY=*/ 4); // arbitrary selection of (16
 
 #if defined (ESP8266)
 #include <ESP8266WiFi.h>
+#define USE_BearSSL true
 #endif
+
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 
@@ -89,7 +92,11 @@ const int httpPort  = 80;
 const int httpsPort = 443;
 const char* fp_api_github_com = "35 85 74 EF 67 35 A7 CE 40 69 50 F3 C0 F6 80 CF 80 3B 2E 19";
 const char* fp_github_com     = "ca 06 f5 6b 25 8b 7a 0d 4f 2b 05 47 09 39 47 86 51 15 19 84";
+#if USE_BearSSL
+const char fp_rawcontent[20]  = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+#else
 const char* fp_rawcontent     = "cc aa 48 48 66 46 0e 91 53 2c 9c 7c 23 2a b1 74 4d 29 9d 33";
+#endif
 const char* host_rawcontent   = "raw.githubusercontent.com";
 const char* path_rawcontent   = "/ZinggJM/GxEPD2/master/extras/bitmaps/";
 const char* path_prenticedavid   = "/prenticedavid/MCUFRIEND_kbv/master/extras/bitmaps/";
@@ -351,17 +358,11 @@ void drawBitmapFrom_HTTP_ToBuffer(const char* host, const char* path, const char
           if (in_idx >= in_bytes) // ok, exact match for 24bit also (size IS multiple of 3)
           {
             uint32_t get = in_remain > sizeof(input_buffer) ? sizeof(input_buffer) : in_remain;
-            //if (get > client.available()) delay(200); // does improve? yes, if >= 200
-            // there seems an issue with long downloads on ESP8266
-            tryToWaitForAvailable(client, get);
-            uint32_t got = client.read(input_buffer, get);
+            uint32_t got = read(client, input_buffer, get);
             while ((got < get) && connection_ok)
             {
               //Serial.print("got "); Serial.print(got); Serial.print(" < "); Serial.print(get); Serial.print(" @ "); Serial.println(bytes_read);
-              //if ((get - got) > client.available()) delay(200); // does improve? yes, if >= 200
-              // there seems an issue with long downloads on ESP8266
-              tryToWaitForAvailable(client, get - got);
-              uint32_t gotmore = client.read(input_buffer + got, get - got);
+              uint32_t gotmore = read(client, input_buffer + got, get - got);
               got += gotmore;
               connection_ok = gotmore > 0;
             }
@@ -456,7 +457,11 @@ void showBitmapFrom_HTTP(const char* host, const char* path, const char* filenam
 void drawBitmapFrom_HTTPS_ToBuffer(const char* host, const char* path, const char* filename, const char* fingerprint, int16_t x, int16_t y, bool with_color)
 {
   // Use WiFiClientSecure class to create TLS connection
+#if USE_BearSSL
+  BearSSL::WiFiClientSecure client;
+#else
   WiFiClientSecure client;
+#endif
   bool connection_ok = false;
   bool valid = false; // valid format to be handled
   bool flip = true; // bitmap is stored bottom-to-top
@@ -464,12 +469,15 @@ void drawBitmapFrom_HTTPS_ToBuffer(const char* host, const char* path, const cha
   if ((x >= display.width()) || (y >= display.height())) return;
   display.fillScreen(GxEPD_WHITE);
   Serial.print("connecting to "); Serial.println(host);
+#if USE_BearSSL
+  if (fingerprint) client.setFingerprint((uint8_t*)fingerprint);
+#endif
   if (!client.connect(host, httpsPort))
   {
     Serial.println("connection failed");
     return;
   }
-#if defined (ESP8266)
+#if defined (ESP8266) && !USE_BearSSL
   if (fingerprint)
   {
     if (client.verify(fingerprint, host))
@@ -592,17 +600,11 @@ void drawBitmapFrom_HTTPS_ToBuffer(const char* host, const char* path, const cha
           if (in_idx >= in_bytes) // ok, exact match for 24bit also (size IS multiple of 3)
           {
             uint32_t get = in_remain > sizeof(input_buffer) ? sizeof(input_buffer) : in_remain;
-            //if (get > client.available()) delay(200); // does improve? yes, if >= 200
-            // there seems an issue with long downloads on ESP8266
-            tryToWaitForAvailable(client, get);
-            uint32_t got = client.read(input_buffer, get);
+            uint32_t got = read(client, input_buffer, get);
             while ((got < get) && connection_ok)
             {
               //Serial.print("got "); Serial.print(got); Serial.print(" < "); Serial.print(get); Serial.print(" @ "); Serial.println(bytes_read);
-              //if ((get - got) > client.available()) delay(200); // does improve? yes, if >= 200
-              // there seems an issue with long downloads on ESP8266
-              tryToWaitForAvailable(client, get - got);
-              uint32_t gotmore = client.read(input_buffer + got, get - got);
+              uint32_t gotmore = read(client, input_buffer + got, get - got);
               got += gotmore;
               connection_ok = gotmore > 0;
             }
@@ -685,6 +687,7 @@ void drawBitmapFrom_HTTPS_ToBuffer(const char* host, const char* path, const cha
   {
     Serial.println("bitmap format not handled.");
   }
+  client.stop();
 }
 
 void showBitmapFrom_HTTPS(const char* host, const char* path, const char* filename, const char* fingerprint, int16_t x, int16_t y, bool with_color)
@@ -714,51 +717,76 @@ uint32_t read32(WiFiClient& client)
   return result;
 }
 
+#if USE_BearSSL
+
+uint32_t skip(BearSSL::WiFiClientSecure& client, int32_t bytes)
+{
+  int32_t remain = bytes;
+  uint32_t start = millis();
+  while (client.connected() && (remain > 0))
+  {
+    if (client.available())
+    {
+      int16_t v = client.read();
+      remain--;
+    }
+    else delay(1);
+    if (millis() - start > 2000) break; // don't hang forever
+  }
+  return bytes - remain;
+}
+
+uint32_t read(BearSSL::WiFiClientSecure& client, uint8_t* buffer, int32_t bytes)
+{
+  int32_t remain = bytes;
+  uint32_t start = millis();
+  while (client.connected() && (remain > 0))
+  {
+    if (client.available())
+    {
+      int16_t v = client.read();
+      *buffer++ = uint8_t(v);
+      remain--;
+    }
+    else delay(1);
+    if (millis() - start > 2000) break; // don't hang forever
+  }
+  return bytes - remain;
+}
+
+#endif
+
 uint32_t skip(WiFiClient& client, int32_t bytes)
 {
   int32_t remain = bytes;
-  int16_t retries = 3;
-  uint32_t chunk = 1024;
-  if (chunk > sizeof(input_buffer)) chunk = sizeof(input_buffer);
-  while (client.connected() && (remain > chunk))
+  uint32_t start = millis();
+  while (client.connected() && (remain > 0))
   {
-    // there seems an issue with long downloads on ESP8266
-    tryToWaitForAvailable(client, chunk);
-    uint32_t got = client.read(input_buffer, chunk);
-    //Serial.print("skipped "); Serial.println(got);
-    remain -= got;
-    if ((0 == got) && (0 == --retries))
+    if (client.available())
     {
-      Serial.print("Error on skip, got 0, skipped "); Serial.print(bytes - remain); Serial.print(" of "); Serial.println(bytes);
-      break; // don't hang forever (retries don't help)
+      int16_t v = client.read();
+      remain--;
     }
+    else delay(1);
+    if (millis() - start > 2000) break; // don't hang forever
   }
-  if (client.connected() && (remain > 0) && (remain <= chunk))
-  {
-    remain -= client.read(input_buffer, remain);
-  }
-  return bytes - remain; // bytes read and skipped
+  return bytes - remain;
 }
 
-void tryToWaitForAvailable(WiFiClient& client, int32_t amount)
+uint32_t read(WiFiClient& client, uint8_t* buffer, int32_t bytes)
 {
-  // this doesn't work as expected, but it helps for long downloads
-  int32_t start = millis();
-  for (int16_t t = 0, dly = 50; t < 20; t++, dly += 50)
+  int32_t remain = bytes;
+  uint32_t start = millis();
+  while (client.connected() && (remain > 0))
   {
-    if (client.available()) break; // read would not recover after having returned 0
-    delay(dly);
+    if (client.available())
+    {
+      int16_t v = client.read();
+      *buffer++ = uint8_t(v);
+      remain--;
+    }
+    else delay(1);
+    if (millis() - start > 2000) break; // don't hang forever
   }
-  for (int16_t t = 0, dly = 50; t < 3; t++, dly += 25)
-  {
-    if (amount <= client.available()) break;
-    delay(dly);
-    //Serial.print("available "); Serial.println(client.available()); // stays constant
-  }
-  int32_t elapsed = millis() - start;
-  if (elapsed > 250)
-  {
-    Serial.print("waited for available "); Serial.print(millis() - start); Serial.println(" ms"); // usually 0 or 225ms
-  }
+  return bytes - remain;
 }
-

@@ -51,7 +51,11 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### for pin mapping suggestions see ConnectingHardware.md
 
 
-### Version 3.0.1
+### Version 3.0.2
+- added GxGDEW0213I5F for 2.13" b/w 104x212 flexible display, initial tests successful
+- updated GxIO_SPI to use SPI transactions, for SPI speed with multiple devices, NUCLEO-64
+- updated GxEPD_WiFi_Example to use BearSSL on ESP8266, for large bitmap downloads
+#### Version 3.0.1
 - update comments in GxFont_GFX_Example for UTF-8 use, e.g. Umlauts ÄÖÜäéöü
 - NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
 #### Version 3.0.0
@@ -62,7 +66,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - src directory structure makes GxEPD a more usual Arduino Library
 #### Version 2.3.17
 - removed GxGDEW0213I5F for 2.13" b/w 104x212 flexible display
-- did not work, different unknown controller
+- did not work, as started from 3-c source, controller is IL0373
 #### Version 2.3.16
 - added GxGDEW0213I5F for 2.13" b/w 104x212 flexible display
 - NOT tested on GxGDEW0213I5F, I don't have this display
@@ -75,7 +79,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - ESP8266 does not work reliable with big BMP download (known ESP8266 package issue)
 #### Version 2.3.14
 - added GxEPD_SD_BitmapExample
-### Version 2.3.13
+#### Version 2.3.13
 - added "no BUSY" support to GxGDEP015OC1 for Heltec E-Paper 1.54" b/w without BUSY
 - set BUSY parameter to -1 for Heltec E-Paper 1.54" b/w without BUSY
 #### Version 2.3.12
