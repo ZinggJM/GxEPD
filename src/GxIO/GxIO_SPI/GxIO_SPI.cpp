@@ -96,17 +96,13 @@ uint16_t GxIO_SPI::readData16Transaction()
 
 uint8_t GxIO_SPI::readData()
 {
-  _spi.beginTransaction(_spi_settings);
   uint8_t rv = _spi.transfer(0xFF);
-  _spi.endTransaction();
   return rv;
 }
 
 uint16_t GxIO_SPI::readData16()
 {
-  _spi.beginTransaction(_spi_settings);
   uint16_t rv = _spi.transfer16(0xFFFF);
-  _spi.endTransaction();
   return rv;
 }
 
@@ -141,23 +137,18 @@ void GxIO_SPI::writeData16Transaction(uint16_t d, uint32_t num)
 
 void GxIO_SPI::writeCommand(uint8_t c)
 {
-  _spi.beginTransaction(_spi_settings);
   if (_dc >= 0) digitalWrite(_dc, LOW);
   _spi.transfer(c);
   if (_dc >= 0) digitalWrite(_dc, HIGH);
-  _spi.endTransaction();
 }
 
 void GxIO_SPI::writeData(uint8_t d)
 {
-  _spi.beginTransaction(_spi_settings);
   _spi.transfer(d);
-  _spi.endTransaction();
 }
 
 void GxIO_SPI::writeData(uint8_t* d, uint32_t num)
 {
-  _spi.beginTransaction(_spi_settings);
 #if defined(ESP8266) || defined(ESP32)
   _spi.writeBytes(d, num);
 #else
@@ -168,12 +159,10 @@ void GxIO_SPI::writeData(uint8_t* d, uint32_t num)
     num--;
   }
 #endif
-  _spi.endTransaction();
 }
 
 void GxIO_SPI::writeData16(uint16_t d, uint32_t num)
 {
-  _spi.beginTransaction(_spi_settings);
 #if defined(ESP8266) || defined(ESP32)
   uint8_t b[2] = {uint8_t(d >> 8), uint8_t(d)};
   _spi.writePattern(b, 2, num);
@@ -184,15 +173,12 @@ void GxIO_SPI::writeData16(uint16_t d, uint32_t num)
     num--;
   }
 #endif
-  _spi.endTransaction();
 }
 
 void GxIO_SPI::writeAddrMSBfirst(uint16_t d)
 {
-  _spi.beginTransaction(_spi_settings);
   _spi.transfer(d >> 8);
   _spi.transfer(d & 0xFF);
-  _spi.endTransaction();
 }
 
 void GxIO_SPI::startTransaction()

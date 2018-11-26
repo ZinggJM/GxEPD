@@ -51,7 +51,9 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### for pin mapping suggestions see ConnectingHardware.md
 
 
-### Version 3.0.2
+### Version 3.0.3
+- fix GxIO_SPI: avoid nesting SPI transactions causing deadlock
+#### Version 3.0.2
 - added GxGDEW0213I5F for 2.13" b/w 104x212 flexible display, initial tests successful
 - updated GxIO_SPI to use SPI transactions, for SPI speed with multiple devices, NUCLEO-64
 - updated GxEPD_WiFi_Example to use BearSSL on ESP8266, for large bitmap downloads
