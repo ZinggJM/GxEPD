@@ -6,7 +6,8 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### important note :
 ### - these displays are for 3.3V supply and 3.3V data lines
-### - never connect data lines directly to 5V Arduino data pins, you may use e.g. 4k7 series resistor
+### - never connect data lines directly to 5V Arduino data pins, use e.g. 4k7/10k resistor divider
+- series resistor only is not enough for reliable operation (back-feed effect through protection diodes)
 ### - do not forget to connect GND
 
 ### Paged Drawing, Picture Loop for AVR
@@ -51,7 +52,12 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### for pin mapping suggestions see ConnectingHardware.md
 
 
-### Version 3.0.3
+### Version 3.0.4
+- GxGDEW027W3 with fast partial update support, based on new demo code wavetable
+- mapping suggestion added for Arduino MEGA
+- NOTE: use voltage divider resistors for 5V Arduinos, series resistor is not reliable enough
+- ConnectingHardware.md updated
+#### Version 3.0.3
 - fix GxIO_SPI: avoid nesting SPI transactions causing deadlock
 #### Version 3.0.2
 - added GxGDEW0213I5F for 2.13" b/w 104x212 flexible display, initial tests successful

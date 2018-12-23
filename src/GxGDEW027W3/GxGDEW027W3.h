@@ -1,7 +1,7 @@
-// class GxGDEW027W3 : Display class for GDEW027W3 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW027W3 : Display class for GDEW027W3 e-Paper from Dalian Good Display Co., Ltd.: www.e-paper-display.com
 //
-// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
-// Controller: IL91874 : http://www.good-display.com/download_detail/downloadsId=539.html
+// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=515.html
+// Controller: IL91874 : http://www.e-paper-display.com/download_detail/downloadsId=539.html
 //
 // Author : J-M Zingg
 //
@@ -31,8 +31,6 @@ class GxGDEW027W3 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW027W3(GxIO& io, int8_t rst = D4, int8_t busy = D2);
-    // use pin numbers, other ESP8266 than Wemos may not use Dx names
     GxGDEW027W3(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
     GxGDEW027W3(GxIO& io, int8_t rst = 9, int8_t busy = 7);
@@ -72,7 +70,7 @@ class GxGDEW027W3 : public GxEPD
       a = b;
       b = t;
     }
-    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
+    void _writeToWindow(uint8_t command, uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
     void _setPartialRamArea(uint8_t command, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     void _refreshWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     void _writeData(uint8_t data);
@@ -80,6 +78,8 @@ class GxGDEW027W3 : public GxEPD
     void _writeLUT();
     void _wakeUp();
     void _sleep();
+    void _Init_FullUpdate();
+    void _Init_PartialUpdate();
     void _waitWhileBusy(const char* comment = 0);
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
@@ -90,7 +90,7 @@ class GxGDEW027W3 : public GxEPD
 #endif
     GxIO& IO;
     int16_t _current_page;
-    bool _using_partial_mode;
+    bool _initial, _using_partial_mode;
     bool _diag_enabled;
     int8_t _rst;
     int8_t _busy;
@@ -99,6 +99,11 @@ class GxGDEW027W3 : public GxEPD
     static const uint8_t lut_22_bw[];
     static const uint8_t lut_23_wb[];
     static const uint8_t lut_24_bb[];
+    static const uint8_t lut_20_vcomDC_partial[];
+    static const uint8_t lut_21_ww_partial[];
+    static const uint8_t lut_22_bw_partial[];
+    static const uint8_t lut_23_wb_partial[];
+    static const uint8_t lut_24_bb_partial[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -118,4 +123,3 @@ class GxGDEW027W3 : public GxEPD
 #endif
 
 #endif
-

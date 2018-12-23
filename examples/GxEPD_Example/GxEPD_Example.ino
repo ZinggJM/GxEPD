@@ -1,7 +1,7 @@
 // GxEPD_Example : test example for e-Paper displays from Waveshare and from Dalian Good Display Inc.
 //
 // Created by Jean-Marc Zingg based on demo code from Good Display,
-// available on http://www.good-display.com/download_list/downloadcategoryid=34&isMode=false.html
+// available on http://www.e-paper-display.com/download_list/downloadcategoryid=34&isMode=false.html
 //
 // The e-paper displays are available from:
 //
@@ -30,6 +30,9 @@
 
 // mapping suggestion for AVR, UNO, NANO etc.
 // BUSY -> 7, RST -> 9, DC -> 8, CS-> 10, CLK -> 13, DIN -> 11
+
+// mapping suggestion for Arduino MEGA
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 53, CLK -> 52, DIN -> 51
 
 // include library, include base class, make path known
 #include <GxEPD.h>
@@ -69,7 +72,7 @@
 // C:\Users\xxx\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.4.2\variants\generic\common.h
 
 GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
-GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), D2(=4)
+GxEPD_Class display(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4); // default selection of D4(=2), D2(=4)
 // Heltec E-Paper 1.54" b/w without RST, BUSY
 //GxEPD_Class display(io, /*RST=D4*/ -1, /*BUSY=D2*/ -1); // no RST, no BUSY
 
@@ -116,13 +119,24 @@ GxEPD_Class display(io, /*RST=*/ 2, /*BUSY=*/ 1);
 GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ PE15, /*RST=*/ PE14); // DC, RST as wired by DESPI-M01
 GxEPD_Class display(io, /*RST=*/ PE14, /*BUSY=*/ PE13); // RST, BUSY as wired by DESPI-M01
 
+#elif defined(ARDUINO_AVR_MEGA2560)
+
+// for SPI pin definitions see e.g.:
+// C:\Users\xxx\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.6.21\variants\mega\pins_arduino.h
+
+// select one, depending on your CS connection
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+//GxIO_Class io(SPI, /*CS=*/ 10, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9, CS on 10 (for CS same as on UNO, for SPI on ICSP use)
+
+GxEPD_Class display(io, /*RST=*/ 9, /*BUSY=*/ 7); // default selection of (9), 7
+
 #else
 
 // for SPI pin definitions see e.g.:
 // C:\Users\xxx\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.6.21\variants\standard\pins_arduino.h
 
 GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
-GxEPD_Class display(io /*RST=9*/ /*BUSY=7*/); // default selection of (9), 7
+GxEPD_Class display(io, /*RST=*/ 9, /*BUSY=*/ 7); // default selection of (9), 7
 
 #endif
 
@@ -328,8 +342,14 @@ void showBitmapExample()
   delay(2000);
 #if !defined(__AVR)
   display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
-#endif
   delay(2000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample4, sizeof(BitmapExample4));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample5, sizeof(BitmapExample5));
+  delay(2000);
+#endif
   display.drawExampleBitmap(BitmapWaveshare, sizeof(BitmapWaveshare));
   delay(5000);
   display.fillScreen(GxEPD_WHITE);
