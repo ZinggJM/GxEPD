@@ -5,10 +5,11 @@ A simple E-Paper display library with common base class and separate IO class fo
 ## and SPI e-paper boards from Waveshare
 
 ### important note :
-### - these displays are for 3.3V supply and 3.3V data lines
-### - never connect data lines directly to 5V Arduino data pins, use e.g. 4k7/10k resistor divider
+- these displays are for 3.3V supply and 3.3V data lines
+- never connect data lines directly to 5V Arduino data pins, use e.g. 4k7/10k resistor divider
 - series resistor only is not enough for reliable operation (back-feed effect through protection diodes)
-### - do not forget to connect GND
+- 4k7/10k resistor divider may not work with flat cable extensions or Waveshare 4.2 board, use level converter then
+- do not forget to connect GND
 
 ### Paged Drawing, Picture Loop for AVR
 - This library uses paged drawing to cope with RAM restriction and missing single pixel update support
@@ -33,8 +34,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 - GDEW0154Z04   1.54" b/w/r 200x200
 - GDEW0154Z17   1.54" b/w/r 152x152
 - GDE0213B1         2.13" b/w
+- GDEW0213I5F    2.13" b/w flexible
 - GDEW0213Z16   2.13" b/w/r
 - GDEH029A1        2.9" b/w
+- GDEW029T5       2.9" b/w
 - GDEW029Z10     2.9" b/w/r
 - GDEW027C44     2.7" b/w/r
 - GDEW027W3      2.7" b/w
@@ -52,7 +55,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 ### for pin mapping suggestions see ConnectingHardware.md
 
 
-### Version 3.0.4
+### Version 3.0.5
+- added support for GDEW029T5
+- fixed wavetable for GDEW0213I5F
+#### Version 3.0.4
 - GxGDEW027W3 with fast partial update support, based on new demo code wavetable
 - mapping suggestion added for Arduino MEGA
 - NOTE: use voltage divider resistors for 5V Arduinos, series resistor is not reliable enough

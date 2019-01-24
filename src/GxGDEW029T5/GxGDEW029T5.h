@@ -1,4 +1,4 @@
-// class GxGDEW0213I5F : Display class for GDEW0213I5F e-Paper from Dalian Good Display Co., Ltd.: http://www.e-paper-display.com/products_detail/productId=397.html
+// class GxGDEW029T5 : Display class for GDEW029T5 e-Paper from Dalian Good Display Co., Ltd.: http://www.e-paper-display.com/products_detail/productId=397.html
 //
 // based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=597.html
 // Controller: IL0373 : http://www.e-paper-display.com/download_detail/downloadsId=535.html
@@ -11,31 +11,31 @@
 //
 // Library: https://github.com/ZinggJM/GxEPD
 
-#ifndef _GxGDEW0213I5F_H_
-#define _GxGDEW0213I5F_H_
+#ifndef _GxGDEW029T5_H_
+#define _GxGDEW029T5_H_
 
 #include "../GxEPD.h"
 
-#define GxGDEW0213I5F_WIDTH 104
-#define GxGDEW0213I5F_HEIGHT 212
+#define GxGDEW029T5_WIDTH 128
+#define GxGDEW029T5_HEIGHT 296
 
-#define GxGDEW0213I5F_BUFFER_SIZE (uint32_t(GxGDEW0213I5F_WIDTH) * uint32_t(GxGDEW0213I5F_HEIGHT) / 8)
+#define GxGDEW029T5_BUFFER_SIZE (uint32_t(GxGDEW029T5_WIDTH) * uint32_t(GxGDEW029T5_HEIGHT) / 8)
 
-// divisor for AVR, should be factor of GxGDEW0213I5F_HEIGHT
-#define GxGDEW0213I5F_PAGES 4
+// divisor for AVR, should be factor of GxGDEW029T5_HEIGHT
+#define GxGDEW029T5_PAGES 8
 
-#define GxGDEW0213I5F_PAGE_HEIGHT (GxGDEW0213I5F_HEIGHT / GxGDEW0213I5F_PAGES)
-#define GxGDEW0213I5F_PAGE_SIZE (GxGDEW0213I5F_BUFFER_SIZE / GxGDEW0213I5F_PAGES)
+#define GxGDEW029T5_PAGE_HEIGHT (GxGDEW029T5_HEIGHT / GxGDEW029T5_PAGES)
+#define GxGDEW029T5_PAGE_SIZE (GxGDEW029T5_BUFFER_SIZE / GxGDEW029T5_PAGES)
 
-class GxGDEW0213I5F : public GxEPD
+class GxGDEW029T5 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW0213I5F(GxIO& io, int8_t rst = D4, int8_t busy = D2);
+    //GxGDEW029T5(GxIO& io, int8_t rst = D4, int8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW0213I5F(GxIO& io, int8_t rst = 2, int8_t busy = 4);
+    GxGDEW029T5(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEW0213I5F(GxIO& io, int8_t rst = 9, int8_t busy = 7);
+    GxGDEW029T5(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
@@ -52,7 +52,7 @@ class GxGDEW0213I5F : public GxEPD
     void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
     // terminate cleanly updateWindow or updateToWindow before removing power or long delays
     void powerDown();
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEW0213I5F_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW029T5_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
@@ -83,9 +83,9 @@ class GxGDEW0213I5F : public GxEPD
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
 #if defined(__AVR)
-    uint8_t _buffer[GxGDEW0213I5F_PAGE_SIZE];
+    uint8_t _buffer[GxGDEW029T5_PAGE_SIZE];
 #else
-    uint8_t _buffer[GxGDEW0213I5F_BUFFER_SIZE];
+    uint8_t _buffer[GxGDEW029T5_BUFFER_SIZE];
 #endif
     GxIO& IO;
     int16_t _current_page;
@@ -114,11 +114,11 @@ class GxGDEW0213I5F : public GxEPD
 };
 
 #ifndef GxEPD_Class
-#define GxEPD_Class GxGDEW0213I5F
-#define GxEPD_WIDTH GxGDEW0213I5F_WIDTH
-#define GxEPD_HEIGHT GxGDEW0213I5F_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEW0213I5F/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEW0213I5F/BitmapExamples.h"
+#define GxEPD_Class GxGDEW029T5
+#define GxEPD_WIDTH GxGDEW029T5_WIDTH
+#define GxEPD_HEIGHT GxGDEW029T5_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEW029T5/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEW029T5/BitmapExamples.h"
 #endif
 
 #endif

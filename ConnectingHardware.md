@@ -1,14 +1,17 @@
 # GxEPD
 A simple E-Paper display library with common base class and separate IO class for Arduino.
 
-## For SPI e-paper displays from Dalian Good Display 
-## and SPI e-paper boards from Waveshare
+- With full Graphics and Text support using Adafruit_GFX
+
+- For SPI e-paper displays from Dalian Good Display 
+- and SPI e-paper boards from Waveshare
 
 ### important note :
-### - these displays are for 3.3V supply and 3.3V data lines
-### - never connect data lines directly to 5V Arduino data pins, use e.g. 4k7/10k resistor divider
+- these displays are for 3.3V supply and 3.3V data lines
+- never connect data lines directly to 5V Arduino data pins, use e.g. 4k7/10k resistor divider
 - series resistor only is not enough for reliable operation (back-feed effect through protection diodes)
-### - do not forget to connect GND
+- 4k7/10k resistor divider may not work with flat cable extensions or Waveshare 4.2 board, use level converter then
+- do not forget to connect GND
 
 ## mapping suggestions
 
@@ -36,6 +39,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 #### mapping suggestion for Arduino MEGA
 - BUSY -> 7, RST -> 9, DC -> 8, CS-> 53, CLK -> 52, DIN -> 51
+
+#### mapping suggestion for Arduino DUE
+- BUSY -> 7, RST -> 9, DC -> 8, CS-> 77, CLK -> 76, DIN -> 75
+- SPI pins are on 6 pin 2x3 SPI header
 
 ## connection scheme for (discontinued) DESTM32-S2 connection board for e-paper panels:
 

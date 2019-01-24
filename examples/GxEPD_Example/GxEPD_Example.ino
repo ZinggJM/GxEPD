@@ -34,6 +34,10 @@
 // mapping suggestion for Arduino MEGA
 // BUSY -> 7, RST -> 9, DC -> 8, CS-> 53, CLK -> 52, DIN -> 51
 
+// mapping suggestion for Arduino DUE
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 77, CLK -> 76, DIN -> 75
+// SPI pins are also on 6 pin 2x3 SPI header
+
 // include library, include base class, make path known
 #include <GxEPD.h>
 
@@ -45,6 +49,7 @@
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
+//#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
 //#include <GxGDEW029Z10/GxGDEW029Z10.h>    // 2.9" b/w/r
 //#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
@@ -157,7 +162,7 @@ void loop()
   showBitmapExample();
   delay(2000);
 #if !defined(__AVR)
-  drawCornerTest();
+  //drawCornerTest();
   showFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
   showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
   //showFont("FreeMonoBold18pt7b", &FreeMonoBold18pt7b);
@@ -289,6 +294,23 @@ void showBitmapExample()
   display.update();
   delay(5000);
   showBoat();
+}
+#endif
+
+#if defined(_GxGDEW029T5_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(5000);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+//  showBoat();
 }
 #endif
 

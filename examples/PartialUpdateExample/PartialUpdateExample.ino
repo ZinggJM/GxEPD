@@ -30,6 +30,10 @@
 // mapping suggestion for Arduino MEGA
 // BUSY -> 7, RST -> 9, DC -> 8, CS-> 53, CLK -> 52, DIN -> 51
 
+// mapping suggestion for Arduino DUE
+// BUSY -> 7, RST -> 9, DC -> 8, CS-> 77, CLK -> 76, DIN -> 75
+// SPI pins are also on 6 pin 2x3 SPI header
+
 // include library, include base class, make path known
 #include <GxEPD.h>
 
@@ -38,6 +42,7 @@
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
+//#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
 // these displays do not fully support partial update
