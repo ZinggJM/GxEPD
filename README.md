@@ -1,8 +1,10 @@
 # GxEPD
 A simple E-Paper display library with common base class and separate IO class for Arduino.
 
-## For SPI e-paper displays from Dalian Good Display 
-## and SPI e-paper boards from Waveshare
+- For SPI e-paper displays from Dalian Good Display 
+- and SPI e-paper boards from Waveshare
+
+- GxEPD2 is better suited for new users or new projects!
 
 ### important note :
 - these displays are for 3.3V supply and 3.3V data lines
@@ -10,6 +12,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - series resistor only is not enough for reliable operation (back-feed effect through protection diodes)
 - 4k7/10k resistor divider may not work with flat cable extensions or Waveshare 4.2 board, use level converter then
 - do not forget to connect GND
+- the actual Waveshare display boards now have level converters and series regulator, safe for 5V
 
 ### Paged Drawing, Picture Loop for AVR
 - This library uses paged drawing to cope with RAM restriction and missing single pixel update support
@@ -54,8 +57,9 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-
-### Version 3.0.5
+### Version 3.0.6
+- added GxGDEH0213B72, to support GDEH0213B72 2.13" b/w, replacement for GDE0213B1
+#### Version 3.0.5
 - added support for GDEW029T5
 - fixed wavetable for GDEW0213I5F
 #### Version 3.0.4

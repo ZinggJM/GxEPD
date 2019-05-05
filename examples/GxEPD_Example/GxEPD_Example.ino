@@ -47,6 +47,7 @@
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
+//#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
@@ -231,7 +232,34 @@ void showBitmapExample()
   delay(5000);
 #endif
   display.fillScreen(GxEPD_WHITE);
-  display.drawBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+  showBoat();
+}
+#endif
+
+#if defined(_GxGDEH0213B72_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+#if !defined(__AVR)
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(5000);
+  display.drawExampleBitmap(logo, sizeof(logo));
+  delay(5000);
+  display.drawExampleBitmap(first, sizeof(first));
+  delay(5000);
+  display.drawExampleBitmap(second, sizeof(second));
+  delay(5000);
+  display.drawExampleBitmap(third, sizeof(third));
+  delay(5000);
+#endif
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(5000);
   showBoat();
@@ -534,7 +562,7 @@ void drawCornerTest()
   display.setRotation(rotation); // restore
 }
 
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_)
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH029A1_H_)
 #include "IMG_0001.h"
 void showBoat()
 {
