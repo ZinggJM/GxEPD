@@ -70,6 +70,7 @@ class GxFont_GFX : public Adafruit_GFX
     int8_t getFontAscent(void);
     int8_t getFontDescent(void);
     int8_t getFontHeight(void);
+    int16_t getUTF8Width(const char *str);
     int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
     int16_t drawStr(int16_t x, int16_t y, const char *s);
     int16_t drawUTF8(int16_t x, int16_t y, const char *str);

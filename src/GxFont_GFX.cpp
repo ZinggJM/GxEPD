@@ -247,6 +247,11 @@ void GxFont_GFX::setBackgroundColor(uint16_t bg)
   _U8G2_FONTS_GFX.setBackgroundColor(bg);
 }
 
+int16_t GxFont_GFX::getUTF8Width(const char *str)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.getUTF8Width(str) : 0);
+}
+
 int8_t GxFont_GFX::getFontAscent(void)
 {
   return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.getFontAscent() : 0);
