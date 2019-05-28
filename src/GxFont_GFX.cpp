@@ -153,27 +153,27 @@ size_t GxFont_GFX::write(uint8_t v)
 {
   DIAG (Serial.write(v); Serial.println();)
   DIAG_UTF8(if (v > 127) Serial.println(v, HEX);)
-  switch (_font_gfx)
-  {
-    case Adafruit_GFX_font_gfx:
-      Adafruit_GFX::write(v);
-      break;
+    switch (_font_gfx)
+    {
+      case Adafruit_GFX_font_gfx:
+        Adafruit_GFX::write(v);
+        break;
 #if defined(U8g2_for_Adafruit_GFX_h)
-    case U8g2_for_Adafruit_GFX_font_gfx:
-      _U8G2_FONTS_GFX.write(v);
-      break;
+      case U8g2_for_Adafruit_GFX_font_gfx:
+        _U8G2_FONTS_GFX.write(v);
+        break;
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_)
-    case Adafruit_ftGFX_font_gfx:
-      _GxF_Adafruit_ftGFX.write(v);
-      break;
+      case Adafruit_ftGFX_font_gfx:
+        _GxF_Adafruit_ftGFX.write(v);
+        break;
 #endif
 #if defined(_GxFont_GFX_TFT_eSPI_H_)
-    case GxFont_GFX_TFT_eSPI_font_gfx:
-      _GxF_GxFont_GFX_TFT_eSPI.write(v);
-      break;
+      case GxFont_GFX_TFT_eSPI_font_gfx:
+        _GxF_GxFont_GFX_TFT_eSPI.write(v);
+        break;
 #endif
-  }
+    }
 }
 
 int16_t GxFont_GFX::getCursorX(void) const
@@ -275,6 +275,11 @@ int16_t GxFont_GFX::drawStr(int16_t x, int16_t y, const char *s)
 int16_t GxFont_GFX::drawUTF8(int16_t x, int16_t y, const char *str)
 {
   return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.drawUTF8(x, y, str) : 0);
+}
+
+int16_t GxFont_GFX::getUTF8Width(const char *str)
+{
+  return ((_font_gfx == U8g2_for_Adafruit_GFX_font_gfx) ? _U8G2_FONTS_GFX.getUTF8Width(str) : 0);
 }
 
 uint16_t GxFont_GFX::utf8_next(uint8_t b)
@@ -436,4 +441,3 @@ int16_t GxFont_GFX::fontHeight(int16_t font)
   return ((_font_gfx == GxFont_GFX_TFT_eSPI_font_gfx) ? _GxF_GxFont_GFX_TFT_eSPI.fontHeight(font) : 0);
 }
 #endif
-

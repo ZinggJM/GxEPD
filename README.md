@@ -58,7 +58,11 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-### Version 3.0.6
+### Version 3.0.7
+- fix for incomplete download in GxEPD_WiFi_Example
+- added missing powerDown() in base class GxEPD and class GxGDEW0154Z04
+- added missing getUTF8Width() for U8g2_for_Adafruit_GFX in GxFont_GFX
+#### Version 3.0.6
 - added GxGDEH0213B72, to support GDEH0213B72 2.13" b/w, replacement for GDE0213B1
 #### Version 3.0.5
 - added support for GDEW029T5

@@ -1,7 +1,7 @@
-// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.e-paper-display.com
 //
-// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
-// Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
+// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=515.html
+// Controller: IL0376F : http://www.e-paper-display.com/download_detail/downloadsId=541.html
 //
 // Author : J-M Zingg
 //
@@ -268,6 +268,11 @@ void GxGDEW0154Z04::eraseDisplay(bool using_partial_update)
   }
   _writeCommand(0x12);      //display refresh
   _waitWhileBusy("eraseDisplay");
+  _sleep();
+}
+
+void GxGDEW0154Z04::powerDown()
+{
   _sleep();
 }
 
@@ -664,4 +669,3 @@ void GxGDEW0154Z04::drawCornerTest(uint8_t em)
   _waitWhileBusy("drawCornerTest");
   _sleep();
 }
-

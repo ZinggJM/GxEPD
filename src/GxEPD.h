@@ -78,6 +78,10 @@ class GxEPD : public GxFont_GFX
     virtual void eraseDisplay(bool using_partial_update = false) {};
     // partial update of rectangle from buffer to screen, does not power off
     virtual void updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation = true) {};
+    // partial update of rectangle at (xs,ys) from buffer to screen at (xd,yd), does not power off
+    virtual void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true) {};
+    // terminate cleanly updateWindow or updateToWindow before removing power or long delays
+    virtual void powerDown() = 0;
   protected:
     void drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t m);
     static inline uint16_t gx_uint16_min(uint16_t a, uint16_t b) {return (a < b ? a : b);};
@@ -85,4 +89,3 @@ class GxEPD : public GxFont_GFX
 };
 
 #endif
-

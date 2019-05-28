@@ -73,6 +73,7 @@ class GxFont_GFX : public Adafruit_GFX
     int16_t drawGlyph(int16_t x, int16_t y, uint16_t e);
     int16_t drawStr(int16_t x, int16_t y, const char *s);
     int16_t drawUTF8(int16_t x, int16_t y, const char *str);
+    int16_t getUTF8Width(const char *str);
     uint16_t utf8_next(uint8_t b);
 #endif
 #if defined(_ADAFRUIT_TF_GFX_H_) || defined(_GxFont_GFX_TFT_eSPI_H_)

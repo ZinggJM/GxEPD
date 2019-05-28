@@ -1,7 +1,7 @@
-// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
+// class GxGDEW0154Z04 : Display class for GDEW0154Z04 e-Paper from Dalian Good Display Co., Ltd.: www.e-paper-display.com
 //
-// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
-// Controller: IL0376F : http://www.good-display.com/download_detail/downloadsId=541.html
+// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=515.html
+// Controller: IL0376F : http://www.e-paper-display.com/download_detail/downloadsId=541.html
 //
 // Author : J-M Zingg
 //
@@ -50,6 +50,7 @@ class GxGDEW0154Z04 : public GxEPD
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // only bm_normal, bm_invert mode implemented
     void eraseDisplay(bool using_partial_update = false); // parameter ignored
+    void powerDown();
     // paged drawing, for limited RAM, drawCallback() is called GxGDEW0154Z04_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
@@ -112,4 +113,3 @@ class GxGDEW0154Z04 : public GxEPD
 #endif
 
 #endif
-
