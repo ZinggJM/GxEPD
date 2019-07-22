@@ -48,17 +48,21 @@
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel
+//#include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w newer panel
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
 //#include <GxGDEW029Z10/GxGDEW029Z10.h>    // 2.9" b/w/r
+//#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
 //#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
+//#include <GxGDEW0371W7/GxGDEW0371W7.h>      // 3.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.h>    // 4.2" b/w/r
 //#include <GxGDEW0583T7/GxGDEW0583T7.h>    // 5.83" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.h>      // 7.5" b/w
 //#include <GxGDEW075Z09/GxGDEW075Z09.h>    // 7.5" b/w/r
+//#include <GxGDEW075Z08/GxGDEW075Z08.h>    // 7.5" b/w/r 800x480
 
 #include GxEPD_BitmapExamples
 
@@ -239,7 +243,7 @@ void showBitmapExample()
 }
 #endif
 
-#if defined(_GxGDEH0213B72_H_)
+#if defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_)
 void showBitmapExample()
 {
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
@@ -338,7 +342,7 @@ void showBitmapExample()
   display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
   delay(5000);
-//  showBoat();
+  //  showBoat();
 }
 #endif
 
@@ -364,6 +368,23 @@ void showBitmapExample()
   display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2), GxEPD::bm_invert);
   delay(2000);
 #endif
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+}
+#endif
+
+#if defined(_GxGDEW026T0_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+#if !defined(__AVR)
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(2000);
+#endif
+  display.fillScreen(GxEPD_WHITE);
   display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
   display.update();
 }
@@ -408,11 +429,28 @@ void showBitmapExample()
 }
 #endif
 
-#if defined(_GxGDEW042T2_H_) || defined(_GxGDEW042T2_FPU_H_)
+#if defined(_GxGDEW0371W7_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+#if !defined(__AVR)
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(2000);
+#endif
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+}
+#endif
+
+#if defined(_GxGDEW042T2_H_)
 void showBitmapExample()
 {
 #if defined(__AVR)
-  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  //display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
 #else
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
@@ -501,6 +539,38 @@ void showBitmapExample()
 }
 #endif
 
+#if defined(_GxGDEW075Z08_H_)
+#define HAS_RED_COLOR
+void showBitmapExample()
+{
+#if defined(__AVR) || defined(MCU_STM32F103C8)
+  // draw (part of) black bitmap, not enough space for red
+  display.drawPicture(BitmapExample1, 0, sizeof(BitmapExample1), 0);
+#else
+  // draw black and red bitmap
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  //delay(5000);
+  //display.drawPicture(BitmapExample1, 0, sizeof(BitmapExample1), 0);
+  //delay(5000);
+  //display.drawPicture(0, BitmapExample2, 0, sizeof(BitmapExample2));
+  //delay(5000);
+  //display.drawExamplePicture(BitmapExample1, 0, sizeof(BitmapExample1), 0);
+  //delay(5000);
+  //display.drawExamplePicture(0, BitmapExample2, 0, sizeof(BitmapExample2));
+  //delay(5000);
+  //display.fillScreen(GxEPD_WHITE);
+  //display.drawBitmap(0, 0, BitmapExample1, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.update();
+  //delay(5000);
+  //display.fillScreen(GxEPD_WHITE);
+  //display.drawBitmap(0, 0, BitmapExample2, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.update();
+  //display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  //display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, false);
+#endif
+}
+#endif
+
 void showFont(const char name[], const GFXfont* f)
 {
   display.fillScreen(GxEPD_WHITE);
@@ -562,7 +632,7 @@ void drawCornerTest()
   display.setRotation(rotation); // restore
 }
 
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH029A1_H_)
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_)|| defined(_GxGDEH029A1_H_)
 #include "IMG_0001.h"
 void showBoat()
 {

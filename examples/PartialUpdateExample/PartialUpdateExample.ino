@@ -42,9 +42,12 @@
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel
+//#include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w newer panel
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
+//#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
+//#include <GxGDEW0371W7/GxGDEW0371W7.h>      // 3.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
 // these displays do not fully support partial update
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
@@ -55,6 +58,7 @@
 //#include <GxGDEW0583T7/GxGDEW0583T7.h>    // 5.83" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.h>      // 7.5" b/w
 //#include <GxGDEW075Z09/GxGDEW075Z09.h>    // 7.5" b/w/r
+//#include <GxGDEW075Z08/GxGDEW075Z08.h>    // 7.5" b/w/r 800x480
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
@@ -154,7 +158,7 @@ void loop()
 {
 #if defined(__AVR) || false
   showPartialUpdatePaged();
-#elif defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
+#elif (defined(_GxGDEW075Z09_H_) || defined(_GxGDEW075Z08_H_)) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
   showPartialUpdatePaged();
 #elif defined(_GxGDEW075Z09_H_)
   showPartialUpdate_75Z09();
@@ -349,7 +353,7 @@ void showPartialUpdate_75Z09()
 
 #endif
 
-#if defined(__AVR) || defined(_GxGDEW075Z09_H_) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1)) || false
+#if defined(__AVR) || (defined(_GxGDEW075Z09_H_) || defined(_GxGDEW075Z08_H_)) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1)) || false
 
 // modified to avoid float; reduces program size ~2k (for GxGDEW042T2)
 

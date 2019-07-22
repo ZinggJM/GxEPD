@@ -951,8 +951,13 @@ const unsigned char GxGDEW042T2::lut_bb_full[] =
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-#define TP0A  2 // sustain phase for bb and ww, change phase for bw and wb
-#define TP0B 45 // change phase for bw and wb
+// original wavetable from GxEPD, optimized for the display I have (modified Ben Krasnow version)
+//#define TP0A  2 // sustain phase for bb and ww, change phase for bw and wb
+//#define TP0B 45 // change phase for bw and wb
+
+// same waveform as demo wavetable from Good Display:
+#define TP0A  0   // sustain phase for bb and ww, change phase for bw and wb
+#define TP0B 0x19 // change phase for bw and wb
 
 const unsigned char GxGDEW042T2::lut_vcom0_partial[] =
 {
@@ -1013,4 +1018,3 @@ const unsigned char GxGDEW042T2::lut_bb_partial[] =
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
-
