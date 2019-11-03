@@ -129,7 +129,7 @@ void GxGDEW042T2::update(void)
   }
 #else
   // avoid double full refresh after deep sleep wakeup
-  if (_initial) 
+  if (_initial)
   {
     _initial = false;
     // use full screen partial refresh to init second controller buffer
@@ -485,14 +485,33 @@ void GxGDEW042T2::_wakeUp(void)
     digitalWrite(_rst, 1);
     delay(10);
   }
-  IO.writeCommandTransaction(0x06); // boost
-  IO.writeDataTransaction(0x17);
-  IO.writeDataTransaction(0x17);
-  IO.writeDataTransaction(0x17);
+  IO.writeCommandTransaction(0x01); // POWER SETTING
+  IO.writeDataTransaction(0x03);   // VDS_EN, VDG_EN internal
+  IO.writeDataTransaction(0x00);   // VCOM_HV, VGHL_LV=16V
+  IO.writeDataTransaction(0x2b);   // VDH=11V
+  IO.writeDataTransaction(0x2b);   // VDL=11V
+  IO.writeCommandTransaction(0x06); // boost soft start
+  IO.writeDataTransaction(0x17);   // A
+  IO.writeDataTransaction(0x17);   // B
+  IO.writeDataTransaction(0x17);   // C
+  IO.writeCommandTransaction(0x00); // panel setting
+  IO.writeDataTransaction(0x3f);    // 300x400 B/W mode, LUT set by register
+  IO.writeCommandTransaction(0x30); // PLL setting
+  IO.writeDataTransaction(0x3a);   // 3a 100HZ   29 150Hz 39 200HZ 31 171HZ
+  IO.writeCommandTransaction(0x61); // resolution setting
+  IO.writeDataTransaction(WIDTH / 256);
+  IO.writeDataTransaction(WIDTH % 256);
+  IO.writeDataTransaction(HEIGHT / 256);
+  IO.writeDataTransaction(HEIGHT % 256);
+  IO.writeCommandTransaction(0x82); // vcom_DC setting
+  //IO.writeDataTransaction(0x08);   // -0.1 + 8 * -0.05 = -0.5V from demo
+  IO.writeDataTransaction(0x12);   // -0.1 + 18 * -0.05 = -1.0V from OTP, slightly better
+  //IO.writeDataTransaction(0x1c);   // -0.1 + 28 * -0.05 = -1.5V test, worse
+  IO.writeCommandTransaction(0x50); // VCOM AND DATA INTERVAL SETTING
+  //IO.writeDataTransaction(0x97);    // WBmode:VBDF 17|D7 VBDW 97 VBDB 57   WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
+  IO.writeDataTransaction(0xd7);    // border floating to avoid flashing
   IO.writeCommandTransaction(0x04);
   _waitWhileBusy("Power On");
-  //IO.writeCommandTransaction(0x00);
-  //IO.writeDataTransaction(0x1f); // LUT from OTP Pixel with B/W.
   _Init_FullUpdate();
 }
 
@@ -830,6 +849,20 @@ void GxGDEW042T2::drawCornerTest(uint8_t em)
   _waitWhileBusy("drawCornerTest");
   _sleep();
 }
+
+void GxGDEW042T2::_writeDataPGM(const uint8_t* data, uint16_t n, int16_t fill_with_zeroes)
+{
+  for (uint16_t i = 0; i < n; i++)
+  {
+    IO.writeDataTransaction(pgm_read_byte(&*data++));
+  }
+  while (fill_with_zeroes > 0)
+  {
+    IO.writeDataTransaction(0x00);
+    fill_with_zeroes--;
+  }
+}
+
 void GxGDEW042T2::_Init_FullUpdate()
 {
   //IO.writeCommandTransaction(0x00);
@@ -861,38 +894,6 @@ void GxGDEW042T2::_Init_FullUpdate()
   for (count = 0; count < 42; count++)
   {
     IO.writeDataTransaction(lut_bb_full[count]);
-  }
-}
-
-void GxGDEW042T2::_Init_PartialUpdate()
-{
-  IO.writeCommandTransaction(0x00);
-  IO.writeDataTransaction(0x3F); //300x400 B/W mode, LUT set by register
-  unsigned int count;
-  IO.writeCommandTransaction(0x20); //vcom
-  for (count = 0; count < 44; count++)
-  {
-    IO.writeDataTransaction(lut_vcom0_partial[count]);
-  }
-  IO.writeCommandTransaction(0x21); //ww --
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_ww_partial[count]);
-  }
-  IO.writeCommandTransaction(0x22); //bw r
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_bw_partial[count]);
-  }
-  IO.writeCommandTransaction(0x23); //wb w
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_wb_partial[count]);
-  }
-  IO.writeCommandTransaction(0x24); //bb b
-  for (count = 0; count < 42; count++)
-  {
-    IO.writeDataTransaction(lut_bb_partial[count]);
   }
 }
 
@@ -951,70 +952,72 @@ const unsigned char GxGDEW042T2::lut_bb_full[] =
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-// original wavetable from GxEPD, optimized for the display I have (modified Ben Krasnow version)
-//#define TP0A  2 // sustain phase for bb and ww, change phase for bw and wb
-//#define TP0B 45 // change phase for bw and wb
+// partial update waveform
 
-// same waveform as demo wavetable from Good Display:
-#define TP0A  0   // sustain phase for bb and ww, change phase for bw and wb
-#define TP0B 0x19 // change phase for bw and wb
+// same waveform as by demo code from Good Display
+//#define T1  0 // color change charge balance pre-phase
+//#define T2  0 // color change or sustain charge balance pre-phase
+//#define T3  0 // color change or sustain phase
+//#define T4 25 // color change phase
 
-const unsigned char GxGDEW042T2::lut_vcom0_partial[] =
+// new waveform created by Jean-Marc Zingg for the actual panel
+#define T1 25 // color change charge balance pre-phase
+#define T2  1 // color change or sustain charge balance pre-phase
+#define T3  2 // color change or sustain phase
+#define T4 25 // color change phase
+
+// for new waveform without sustain phase: uncomment next 2 lines, not good for fat fonts
+//#define T2  0 // color change or sustain charge balance pre-phase // 0 no sustain
+//#define T3  0 // color change or sustain phase // 0 no sustain
+
+// "balanced flash once" variant
+//#define T1  0 // color change charge balance pre-phase
+//#define T2 25 // color change or sustain charge balance pre-phase
+//#define T3 25 // color change or sustain phase
+//#define T4  0 // color change phase
+
+const unsigned char GxGDEW042T2::lut_20_vcom0_partial[] PROGMEM =
 {
-  0x00,
-  TP0A, TP0B, 0x01, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, T1, T2, T3, T4, 1, // 00 00 00 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
 };
 
-const unsigned char GxGDEW042T2::lut_ww_partial[] =
-{
-  0x80, // 10 00 00 00
-  TP0A, TP0B, 0x01, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW042T2::lut_21_ww_partial[] PROGMEM =
+{ // 10 w
+  0x18, T1, T2, T3, T4, 1, // 00 01 10 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
 };
 
-const unsigned char GxGDEW042T2::lut_bw_partial[] =
-{
-  0xA0, // 10 10 00 00
-  TP0A, TP0B, 0x01, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW042T2::lut_22_bw_partial[] PROGMEM =
+{ // 10 w
+  0x5A, T1, T2, T3, T4, 1, // 01 01 10 10
+  0x00,  1,  0,  0,  0, 1, // gnd phase
 };
 
-const unsigned char GxGDEW042T2::lut_wb_partial[] =
-{
-  0x50, // 01 01 00 00
-  TP0A, TP0B, 0x01, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW042T2::lut_23_wb_partial[] PROGMEM =
+{ // 01 b
+  0xA5, T1, T2, T3, T4, 1, // 10 10 01 01
+  0x00,  1,  0,  0,  0, 1, // gnd phase
 };
 
-const unsigned char GxGDEW042T2::lut_bb_partial[] =
-{
-  0x40, // 01 00 00 00
-  TP0A, TP0B, 0x01, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW042T2::lut_24_bb_partial[] PROGMEM =
+{ // 01 b
+  0x24, T1, T2, T3, T4, 1, // 00 10 01 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
 };
+
+void GxGDEW042T2::_Init_PartialUpdate()
+{
+  IO.writeCommandTransaction(0x00);
+  IO.writeDataTransaction(0x3F); //300x400 B/W mode, LUT set by register
+  IO.writeCommandTransaction(0x20);
+  _writeDataPGM(lut_20_vcom0_partial, sizeof(lut_20_vcom0_partial), 44 - sizeof(lut_20_vcom0_partial));
+  IO.writeCommandTransaction(0x21);
+  _writeDataPGM(lut_21_ww_partial, sizeof(lut_21_ww_partial), 42 - sizeof(lut_21_ww_partial));
+  IO.writeCommandTransaction(0x22);
+  _writeDataPGM(lut_22_bw_partial, sizeof(lut_22_bw_partial), 42 - sizeof(lut_22_bw_partial));
+  IO.writeCommandTransaction(0x23);
+  _writeDataPGM(lut_23_wb_partial, sizeof(lut_23_wb_partial), 42 - sizeof(lut_23_wb_partial));
+  IO.writeCommandTransaction(0x24);
+  _writeDataPGM(lut_24_bb_partial, sizeof(lut_24_bb_partial), 42 - sizeof(lut_24_bb_partial));
+}

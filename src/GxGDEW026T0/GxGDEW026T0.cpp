@@ -78,63 +78,55 @@ const unsigned char GxGDEW026T0::lut_24_bb[] =
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-//partial screen update LUT
-//#define Tx19 0x19 // original value is 25 (phase length)
-#define Tx19 0x30   // new value for test is 48 (phase length)
-const unsigned char GxGDEW026T0::lut_20_vcomDC_partial[] =
+// partial update waveform
+
+// same waveform as by demo code from Good Display
+//#define T1  0 // color change charge balance pre-phase
+//#define T2  0 // color change or sustain charge balance pre-phase
+//#define T3 25 // color change or sustain phase
+//#define T4  0 // color change phase
+
+// new waveform created by Jean-Marc Zingg for actual panel
+#define T1 60 // color change charge balance pre-phase
+#define T2  2 // color change or sustain charge balance pre-phase
+#define T3  6 // color change or sustain phase
+#define T4 60 // color change phase
+
+// for new waveform without sustain phase: uncomment next 4 lines, good enough for fat fonts
+#undef T2
+#undef T3
+#define T2  0 // color change or sustain charge balance pre-phase
+#define T3  0 // color change or sustain phase
+
+// "balanced flash once" variant
+//#define T1  0 // color change charge balance pre-phase
+//#define T2 60 // color change or sustain charge balance pre-phase
+//#define T3 60 // color change or sustain phase
+//#define T4  0 // color change phase
+
+const unsigned char GxGDEW026T0::lut_20_vcomDC_partial[] PROGMEM =
 {
-  0x00, Tx19, 0x01, 0x00, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00,
+  0x00, T1, T2, T3, T4, 1, // 00 00 00 00
 };
 
-const unsigned char GxGDEW026T0::lut_21_ww_partial[] =
-{
-  0x00, Tx19, 0x01, 0x00, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW026T0::lut_21_ww_partial[] PROGMEM =
+{ // 10 w
+  0x18, T1, T2, T3, T4, 1, // 00 01 10 00
 };
 
-const unsigned char GxGDEW026T0::lut_22_bw_partial[] =
-{
-  0x80, Tx19, 0x01, 0x00, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW026T0::lut_22_bw_partial[] PROGMEM =
+{ // 10 w
+  0x5A, T1, T2, T3, T4, 1, // 01 01 10 10
 };
 
-const unsigned char GxGDEW026T0::lut_23_wb_partial[] =
-{
-  0x40, Tx19, 0x01, 0x00, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW026T0::lut_23_wb_partial[] PROGMEM =
+{ // 01 b
+  0xA5, T1, T2, T3, T4, 1, // 10 10 01 01
 };
 
-const unsigned char GxGDEW026T0::lut_24_bb_partial[] =
-{
-  0x00, Tx19, 0x01, 0x00, 0x00, 0x01,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+const unsigned char GxGDEW026T0::lut_24_bb_partial[] PROGMEM =
+{ // 01 b
+  0x24, T1, T2, T3, T4, 1, // 00 10 01 00
 };
 
 // Partial Update Delay, may have an influence on degradation
@@ -479,6 +471,19 @@ void GxGDEW026T0::_writeData(uint8_t data)
   IO.writeDataTransaction(data);
 }
 
+void GxGDEW026T0::_writeDataPGM(const uint8_t* data, uint16_t n, int16_t fill_with_zeroes)
+{
+  for (uint16_t i = 0; i < n; i++)
+  {
+    IO.writeDataTransaction(pgm_read_byte(&*data++));
+  }
+  while (fill_with_zeroes > 0)
+  {
+    IO.writeDataTransaction(0x00);
+    fill_with_zeroes--;
+  }
+}
+
 void GxGDEW026T0::_waitWhileBusy(const char* comment)
 {
   unsigned long start = micros();
@@ -540,11 +545,14 @@ void GxGDEW026T0::_wakeUp()
   _writeData (GxGDEW026T0_HEIGHT / 256);
   _writeData (GxGDEW026T0_HEIGHT % 256);
   _writeCommand(0x82); // vcom_DC setting
-  //_writeData (0x08);
-  _writeData (0x00);
+  //_writeData (0x00);   // -0.1
+  //_writeData (0x08);   // -0.1 + 8 * -0.05 = -0.5V from demo
+  //_writeData (0x12);   // -0.1 + 18 * -0.05 = -1.0V from OTP, slightly better
+  _writeData (0x1c);   // -0.1 + 28 * -0.05 = -1.5V test, better
+  //_writeData (0x26);   // -0.1 + 38 * -0.05 = -2.0V test, same
+  //_writeData (0x30);   // -0.1 + 48 * -0.05 = -2.5V test, darker
   _writeCommand(0x50); //VCOM AND DATA INTERVAL SETTING
-  _writeData(0x97);    //WBmode:VBDF 17|D7 VBDW 97 VBDB 57   WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
-
+  _writeData(0x17);    //WBmode:VBDF 17|D7 VBDW 97 VBDB 57   WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
   _Init_FullUpdate();
 }
 
@@ -597,38 +605,16 @@ void GxGDEW026T0::_Init_FullUpdate(void)
 
 void GxGDEW026T0::_Init_PartialUpdate(void)
 {
-  unsigned int count;
-  {
-    _writeCommand(0x20);              //vcom
-    for (count = 0; count < 44; count++)
-    {
-      _writeData(lut_20_vcomDC_partial[count]);
-    }
-
-    _writeCommand(0x21);              //ww --
-    for (count = 0; count < 42; count++)
-    {
-      _writeData(lut_21_ww_partial[count]);
-    }
-
-    _writeCommand(0x22);              //bw r
-    for (count = 0; count < 42; count++)
-    {
-      _writeData(lut_22_bw_partial[count]);
-    }
-
-    _writeCommand(0x23);              //wb w
-    for (count = 0; count < 42; count++)
-    {
-      _writeData(lut_23_wb_partial[count]);
-    }
-
-    _writeCommand(0x24);              //bb b
-    for (count = 0; count < 42; count++)
-    {
-      _writeData(lut_24_bb_partial[count]);
-    }
-  }
+  _writeCommand(0x20);
+  _writeDataPGM(lut_20_vcomDC_partial, sizeof(lut_20_vcomDC_partial), 44 - sizeof(lut_20_vcomDC_partial));
+  _writeCommand(0x21);
+  _writeDataPGM(lut_21_ww_partial, sizeof(lut_21_ww_partial), 42 - sizeof(lut_21_ww_partial));
+  _writeCommand(0x22);
+  _writeDataPGM(lut_22_bw_partial, sizeof(lut_22_bw_partial), 42 - sizeof(lut_22_bw_partial));
+  _writeCommand(0x23);
+  _writeDataPGM(lut_23_wb_partial, sizeof(lut_23_wb_partial), 42 - sizeof(lut_23_wb_partial));
+  _writeCommand(0x24);
+  _writeDataPGM(lut_24_bb_partial, sizeof(lut_24_bb_partial), 42 - sizeof(lut_24_bb_partial));
 }
 
 void GxGDEW026T0::drawPaged(void (*drawCallback)(void))

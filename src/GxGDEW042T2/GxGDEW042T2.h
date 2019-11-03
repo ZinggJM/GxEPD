@@ -80,6 +80,7 @@ class GxGDEW042T2 : public GxEPD
     void _Init_FullUpdate();
     void _Init_PartialUpdate();
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
+    void _writeDataPGM(const uint8_t* data, uint16_t n, int16_t fill_with_zeroes = 0);
   private:
 #if defined(__AVR)
     uint8_t _buffer[GxGDEW042T2_PAGE_SIZE];
@@ -97,11 +98,11 @@ class GxGDEW042T2 : public GxEPD
     static const unsigned char lut_bw_full[];
     static const unsigned char lut_bb_full[];
     static const unsigned char lut_wb_full[];
-    static const unsigned char lut_vcom0_partial[];
-    static const unsigned char lut_ww_partial[];
-    static const unsigned char lut_bw_partial[];
-    static const unsigned char lut_bb_partial[];
-    static const unsigned char lut_wb_partial[];
+    static const unsigned char lut_20_vcom0_partial[];
+    static const unsigned char lut_21_ww_partial[];
+    static const unsigned char lut_22_bw_partial[];
+    static const unsigned char lut_23_wb_partial[];
+    static const unsigned char lut_24_bb_partial[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -121,4 +122,3 @@ class GxGDEW042T2 : public GxEPD
 #endif
 
 #endif
-

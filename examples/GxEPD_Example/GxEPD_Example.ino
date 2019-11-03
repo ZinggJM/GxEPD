@@ -56,11 +56,12 @@
 //#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
 //#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
-//#include <GxGDEW0371W7/GxGDEW0371W7.h>      // 3.7" b/w
+//#include <GxGDEW0371W7/GxGDEW0371W7.h>    // 3.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.h>    // 4.2" b/w/r
 //#include <GxGDEW0583T7/GxGDEW0583T7.h>    // 5.83" b/w
 //#include <GxGDEW075T8/GxGDEW075T8.h>      // 7.5" b/w
+//#include <GxGDEW075T7/GxGDEW075T7.h>      // 7.5" b/w 800x480
 //#include <GxGDEW075Z09/GxGDEW075Z09.h>    // 7.5" b/w/r
 //#include <GxGDEW075Z08/GxGDEW075Z08.h>    // 7.5" b/w/r 800x480
 
@@ -85,6 +86,9 @@ GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary select
 GxEPD_Class display(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4); // default selection of D4(=2), D2(=4)
 // Heltec E-Paper 1.54" b/w without RST, BUSY
 //GxEPD_Class display(io, /*RST=D4*/ -1, /*BUSY=D2*/ -1); // no RST, no BUSY
+// Waveshare e-Paper ESP8266 Driver Board
+//GxIO_Class io(SPI, 15, 4, 5); 
+//GxEPD_Class display(io, 5, 16); 
 
 #elif defined(ESP32)
 
@@ -450,7 +454,7 @@ void showBitmapExample()
 void showBitmapExample()
 {
 #if defined(__AVR)
-  //display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
+  display.drawBitmap(BitmapExample1, sizeof(BitmapExample1));
 #else
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
   delay(2000);
@@ -535,6 +539,27 @@ void showBitmapExample()
   display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
   delay(5000);
   display.drawExamplePicture_3C(BitmapPicture_3C, sizeof(BitmapPicture_3C));
+#endif
+}
+#endif
+
+#if defined(_GxGDEW075T7_H_)
+void showBitmapExample()
+{
+#if defined(__AVR)
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+#else
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample4, sizeof(BitmapExample2));
+  delay(5000);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
 #endif
 }
 #endif

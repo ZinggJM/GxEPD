@@ -1,7 +1,7 @@
-// class GxGDEW026T0 : Display class for GDEW026T0 e-Paper from Dalian Good Display Co., Ltd.: http://www.e-paper-display.com/products_detail/productId=398.html
+// class GxGDEW075T7 : Display class for GDEW075T7 e-Paper from Dalian Good Display Co., Ltd.: http://www.e-paper-display.com/products_detail/productId=456.html
 //
-// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=623.html
-// Controller: IL0373 : http://www.e-paper-display.com/download_detail/downloadsId=535.html
+// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=891.html
+// Controller: GD7965 : http://www.e-paper-display.com/download_detail/downloadsId=821.html
 //
 // Author : J-M Zingg
 //
@@ -11,31 +11,42 @@
 //
 // Library: https://github.com/ZinggJM/GxEPD
 
-#ifndef _GxGDEW026T0_H_
-#define _GxGDEW026T0_H_
+#ifndef _GxGDEW075T7_H_
+#define _GxGDEW075T7_H_
 
 #include "../GxEPD.h"
 
-#define GxGDEW026T0_WIDTH 152
-#define GxGDEW026T0_HEIGHT 296
+#define GxGDEW075T7_WIDTH 800
+#define GxGDEW075T7_HEIGHT 480
 
-#define GxGDEW026T0_BUFFER_SIZE (uint32_t(GxGDEW026T0_WIDTH) * uint32_t(GxGDEW026T0_HEIGHT) / 8)
+// pixel number expressed in bytes; this is neither the buffer size nor the size of the buffer in the controller
+#define GxGDEW075T7_BYTE_SIZE (uint32_t(GxGDEW075T7_WIDTH) * uint32_t(GxGDEW075T7_HEIGHT) / 8)
 
-// divisor for AVR, should be factor of GxGDEW026T0_HEIGHT
-#define GxGDEW026T0_PAGES 8
+// divisor for AVR or limited RAM, should be factor of GxGDEW075T7_HEIGHT
+// add conditional case if the compiler complains for your target
+#if defined(__AVR)
+#define GxGDEW075T7_PAGES 48
+#elif defined(ESP8266)
+#define GxGDEW075T7_PAGES 1 // take 2 if you need more remaining RAM
+#elif defined(ARDUINO_ARCH_STM32F1)
+#define GxGDEW075T7_PAGES 4
+#else
+#define GxGDEW075T7_PAGES 1 // e.g. ESP32
+#endif
 
-#define GxGDEW026T0_PAGE_HEIGHT (GxGDEW026T0_HEIGHT / GxGDEW026T0_PAGES)
-#define GxGDEW026T0_PAGE_SIZE (GxGDEW026T0_BUFFER_SIZE / GxGDEW026T0_PAGES)
+#define GxGDEW075T7_PAGE_HEIGHT (GxGDEW075T7_HEIGHT / GxGDEW075T7_PAGES)
+#define GxGDEW075T7_PAGE_SIZE (GxGDEW075T7_BYTE_SIZE / GxGDEW075T7_PAGES)
+#define GxGDEW075T7_BUFFER_SIZE GxGDEW075T7_PAGE_SIZE
 
-class GxGDEW026T0 : public GxEPD
+class GxGDEW075T7 : public GxEPD
 {
   public:
 #if defined(ESP8266)
-    //GxGDEW026T0(GxIO& io, int8_t rst = D4, int8_t busy = D2);
+    //GxGDEW075T7(GxIO& io, int8_t rst = D4, int8_t busy = D2);
     // use pin numbers, other ESP8266 than Wemos may not use Dx names
-    GxGDEW026T0(GxIO& io, int8_t rst = 2, int8_t busy = 4);
+    GxGDEW075T7(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEW026T0(GxIO& io, int8_t rst = 9, int8_t busy = 7);
+    GxGDEW075T7(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
@@ -52,7 +63,7 @@ class GxGDEW026T0 : public GxEPD
     void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
     // terminate cleanly updateWindow or updateToWindow before removing power or long delays
     void powerDown();
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEW026T0_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEW075T7_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
@@ -83,27 +94,19 @@ class GxGDEW026T0 : public GxEPD
     void _waitWhileBusy(const char* comment = 0);
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
   private:
-#if defined(__AVR)
-    uint8_t _buffer[GxGDEW026T0_PAGE_SIZE];
-#else
-    uint8_t _buffer[GxGDEW026T0_BUFFER_SIZE];
-#endif
+    uint8_t _buffer[GxGDEW075T7_BUFFER_SIZE];
     GxIO& IO;
     int16_t _current_page;
     bool _using_partial_mode;
     bool _diag_enabled;
     int8_t _rst;
     int8_t _busy;
-    static const unsigned char lut_20_vcomDC[];
-    static const unsigned char lut_21_ww[];
-    static const unsigned char lut_22_bw[];
-    static const unsigned char lut_23_wb[];
-    static const unsigned char lut_24_bb[];
-    static const unsigned char lut_20_vcomDC_partial[];
-    static const unsigned char lut_21_ww_partial[];
-    static const unsigned char lut_22_bw_partial[];
-    static const unsigned char lut_23_wb_partial[];
-    static const unsigned char lut_24_bb_partial[];
+    static const unsigned char lut_20_LUTC_partial[];
+    static const unsigned char lut_21_LUTWW_partial[];
+    static const unsigned char lut_22_LUTKW_partial[];
+    static const unsigned char lut_23_LUTWK_partial[];
+    static const unsigned char lut_24_LUTKK_partial[];
+    static const unsigned char lut_25_LUTBD_partial[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -115,11 +118,11 @@ class GxGDEW026T0 : public GxEPD
 };
 
 #ifndef GxEPD_Class
-#define GxEPD_Class GxGDEW026T0
-#define GxEPD_WIDTH GxGDEW026T0_WIDTH
-#define GxEPD_HEIGHT GxGDEW026T0_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEW026T0/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEW026T0/BitmapExamples.h"
+#define GxEPD_Class GxGDEW075T7
+#define GxEPD_WIDTH GxGDEW075T7_WIDTH
+#define GxEPD_HEIGHT GxGDEW075T7_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEW075T7/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEW075T7/BitmapExamples.h"
 #endif
 
 #endif

@@ -75,6 +75,7 @@ class GxGDEW0371W7 : public GxEPD
     uint16_t _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
+    void _writeDataPGM(const uint8_t* data, uint16_t n, int16_t fill_with_zeroes = 0);
     void _wakeUp();
     void _sleep();
     void _Init_FullUpdate();
@@ -93,6 +94,12 @@ class GxGDEW0371W7 : public GxEPD
     bool _diag_enabled;
     int8_t _rst;
     int8_t _busy;
+    static const unsigned char lut_20_LUTC_partial[];
+    static const unsigned char lut_21_LUTWW_partial[];
+    static const unsigned char lut_22_LUTKW_partial[];
+    static const unsigned char lut_23_LUTWK_partial[];
+    static const unsigned char lut_24_LUTKK_partial[];
+    static const unsigned char lut_25_LUTBD_partial[];
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes

@@ -23,9 +23,11 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### The E-Paper display base class is a subclass of Adafruit_GFX, to have graphics and text rendering.
 
-- It needs up to 30kB available RAM to buffer the black/white image for the SPI displays, double for 3-color.
-- ESP8266, ESP32 , STM32 systems,  Arduino Due e.g.  have enough free RAM for full graphics buffer.
-- Paged Drawing is available to cope with RAM restriction on AVR processors.
+- It needs up to 15kB available RAM to buffer the black/white image for the SPI displays, 
+- double for 3-color, for e-papers up to 4.2" (300 * 400 / 8, 2 * 300 * 400 / 8).
+- ESP8266, ESP32 , STM32 systems, Arduino Due e.g. have enough free RAM for full graphics buffer.
+- It needs more RAM for e-paper displays above the 4.2".
+- Paged Drawing is available to cope with RAM restriction on AVR processors or for big displays.
 
 ### Supporting Arduino Forum Topics:
 
@@ -52,6 +54,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - GDEW042Z15     4.2" b/w/r
 - GDEW0583T7     5.83" b/w
 - GDEW075T8      7.5" b/w
+- GDEW075T7      7.5" b/w 800x480
 - GDEW075Z09     7.5" b/w/r
 - GDEW075Z08     7.5" b/w/r 800x480
 #### Supported SPI e-paper panels & boards from Waveshare: compare with Good Display, same panel
@@ -62,7 +65,19 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-### Version 3.0.8
+### Version 3.0.9
+- fixed BMP handling, e.g. for BMPs created by ImageMagick
+- see also Arduino Forum Topic https://forum.arduino.cc/index.php?topic=642343.0
+- added support for GDEW075T7 7.5" b/w 800x480
+- GDEW075T7 has differential update (1.6s) using a charge balancing waveform
+- added "fast partial update" (differential update) for GDEW0371W7 3.7" b/w 240x416
+- improved differential update waveform for GDEW026T0 2.6" b/w 152x256
+- fixed init code & improved differential update for GDEW042T2 4.2" b/w 300x400
+- note that all differential refresh waveforms are a compromise (ghosting, big font use)
+- parameters for differential waveform for these display can easily be changed for experimenting
+- GDEW042T2 would have greyed background without sustain phase
+- GDEW042T2 needs multiple full refreshes after extended use of partial updates
+#### Version 3.0.8
 - added support for GDEH0213B73 2.13" b/w, replacement for GDE0213B1, GDEH0213B72
 - added support for GDEW026T0 2.6" b/w 152x256
 - added support for GDEW0371W7 3.7" b/w 240x416

@@ -47,8 +47,9 @@
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
 //#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
-//#include <GxGDEW0371W7/GxGDEW0371W7.h>      // 3.7" b/w
+//#include <GxGDEW0371W7/GxGDEW0371W7.h>    // 3.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
+//#include <GxGDEW075T7/GxGDEW075T7.h>      // 7.5" b/w 800x480
 // these displays do not fully support partial update
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
