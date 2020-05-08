@@ -30,6 +30,7 @@
 
 // select the display classes to use
 #include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
 #include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 #include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 #include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
@@ -387,6 +388,3 @@ void showFont(GxEPD& display, const char name[], const GFXfont* f)
   display.update();
   delay(5000);
 }
-
-
-

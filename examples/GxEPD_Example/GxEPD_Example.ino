@@ -43,6 +43,7 @@
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
@@ -185,6 +186,21 @@ void loop()
 }
 
 #if defined(_GxGDEP015OC1_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+  showBoat();
+}
+#endif
+
+#if defined(_GxGDEH0154D67_H_)
 void showBitmapExample()
 {
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
@@ -657,7 +673,7 @@ void drawCornerTest()
   display.setRotation(rotation); // restore
 }
 
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_)|| defined(_GxGDEH029A1_H_)
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDEH0154D67_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_)|| defined(_GxGDEH029A1_H_)
 #include "IMG_0001.h"
 void showBoat()
 {

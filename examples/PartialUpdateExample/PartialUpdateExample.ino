@@ -39,6 +39,7 @@
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
+//#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel

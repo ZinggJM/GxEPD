@@ -35,7 +35,8 @@ A simple E-Paper display library with common base class and separate IO class fo
 - Good Dispay ePaper for Arduino : https://forum.arduino.cc/index.php?topic=436411.0
 
 ### Supported SPI e-paper panels from Good Display:
-- GDEP015OC1     1.54" b/w
+- GDEP015OC1     1.54" b/w 200x200
+- GDEH0154D67    1.54" b/w 200x200 replacement for GDEP015OC1
 - GDEW0154Z04    1.54" b/w/r 200x200
 - GDEW0154Z17    1.54" b/w/r 152x152
 - GDE0213B1      2.13" b/w
@@ -65,7 +66,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-### Version 3.0.9
+### Version 3.1.0
+- added support for GDEH0154D67 1.54" b/w, replacement for GDEP015OC1
+- added example GxEPD_MinimumExample, e.g. for memory footprint
+#### Version 3.0.9
 - fixed BMP handling, e.g. for BMPs created by ImageMagick
 - see also Arduino Forum Topic https://forum.arduino.cc/index.php?topic=642343.0
 - added support for GDEW075T7 7.5" b/w 800x480
