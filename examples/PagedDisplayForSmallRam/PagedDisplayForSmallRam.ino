@@ -47,6 +47,7 @@
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
+//#include <GxGDEM029T94/GxGDEM029T94.h>      // 2.9" b/w
 //#include <GxGDEW029Z10/GxGDEW029Z10.h>    // 2.9" b/w/r
 //#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w // NOTE: does not compile for UNO: segmentation fault, reason unknown
 //#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r

@@ -25,9 +25,11 @@
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>
-#include <GxGDEH0154D67/GxGDEH0154D67.h>
+//#include <GxGDEH0154D67/GxGDEH0154D67.h>
 //#include <GxGDE0213B1/GxGDE0213B1.h>
 //#include <GxGDEH029A1/GxGDEH029A1.h>
+//#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
+//#include <GxGDEM029T94/GxGDEM029T94.h>    // 2.9" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
@@ -103,7 +105,7 @@ GxEPD_Class display(io /*RST=9*/ /*BUSY=7*/); // default selection of (9), 7
 #if defined(_GxGDEP015OC1_H_) || defined(_GxGDEH0154D67_H_)
 const uint32_t partial_update_period_s = 1;
 const uint32_t full_update_period_s = 6 * 60 * 60;
-#elif defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEW042T2_H_)
+#elif defined(_GxGDE0213B1_H_) || defined(_GxGDEH029A1_H_) || defined(_GxGDEM029T94_H_) || defined(_GxGDEW042T2_H_)
 const uint32_t partial_update_period_s = 2;
 const uint32_t full_update_period_s = 1 * 60 * 60;
 #endif

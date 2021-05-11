@@ -46,6 +46,7 @@
 //#include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w newer panel
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
 //#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
+//#include <GxGDEM029T94/GxGDEM029T94.h>    // 2.9" b/w
 //#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
 //#include <GxGDEW0371W7/GxGDEW0371W7.h>    // 3.7" b/w

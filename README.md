@@ -46,6 +46,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - GDEW0213Z16    2.13" b/w/r
 - GDEH029A1      2.9" b/w
 - GDEW029T5      2.9" b/w
+- GDEM029T94     2.9" b/w
 - GDEW029Z10     2.9" b/w/r
 - GDEW026T0      2.6" b/w
 - GDEW027C44     2.7" b/w/r
@@ -66,7 +67,10 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-### Version 3.1.0
+### Version 3.1.1
+- added support for GDEM029T94 2.9" b/w, actual Waveshare 2.9" b/w
+- updated example GxEPD_WiFi_Example, for actual GitHub certificate
+#### Version 3.1.0
 - added support for GDEH0154D67 1.54" b/w, replacement for GDEP015OC1
 - added example GxEPD_MinimumExample, e.g. for memory footprint
 #### Version 3.0.9
