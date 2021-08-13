@@ -4,7 +4,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - For SPI e-paper displays from Dalian Good Display 
 - and SPI e-paper boards from Waveshare
 
-- GxEPD2 is better suited for new users or new projects!
+- [GxEPD2](https://github.com/ZinggJM/GxEPD2) is better suited for new users or new projects!
 
 ### important note :
 - these displays are for 3.3V supply and 3.3V data lines
