@@ -476,7 +476,7 @@ void GxGDEH0154D67::_PowerOn(void)
 void GxGDEH0154D67::_PowerOff(void)
 {
   _writeCommand(0x22);
-  _writeData(0xc3);
+  _writeData(0x83);
   _writeCommand(0x20);
   _waitWhileBusy("_PowerOff", power_off_time);
 }
