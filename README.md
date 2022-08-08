@@ -53,7 +53,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - GDEW029T5D     2.9" b/w
 - GDEM029T94     2.9" b/w
 - GDEW029Z10     2.9" b/w/r
-- GDEW029Z13     2.9" b/w/r 128x296, UC8151D
+- GDEH029Z13     2.9" b/w/r 128x296, UC8151D
 - DEPG0290BS     2.9" b/w 128x296, e.g. LILYGO® TTGO T5 V2.4.1 2.9"
 - GDEW026T0      2.6" b/w
 - DEPG0266BN     2.66" b/w 152x296, e.g. LILYGO® TTGO T5 2.66 inch
@@ -84,7 +84,7 @@ A simple E-Paper display library with common base class and separate IO class fo
 - added support for GDEW0213T5D 2.13" b/w 128x296, UC8151 (IL0373)
 - added support for GDEW0213Z19 2.13" b/w/r 104x212, UC8151D
 - added support for GDEW029T5D 2.9" b/w 128x296, UC8151D
-- added support for GDEW029Z13 2.9" b/w/r 128x296, UC8151D
+- added support for GDEH029Z13 2.9" b/w/r 128x296, UC8151D
 - added support for GDEY027T91 2.7" b/w 176x264, SSD1680
 - updated certificate and fingerprint for GitHub download in GxEPD_WiFi_Example
 - added example GxEPD_HelloWorld.ino
