@@ -76,6 +76,7 @@ SdFat SD;
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
 //#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
+//#include <GxDEPG0150BN/GxDEPG0150BN.h>  // 1.54" b/w
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
@@ -83,13 +84,21 @@ SdFat SD;
 //#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel
 //#include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w newer panel
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
+//#include <GxGDEH0213Z19/GxGDEH0213Z19.h>  // 2.13" b/w/r UC8151D
+//#include <GxGDEW0213T5D/GxGDEW0213T5D.h>  // 2.13" b/w 104x212 UC8151D
+//#include <GxDEPG0213BN/GxDEPG0213BN.h>    // 2.13" b/w 128x250, SSD1680, TTGO T5 V2.4.1, V2.3.1
 //#include <GxGDEH029A1/GxGDEH029A1.h>      // 2.9" b/w
-//#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w IL0373
-//#include <GxGDEM029T94/GxGDEM029T94.h>      // 2.9" b/w
+//#include <GxGDEW029T5/GxGDEW029T5.h>      // 2.9" b/w UC8151 (IL0373)
+//#include <GxGDEW029T5D/GxGDEW029T5D.h>    // 2.9" b/w UC8151D
+//#include <GxGDEM029T94/GxGDEM029T94.h>    // 2.9" b/w
+//#include <GxDEPG0290BS/GxDEPG0290BS.h>    // 2.9" b/w Waveshare variant, TTGO T5 V2.4.1 2.9"
 //#include <GxGDEW029Z10/GxGDEW029Z10.h>    // 2.9" b/w/r
+//#include <GxGDEH029Z13/GxGDEH029Z13.h>    // 2.9" b/w/r UC8151D
 //#include <GxGDEW026T0/GxGDEW026T0.h>      // 2.6" b/w
+//#include <GxDEPG0266BN/GxDEPG0266BN.h>      // 2.66" b/w 152x296, SSD1680, TTGO T5 V2.66, TTGO T5 V2.4.1
 //#include <GxGDEW027C44/GxGDEW027C44.h>    // 2.7" b/w/r
 //#include <GxGDEW027W3/GxGDEW027W3.h>      // 2.7" b/w
+//#include <GxGDEY027T91/GxGDEY027T91.h>    // 2.7" b/w
 //#include <GxGDEW0371W7/GxGDEW0371W7.h>    // 3.7" b/w
 //#include <GxGDEW042T2/GxGDEW042T2.h>      // 4.2" b/w
 //#include <GxGDEW042Z15/GxGDEW042Z15.h>    // 4.2" b/w/r
@@ -116,6 +125,9 @@ GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), 
 
 // for SPI pin definitions see e.g.:
 // C:\Users\xxx\Documents\Arduino\hardware\espressif\esp32\variants\lolin32\pins_arduino.h
+// for LILYGO® TTGO T5 2.66 board uncomment next two lines instead of previous two lines
+//GxIO_Class io(SPI, /*CS=5*/ SS, /*DC=*/ 19, /*RST=*/ 4); // LILYGO® TTGO T5 2.66
+//GxEPD_Class display(io, /*RST=*/ 4, /*BUSY=*/ 34); // LILYGO® TTGO T5 2.66
 
 GxIO_Class io(SPI, /*CS=5*/ EPD_CS, /*DC=*/ 17, /*RST=*/ 16); // arbitrary selection of 17, 16
 GxEPD_Class display(io, /*RST=*/ 16, /*BUSY=*/ 4); // arbitrary selection of (16), 4
@@ -300,15 +312,16 @@ void drawBitmapFrom_SD_ToBuffer(const char *filename, int16_t x, int16_t y, bool
   // Parse BMP header
   if (read16(file) == 0x4D42) // BMP signature
   {
-    uint32_t fileSize = read32(file);
-    uint32_t creatorBytes = read32(file);
-    uint32_t imageOffset = read32(file); // Start of image data
-    uint32_t headerSize = read32(file);
-    uint32_t width  = read32(file);
-    uint32_t height = read32(file);
+    int32_t fileSize = read32(file);
+    int32_t creatorBytes = read32(file);
+    int32_t imageOffset = read32(file); // Start of image data
+    int32_t headerSize = read32(file);
+    int32_t width  = read32(file);
+    int32_t height = read32(file);
     uint16_t planes = read16(file);
     uint16_t depth = read16(file); // bits per pixel
-    uint32_t format = read32(file);
+    int32_t format = read32(file);
+    (void) creatorBytes;
     if ((planes == 1) && ((format == 0) || (format == 3))) // uncompressed is handled, 565 also
     {
       Serial.print("File size: "); Serial.println(fileSize);
@@ -320,7 +333,7 @@ void drawBitmapFrom_SD_ToBuffer(const char *filename, int16_t x, int16_t y, bool
       Serial.print('x');
       Serial.println(height);
       // BMP rows are padded (if needed) to 4-byte boundary
-      uint32_t rowSize = (width * depth / 8 + 3) & ~3;
+      int32_t rowSize = (width * depth / 8 + 3) & ~3;
       if (depth < 8) rowSize = ((width * depth + 8 - depth) / 8 + 3) & ~3;
       if (height < 0)
       {
@@ -335,7 +348,8 @@ void drawBitmapFrom_SD_ToBuffer(const char *filename, int16_t x, int16_t y, bool
       uint8_t bitmask = 0xFF;
       uint8_t bitshift = 8 - depth;
       uint16_t red, green, blue;
-      bool whitish, colored;
+      bool whitish = false;
+      bool colored = false;
       if (depth == 1) with_color = false;
       if (depth <= 8)
       {
@@ -357,7 +371,7 @@ void drawBitmapFrom_SD_ToBuffer(const char *filename, int16_t x, int16_t y, bool
         }
       }
       display.fillScreen(GxEPD_WHITE);
-      uint32_t rowPosition = flip ? imageOffset + (height - h) * rowSize : imageOffset;
+      int32_t rowPosition = flip ? imageOffset + (height - h) * rowSize : imageOffset;
       for (uint16_t row = 0; row < h; row++, rowPosition += rowSize) // for each line
       {
         uint32_t in_remain = rowSize;
@@ -489,10 +503,10 @@ uint16_t read16(SdFile& f)
   return result;
 }
 
-uint32_t read32(SdFile& f)
+int32_t read32(SdFile& f)
 {
   // BMP data is stored little-endian, same as Arduino.
-  uint32_t result;
+  int32_t result;
   ((uint8_t *)&result)[0] = f.read(); // LSB
   ((uint8_t *)&result)[1] = f.read();
   ((uint8_t *)&result)[2] = f.read();

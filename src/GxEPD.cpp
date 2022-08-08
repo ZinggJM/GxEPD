@@ -28,9 +28,9 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
   uint8_t byte = 0;
   if (mode & bm_transparent)
   {
-    for (int16_t j = 0; j < h; j++)
+    for (uint16_t j = 0; j < h; j++)
     {
-      for (int16_t i = 0; i < w; i++ )
+      for (uint16_t i = 0; i < w; i++ )
       {
         if (i & 7) byte <<= 1;
         else
@@ -56,9 +56,9 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
   }
   else
   {
-    for (int16_t j = 0; j < h; j++)
+    for (uint16_t j = 0; j < h; j++)
     {
-      for (int16_t i = 0; i < w; i++ )
+      for (uint16_t i = 0; i < w; i++ )
       {
         if (i & 7) byte <<= 1;
         else
@@ -80,5 +80,3 @@ void  GxEPD::drawBitmapBM(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_
     }
   }
 }
-
-

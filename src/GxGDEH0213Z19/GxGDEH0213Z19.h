@@ -1,8 +1,8 @@
-// class GxGDEM029T94 : Display class for GDEM029T94 e-Paper from Dalian Good Display Co., Ltd.: www.e-paper-display.com
+// class GxGDEH0213Z19 : Display class for GDEH0213Z19 e-Paper from Dalian Good Display Co., Ltd.: www.good-display.com
 //
-// based on Demo Example from Good Display, available here: http://www.e-paper-display.com/download_detail/downloadsId=806.html
-// Panel: GDEM029T94 : https://www.good-display.com/product/360.html
-// Controller : SSD1680 : https://www.good-display.com/companyfile/101.html
+// based on Demo Example from Good Display, available here: http://www.good-display.com/download_detail/downloadsId=515.html
+// Panel: GDEH0213Z19 : https://www.good-display.com/product/223.html
+// Controller: UC8151D : https://v4.cecdn.yun300.cn/100001_1909185148/UC8151D.pdf
 //
 // Author : J-M Zingg
 //
@@ -12,41 +12,43 @@
 //
 // Library: https://github.com/ZinggJM/GxEPD
 
-#ifndef _GxGDEM029T94_H_
-#define _GxGDEM029T94_H_
+#ifndef _GxGDEH0213Z19_H_
+#define _GxGDEH0213Z19_H_
 
-#include <Arduino.h>
 #include "../GxEPD.h"
 
-// the physical number of pixels (for controller parameter)
-#define GxGDEM029T94_X_PIXELS 128
-#define GxGDEM029T94_Y_PIXELS 296
+#define GxGDEH0213Z19_WIDTH 104
+#define GxGDEH0213Z19_HEIGHT 212
 
-#define GxGDEM029T94_WIDTH GxGDEM029T94_X_PIXELS
-#define GxGDEM029T94_HEIGHT GxGDEM029T94_Y_PIXELS
+#define GxGDEH0213Z19_BUFFER_SIZE (uint32_t(GxGDEH0213Z19_WIDTH) * uint32_t(GxGDEH0213Z19_HEIGHT) / 8)
 
-#define GxGDEM029T94_BUFFER_SIZE (uint32_t(GxGDEM029T94_WIDTH) * uint32_t(GxGDEM029T94_HEIGHT) / 8)
+// divisor for AVR, should be factor of GxGDEH0213Z19_HEIGHT
+#define GxGDEH0213Z19_PAGES 8 // not a factor, workaround needed
 
-// divisor for AVR, should be factor of GxGDEM029T94_HEIGHT
-#define GxGDEM029T94_PAGES 4
+#define GxGDEH0213Z19_PAGE_HEIGHT (GxGDEH0213Z19_HEIGHT / (GxGDEH0213Z19_PAGES - 1))
+#define GxGDEH0213Z19_PAGE_SIZE (GxGDEH0213Z19_BUFFER_SIZE / (GxGDEH0213Z19_PAGES - 1))
 
-#define GxGDEM029T94_PAGE_HEIGHT (GxGDEM029T94_HEIGHT / GxGDEM029T94_PAGES)
-#define GxGDEM029T94_PAGE_SIZE (GxGDEM029T94_BUFFER_SIZE / GxGDEM029T94_PAGES)
-
-class GxGDEM029T94 : public GxEPD
+class GxGDEH0213Z19 : public GxEPD
 {
   public:
+    static const bool usePartialUpdateWindow = false; // needs be false, controller issue
 #if defined(ESP8266)
-    GxGDEM029T94(GxIO& io, int8_t rst = 2, int8_t busy = 4);
+    //GxGDEH0213Z19(GxIO& io, int8_t rst = D4, int8_t busy = D2);
+    // use pin numbers, other ESP8266 than Wemos may not use Dx names
+    GxGDEH0213Z19(GxIO& io, int8_t rst = 2, int8_t busy = 4);
 #else
-    GxGDEM029T94(GxIO& io, int8_t rst = 9, int8_t busy = 7);
+    GxGDEH0213Z19(GxIO& io, int8_t rst = 9, int8_t busy = 7);
 #endif
     void drawPixel(int16_t x, int16_t y, uint16_t color);
     void init(uint32_t serial_diag_bitrate = 0); // = 0 : disabled
-    void fillScreen(uint16_t color); // 0x0 black, >0x0 white, to buffer
+    void fillScreen(uint16_t color); // to buffer
     void update(void);
     // to buffer, may be cropped, drawPixel() used, update needed
     void  drawBitmap(const uint8_t *bitmap, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, int16_t mode = bm_normal);
+    // to full screen, filled with white if size is less, no update needed, black  /white / red, for example bitmaps
+    void drawExamplePicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size);
+    // to full screen, filled with white if size is less, no update needed, black  /white / red, general version
+    void drawPicture(const uint8_t* black_bitmap, const uint8_t* red_bitmap, uint32_t black_size, uint32_t red_size, int16_t mode = bm_normal);
     // to full screen, filled with white if size is less, no update needed
     void drawBitmap(const uint8_t *bitmap, uint32_t size, int16_t mode = bm_normal); // only bm_normal, bm_invert, bm_partial_update modes implemented
     void eraseDisplay(bool using_partial_update = false);
@@ -56,7 +58,7 @@ class GxGDEM029T94 : public GxEPD
     void updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
     // terminate cleanly updateWindow or updateToWindow before removing power or long delays
     void powerDown();
-    // paged drawing, for limited RAM, drawCallback() is called GxGDEM029T94_PAGES times
+    // paged drawing, for limited RAM, drawCallback() is called GxGDEH0213Z19_PAGES times
     // each call of drawCallback() should draw the same
     void drawPaged(void (*drawCallback)(void));
     void drawPaged(void (*drawCallback)(uint32_t), uint32_t);
@@ -76,40 +78,28 @@ class GxGDEM029T94 : public GxEPD
       a = b;
       b = t;
     }
-    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h);
+    void _writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_t yd, uint16_t w, uint16_t h, bool using_rotation = true);
+    uint16_t _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _writeData(uint8_t data);
     void _writeCommand(uint8_t command);
-    void _writeCommandData(const uint8_t* pCommandData, uint8_t datalen);
-    void _SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1);
-    void _SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1);
-    void _PowerOn(void);
-    void _PowerOff(void);
-    void _waitWhileBusy(const char* comment, uint16_t busy_time);
-    void _setRamDataEntryMode(uint8_t em);
-    void _InitDisplay(uint8_t em);
-    void _Init_Full(uint8_t em);
-    void _Init_Part(uint8_t em);
-    void _Update_Full(void);
-    void _Update_Part(void);
+    void _wakeUp();
+    void _sleep();
+    void _waitWhileBusy(const char* comment = 0);
     void _rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h);
-  protected:
-#if defined(__AVR)
-    uint8_t _buffer[GxGDEM029T94_PAGE_SIZE];
-#else
-    uint8_t _buffer[GxGDEM029T94_BUFFER_SIZE];
-#endif
   private:
+#if defined(__AVR)
+    uint8_t _black_buffer[GxGDEH0213Z19_PAGE_SIZE];
+    uint8_t _red_buffer[GxGDEH0213Z19_PAGE_SIZE];
+#else
+    uint8_t _black_buffer[GxGDEH0213Z19_BUFFER_SIZE];
+    uint8_t _red_buffer[GxGDEH0213Z19_BUFFER_SIZE];
+#endif
     GxIO& IO;
     int16_t _current_page;
     bool _using_partial_mode;
     bool _diag_enabled;
-    bool _power_is_on;
     int8_t _rst;
     int8_t _busy;
-    static const uint16_t power_on_time = 80; // ms, e.g. 73508us
-    static const uint16_t power_off_time = 80; // ms, e.g. 68982us
-    static const uint16_t full_refresh_time = 1200; // ms, e.g. 1113273us
-    static const uint16_t partial_refresh_time = 300; // ms, e.g. 290867us
 #if defined(ESP8266) || defined(ESP32)
   public:
     // the compiler of these packages has a problem with signature matching to base classes
@@ -121,11 +111,11 @@ class GxGDEM029T94 : public GxEPD
 };
 
 #ifndef GxEPD_Class
-#define GxEPD_Class GxGDEM029T94
-#define GxEPD_WIDTH GxGDEM029T94_WIDTH
-#define GxEPD_HEIGHT GxGDEM029T94_HEIGHT
-#define GxEPD_BitmapExamples <GxGDEM029T94/BitmapExamples.h>
-#define GxEPD_BitmapExamplesQ "GxGDEM029T94/BitmapExamples.h"
+#define GxEPD_Class GxGDEH0213Z19
+#define GxEPD_WIDTH GxGDEH0213Z19_WIDTH
+#define GxEPD_HEIGHT GxGDEH0213Z19_HEIGHT
+#define GxEPD_BitmapExamples <GxGDEH0213Z19/BitmapExamples.h>
+#define GxEPD_BitmapExamplesQ "GxGDEH0213Z19/BitmapExamples.h"
 #endif
 
 #endif

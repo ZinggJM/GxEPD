@@ -19,6 +19,8 @@
 #include <Adafruit_GFX.h>
 #include "GxFont_GFX.h"
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 // the only colors supported by any of these displays; mapping of other colors is class specific
 #define GxEPD_BLACK     0x0000
 #define GxEPD_DARKGREY  0x7BEF      /* 128, 128, 128 */

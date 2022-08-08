@@ -52,6 +52,10 @@ void GxIO_SPI::init()
   }
   reset();
   _spi.begin();
+  if (_dc == MISO) // may be overridden, TTGO T5 V2.66
+  {
+    pinMode(_dc, OUTPUT);
+  }
 }
 
 void GxIO_SPI::setFrequency(uint32_t freq)

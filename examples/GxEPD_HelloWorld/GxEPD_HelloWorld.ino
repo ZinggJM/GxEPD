@@ -1,35 +1,16 @@
-// GxFont_GFX_Example : example to show the use of additional fonts rendering these fonts
-//
-// Author : J-M Zingg
-//
-// Version : see library.properties
-//
-// License: GNU GENERAL PUBLIC LICENSE V3, see LICENSE
-//
-// Library: https://github.com/ZinggJM/GxEPD
-//
-// NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
-//       e.g. for Umlauts
+// GxEPD_Hello World Example by Jean-Marc Zingg
 
-// for use of additional fonts you need to enable these in file GxFont_GFX.h
-// and install the library
 //
-// selection of the additional fonts is done by the following methods:
+// Created by Jean-Marc Zingg based on demo code from Good Display,
+// available on http://www.e-paper-display.com/download_list/downloadcategoryid=34&isMode=false.html
 //
-// void setFont(const uint8_t *font); // selects rendering and fonts from library U8G2_FOR_ADAFRUIT_GFX
+// The e-paper displays are available from:
 //
-// void setFreeFont(const GFXfont *f = NULL); // selects rendering and fonts from library GxFont_GFX_TFT_eSPI
-// void void setTextFont(uint8_t font); // selects rendering and fonts from library GxFont_GFX_TFT_eSPI
+// https://www.aliexpress.com/store/product/Wholesale-1-54inch-E-Ink-display-module-with-embedded-controller-200x200-Communicate-via-SPI-interface-Supports/216233_32824535312.html
 //
-// void setFont(uint8_t f); // selects rendering and fonts from library Adafruit_tfGFX
-// (no additional fonts, as all are now part of Adafruit_GFX, but fonts above 7bit character set)
+// http://www.buy-lcd.com/index.php?route=product/product&path=2897_8363&product_id=35120
+// or https://www.aliexpress.com/store/product/E001-1-54-inch-partial-refresh-Small-size-dot-matrix-e-paper-display/600281_32815089163.html
 //
-// void setFont(const GFXfont *f = NULL); // reverts back to Adafruit_GFX FreeFonts
-// use setFont((void*)NULL); // to select Adafruit_GFX classic font
-//
-// these additions may not work with AVR Arduinos
-//
-// these additions are only partially tested; more tests and additions may follow
 
 // Supporting Arduino Forum Topics:
 // Waveshare e-paper displays with SPI: http://forum.arduino.cc/index.php?topic=487007.0
@@ -60,10 +41,6 @@
 
 // include library, include base class, make path known
 #include <GxEPD.h>
-
-//
-// NOTE: you need to SAVE the modified example to a saveable location for UTF-8 characters to work
-//       e.g. for Umlauts
 
 // select the display class to use, only one
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
@@ -100,16 +77,13 @@
 //#include <GxGDEW075Z09/GxGDEW075Z09.h>    // 7.5" b/w/r
 //#include <GxGDEW075Z08/GxGDEW075Z08.h>    // 7.5" b/w/r 800x480
 
-#if !defined(_GxFont_GFX_TFT_eSPI_H_)
+#include GxEPD_BitmapExamples
+
 // FreeFonts from Adafruit_GFX
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <Fonts/FreeMonoBold12pt7b.h>
-//#include <Fonts/FreeMonoBold18pt7b.h>
-//#include <Fonts/FreeMonoBold24pt7b.h>
-#endif
-#if defined(_ADAFRUIT_TF_GFX_H_)
-#include <Fonts/Open_Sans_Bold_12pt.h>
-#endif
+#include <Fonts/FreeMonoBold18pt7b.h>
+#include <Fonts/FreeMonoBold24pt7b.h>
 
 
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
@@ -121,7 +95,12 @@
 // C:\Users\xxx\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.4.2\variants\generic\common.h
 
 GxIO_Class io(SPI, /*CS=D8*/ SS, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
-GxEPD_Class display(io /*RST=D4*/ /*BUSY=D2*/); // default selection of D4(=2), D2(=4)
+GxEPD_Class display(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4); // default selection of D4(=2), D2(=4)
+// Heltec E-Paper 1.54" b/w without RST, BUSY
+//GxEPD_Class display(io, /*RST=D4*/ -1, /*BUSY=D2*/ -1); // no RST, no BUSY
+// Waveshare e-Paper ESP8266 Driver Board
+//GxIO_Class io(SPI, 15, 4, 5);
+//GxEPD_Class display(io, 5, 16);
 
 #elif defined(ESP32)
 
@@ -169,19 +148,27 @@ GxEPD_Class display(io, /*RST=*/ 2, /*BUSY=*/ 1);
 GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ PE15, /*RST=*/ PE14); // DC, RST as wired by DESPI-M01
 GxEPD_Class display(io, /*RST=*/ PE14, /*BUSY=*/ PE13); // RST, BUSY as wired by DESPI-M01
 
+#elif defined(ARDUINO_AVR_MEGA2560)
+
+// for SPI pin definitions see e.g.:
+// C:\Users\xxx\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.6.21\variants\mega\pins_arduino.h
+
+// select one, depending on your CS connection
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+//GxIO_Class io(SPI, /*CS=*/ 10, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9, CS on 10 (for CS same as on UNO, for SPI on ICSP use)
+
+GxEPD_Class display(io, /*RST=*/ 9, /*BUSY=*/ 7); // default selection of (9), 7
+
 #else
 
 // for SPI pin definitions see e.g.:
 // C:\Users\xxx\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.6.21\variants\standard\pins_arduino.h
 
 GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
-GxEPD_Class display(io /*RST=9*/ /*BUSY=7*/); // default selection of (9), 7
+GxEPD_Class display(io, /*RST=*/ 9, /*BUSY=*/ 7); // default selection of (9), 7
 
 #endif
 
-#if defined(_GxGDEW0154Z04_H_) || defined(_GxGDEW0213Z16_H_) || defined(_GxGDEW029Z10_H_) || defined(_GxGDEW027C44_H_) || defined(_GxGDEW042Z15_H_) || defined(_GxGDEW075Z09_H_)
-#define HAS_RED_COLOR
-#endif
 
 void setup()
 {
@@ -191,159 +178,68 @@ void setup()
 
   display.init(115200); // enable diagnostic output on Serial
 
+#if defined(__AVR) || false
+  display.drawPaged(drawHelloWorld);
+#elif (defined(_GxGDEW075Z09_H_) || defined(_GxGDEW075Z08_H_)) && (defined(ESP8266) || defined(ARDUINO_ARCH_STM32F1))
+  display.drawPaged(drawHelloWorld);
+#elif defined(_GxGDEW075Z09_H_)
+  display.drawPaged(drawHelloWorld);
+#else
+  drawHelloWorld();
+  display.update();
+#endif
+  display.powerDown();
+
   Serial.println("setup done");
 }
 
-void loop()
-{
-#if !defined(_ADAFRUIT_TF_GFX_H_) && !defined(_GxFont_GFX_TFT_eSPI_H_) && !defined(U8g2_for_Adafruit_GFX_h)
-  showFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
-#endif
-#if defined(U8g2_for_Adafruit_GFX_h)
-  showFont("u8g2_font_helvR14_tf", u8g2_font_helvR14_tf); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  delay(2000);
-  showFont("u8g2_font_profont22_mr", u8g2_font_profont22_mr); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  delay(2000);
-#endif
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-  showFreeFont("FreeMonoBold12pt7b", &FreeMonoBold12pt7b);
-  delay(2000);
-  //showFreeFont("NULL", NULL);
-  showTextFont("Font 1", 1, 1);
-  delay(2000);
-  showTextFont("Font 1", 1, 2);
-  delay(2000);
-  showTextFont("Font 1", 1, 3);
-  delay(2000);
-  showTextFont("Font 2", 2, 1);
-  delay(2000);
-  showTextFont("Font 2", 2, 2);
-  delay(2000);
-  showTextFont("Font 2", 2, 3);
-  delay(2000);
-  showTextFont("Font 4", 4, 1);
-  delay(2000);
-  showTextFont("Font 4", 4, 2);
-  delay(2000);
-  showTextFont("Font 4", 4, 3);
-#endif
-#if defined(_ADAFRUIT_TF_GFX_H_)
-  showFont("Open_Sans_Bold_12pt", OPENSANSBOLD_12);
-#endif
-  delay(10000);
-}
+void loop() {};
 
-void showFont(const char name[], const GFXfont* f)
+const char HelloWorld[] = "Hello World!";
+
+void drawHelloWorld()
 {
-  display.fillScreen(GxEPD_WHITE);
+  //Serial.println("drawHelloWorld");
+  display.setRotation(1);
+  display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
-  display.setFont(f);
-  display.setCursor(0, 0);
-  display.println();
-  display.println(name);
-  display.println(" !\"#$%&'()*+,-./");
-  display.println("0123456789:;<=>?");
-  display.println("@ABCDEFGHIJKLMNO");
-  display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(HAS_RED_COLOR)
-  display.setTextColor(GxEPD_RED);
-#endif
-  display.println("`abcdefghijklmno");
-  display.println("pqrstuvwxyz{|}~ ");
-  display.update();
-  delay(5000);
+  int16_t tbx, tby; uint16_t tbw, tbh;
+  display.getTextBounds(HelloWorld, 0, 0, &tbx, &tby, &tbw, &tbh);
+  // center bounding box by transposition of origin:
+  uint16_t x = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y = ((display.height() - tbh) / 2) - tby;
+  display.fillScreen(GxEPD_WHITE);
+  display.setCursor(x, y);
+  display.print(HelloWorld);
+  //Serial.println("drawHelloWorld done");
 }
 
-#if defined(U8g2_for_Adafruit_GFX_h)
-void showFont(const char name[], const uint8_t *f)
+void drawHelloWorldForDummies()
 {
-  display.setRotation(0);
-  display.fillScreen(GxEPD_WHITE);
-  display.setFontMode(1);                   // use u8g2 transparent mode (this is default)
-  display.setFontDirection(0);              // left to right (this is default)
-  display.setForegroundColor(GxEPD_BLACK);  // apply Adafruit GFX color
-  display.setBackgroundColor(GxEPD_WHITE);  // apply Adafruit GFX color
-  display.setFont(f); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  display.setCursor(0, 0);
-  display.println();
-  display.println(name);
-  display.println(" !\"#$%&'()*+,-./");
-  display.println("0123456789:;<=>?");
-  display.println("@ABCDEFGHIJKLMNO");
-  display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(HAS_RED_COLOR)
-  display.setForegroundColor(GxEPD_RED);
-#endif
-  display.println("`abcdefghijklmno");
-  display.println("pqrstuvwxyz{|}~ ");
-  display.println("Umlaut ÄÖÜäéöü");
-  display.update();
-}
-#endif
-
-#if defined(_ADAFRUIT_TF_GFX_H_)
-void showFont(const char name[], uint8_t f)
-{
-  display.setRotation(0);
-  display.fillScreen(GxEPD_WHITE);
+  // This example function/method can be used with full buffered graphics AND/OR paged drawing graphics
+  // for paged drawing it is to be used as callback function
+  // it will be executed once or multiple times, as many as needed,
+  // in case of full buffer it can be called directly, or as callback
+  // IMPORTANT: each iteration needs to draw the same, to avoid strange effects
+  // use a copy of values that might change, don't read e.g. from analog or pins in the loop!
+  //Serial.println("drawHelloWorldForDummies");
+  const char text[] = "Hello World!";
+  // most e-papers have width < height (portrait) as native orientation, especially the small ones
+  // in GxEPD rotation 0 is used for native orientation (most TFT libraries use 0 fix for portrait orientation)
+  // set rotation to 1 (rotate right 90 degrees) to have enough space on small displays (landscape)
+  display.setRotation(1);
+  // select a suitable font in Adafruit_GFX
+  display.setFont(&FreeMonoBold9pt7b);
+  // on e-papers black on white is more pleasant to read
   display.setTextColor(GxEPD_BLACK);
-  display.setFont(f);
-  display.setCursor(0, 0);
-  display.println();
-  display.println(name);
-  display.println(" !\"#$%&'()*+,-./");
-  display.println("0123456789:;<=>?");
-  display.println("@ABCDEFGHIJKLMNO");
-  display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(HAS_RED_COLOR)
-  display.setTextColor(GxEPD_RED);
-#endif
-  display.println("`abcdefghijklmno");
-  display.println("pqrstuvwxyz{|}~ ");
-  display.update();
+  // Adafruit_GFX has a handy method getTextBounds() to determine the boundary box for a text for the actual font
+  int16_t tbx, tby; uint16_t tbw, tbh; // boundary box window
+  display.getTextBounds(text, 0, 0, &tbx, &tby, &tbw, &tbh); // it works for origin 0, 0, fortunately (negative tby!)
+  // center bounding box by transposition of origin:
+  uint16_t x = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y = ((display.height() - tbh) / 2) - tby;
+  display.fillScreen(GxEPD_WHITE); // set the background to white (fill the buffer with value for white)
+  display.setCursor(x, y); // set the postition to start printing text
+  display.print(text); // print some text
+  //Serial.println("drawHelloWorldForDummies done");
 }
-#endif
-
-#if defined(_GxFont_GFX_TFT_eSPI_H_)
-void showFreeFont(const char name[], const GFXfont* f)
-{
-  display.setRotation(0);
-  display.fillScreen(GxEPD_WHITE);
-  display.setTextColor(GxEPD_BLACK);
-  display.setFreeFont(f);
-  display.setCursor(0, 0);
-  display.println();
-  display.println(name);
-  display.println(" !\"#$%&'()*+,-./");
-  display.println("0123456789:;<=>?");
-  display.println("@ABCDEFGHIJKLMNO");
-  display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(HAS_RED_COLOR)
-  display.setTextColor(GxEPD_RED);
-#endif
-  display.println("`abcdefghijklmno");
-  display.println("pqrstuvwxyz{|}~ ");
-  display.update();
-}
-void showTextFont(const char name[], uint8_t f, uint8_t size)
-{
-  display.setRotation(0);
-  display.fillScreen(GxEPD_WHITE);
-  display.setTextColor(GxEPD_BLACK, GxEPD_WHITE);
-  display.setTextFont(f);
-  display.setTextSize(size);
-  display.setCursor(0, 0);
-  display.println();
-  display.println(name);
-  display.println(" !\"#$%&'()*+,-./");
-  display.println("0123456789:;<=>?");
-  display.println("@ABCDEFGHIJKLMNO");
-  display.println("PQRSTUVWXYZ[\\]^_");
-#if defined(HAS_RED_COLOR)
-  display.setTextColor(GxEPD_RED);
-#endif
-  display.println("`abcdefghijklmno");
-  display.println("pqrstuvwxyz{|}~ ");
-  display.update();
-}
-#endif
