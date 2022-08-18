@@ -348,21 +348,21 @@ void GxGDEM029T94::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        xs = GxGDEM029T94_WIDTH - xs - w - 1;
-        xd = GxGDEM029T94_WIDTH - xd - w - 1;
+        xs = GxGDEM029T94_WIDTH - xs - w;
+        xd = GxGDEM029T94_WIDTH - xd - w;
         break;
       case 2:
-        xs = GxGDEM029T94_WIDTH - xs - w - 1;
-        ys = GxGDEM029T94_HEIGHT - ys - h - 1;
-        xd = GxGDEM029T94_WIDTH - xd - w - 1;
-        yd = GxGDEM029T94_HEIGHT - yd - h - 1;
+        xs = GxGDEM029T94_WIDTH - xs - w;
+        ys = GxGDEM029T94_HEIGHT - ys - h;
+        xd = GxGDEM029T94_WIDTH - xd - w;
+        yd = GxGDEM029T94_HEIGHT - yd - h;
         break;
       case 3:
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        ys = GxGDEM029T94_HEIGHT - ys  - h - 1;
-        yd = GxGDEM029T94_HEIGHT - yd  - h - 1;
+        ys = GxGDEM029T94_HEIGHT - ys  - h;
+        yd = GxGDEM029T94_HEIGHT - yd  - h;
         break;
     }
   }
@@ -687,16 +687,16 @@ void GxGDEM029T94::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
     case 1:
       swap(x, y);
       swap(w, h);
-      x = GxGDEM029T94_WIDTH - x - w - 1;
+      x = GxGDEM029T94_WIDTH - x - w;
       break;
     case 2:
-      x = GxGDEM029T94_WIDTH - x - w - 1;
-      y = GxGDEM029T94_HEIGHT - y - h - 1;
+      x = GxGDEM029T94_WIDTH - x - w;
+      y = GxGDEM029T94_HEIGHT - y - h;
       break;
     case 3:
       swap(x, y);
       swap(w, h);
-      y = GxGDEM029T94_HEIGHT - y - h - 1;
+      y = GxGDEM029T94_HEIGHT - y - h;
       break;
   }
 }

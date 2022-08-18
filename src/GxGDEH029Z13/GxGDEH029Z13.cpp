@@ -299,26 +299,7 @@ void GxGDEH029Z13::eraseDisplay(bool using_partial_update)
 void GxGDEH029Z13::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
 {
   if (_current_page != -1) return;
-  if (using_rotation)
-  {
-    switch (getRotation())
-    {
-      case 1:
-        swap(x, y);
-        swap(w, h);
-        x = GxGDEH029Z13_WIDTH - x - w - 1;
-        break;
-      case 2:
-        x = GxGDEH029Z13_WIDTH - x - w - 1;
-        y = GxGDEH029Z13_HEIGHT - y - h - 1;
-        break;
-      case 3:
-        swap(x, y);
-        swap(w, h);
-        y = GxGDEH029Z13_HEIGHT - y  - h - 1;
-        break;
-    }
-  }
+  if (using_rotation) _rotate(x, y, w, h);
   if (x >= GxGDEH029Z13_WIDTH) return;
   if (y >= GxGDEH029Z13_HEIGHT) return;
   // x &= 0xFFF8; // byte boundary, not here, use encompassing rectangle
@@ -378,21 +359,21 @@ void GxGDEH029Z13::_writeToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        xs = GxGDEH029Z13_WIDTH - xs - w - 1;
-        xd = GxGDEH029Z13_WIDTH - xd - w - 1;
+        xs = GxGDEH029Z13_WIDTH - xs - w;
+        xd = GxGDEH029Z13_WIDTH - xd - w;
         break;
       case 2:
-        xs = GxGDEH029Z13_WIDTH - xs - w - 1;
-        ys = GxGDEH029Z13_HEIGHT - ys - h - 1;
-        xd = GxGDEH029Z13_WIDTH - xd - w - 1;
-        yd = GxGDEH029Z13_HEIGHT - yd - h - 1;
+        xs = GxGDEH029Z13_WIDTH - xs - w;
+        ys = GxGDEH029Z13_HEIGHT - ys - h;
+        xd = GxGDEH029Z13_WIDTH - xd - w;
+        yd = GxGDEH029Z13_HEIGHT - yd - h;
         break;
       case 3:
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        ys = GxGDEH029Z13_HEIGHT - ys  - h - 1;
-        yd = GxGDEH029Z13_HEIGHT - yd  - h - 1;
+        ys = GxGDEH029Z13_HEIGHT - ys  - h;
+        yd = GxGDEH029Z13_HEIGHT - yd  - h;
         break;
     }
   }
@@ -697,16 +678,16 @@ void GxGDEH029Z13::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
     case 1:
       swap(x, y);
       swap(w, h);
-      x = GxGDEH029Z13_WIDTH - x - w - 1;
+      x = GxGDEH029Z13_WIDTH - x - w;
       break;
     case 2:
-      x = GxGDEH029Z13_WIDTH - x - w - 1;
-      y = GxGDEH029Z13_HEIGHT - y - h - 1;
+      x = GxGDEH029Z13_WIDTH - x - w;
+      y = GxGDEH029Z13_HEIGHT - y - h;
       break;
     case 3:
       swap(x, y);
       swap(w, h);
-      y = GxGDEH029Z13_HEIGHT - y - h - 1;
+      y = GxGDEH029Z13_HEIGHT - y - h;
       break;
   }
 }

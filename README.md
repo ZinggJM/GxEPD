@@ -38,11 +38,16 @@ A simple E-Paper display library with common base class and separate IO class fo
 - DEPG0150BN     1.50" b/w 200x200, e.g. LILYGO® TTGO T5 V2.4.1 1.50 inch
 - GDEP015OC1     1.54" b/w 200x200
 - GDEH0154D67    1.54" b/w 200x200 replacement for GDEP015OC1
+- GDEW0154T8     1.54" b/w 152x152 UC8151
+- GDEW0154M09    1.54" b/w 200x200 JD79653A
+- GDEW0154M10    1.54" b/w 152x152 UC8151D
 - GDEW0154Z04    1.54" b/w/r 200x200
 - GDEW0154Z17    1.54" b/w/r 152x152
+- GDEH0154Z90    1.54" b/w/r 200x200 SSD1681
 - GDE0213B1      2.13" b/w
 - GDEH0213B72    2.13" b/w, replacement for GDE0213B1
 - GDEH0213B73    2.13" b/w, new replacement for GDE0213B1, GDEH0213B72
+- GDEM0213B74    2.13" b/w 128x250 SSD1680
 - GDEW0213I5F    2.13" b/w flexible
 - GDEW0213T5D    2.13" b/w 128x296, UC8151 (IL0373)
 - GDEW0213Z16    2.13" b/w/r
@@ -76,7 +81,14 @@ A simple E-Paper display library with common base class and separate IO class fo
 
 ### for pin mapping suggestions see ConnectingHardware.md
 
-### Version 3.1.2
+### Version 3.1.3
+- added support for GDEW0154T8  1.54" b/w 152x152 UC8151
+- added support for GDEW0154M09 1.54" b/w 200x200 JD79653A
+- added support for GDEW0154M10 1.54" b/w 152x152 UC8151D
+- added support for GDEH0154Z90 1.54" b/w/r 200x200 SSD1681
+- added support for GDEM0213B74 2.13" b/w 128x250 SSD1680
+- fixed methods updateWindow, updateToWindow, _rotate in all driver classes
+#### Version 3.1.2
 - added support for DEPG0150BN 1.50" b/w 200x200, e.g. LILYGO® TTGO T5 V2.4.1 1.50 inch
 - added support for DEPG0213BN 2.13" b/w 128x250, e.g. LILYGO® TTGO T5 V2.3.1 2.13 inch
 - added support for DEPG0266BN 2.66" b/w 152x296, e.g. LILYGO® TTGO T5 2.66 inch

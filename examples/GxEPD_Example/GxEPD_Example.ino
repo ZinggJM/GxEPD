@@ -42,15 +42,20 @@
 #include <GxEPD.h>
 
 // select the display class to use, only one
+//#include <GxDEPG0150BN/GxDEPG0150BN.h>    // 1.50" b/w
 //#include <GxGDEP015OC1/GxGDEP015OC1.h>    // 1.54" b/w
-//#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
-//#include <GxDEPG0150BN/GxDEPG0150BN.h>  // 1.54" b/w
+//#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w 200x200, SSD1681
+//#include <GxGDEW0154T8/GxGDEW0154T8.h>    // 1.54" b/w 152x152 UC8151 (IL0373)
+//#include <GxGDEW0154M09/GxGDEW0154M09.h>  // 1.54" b/w 200x200 JD79653A
+//#include <GxGDEW0154M10/GxGDEW0154M10.h>  // 1.54" b/w 152x152 UC8151D
 //#include <GxGDEW0154Z04/GxGDEW0154Z04.h>  // 1.54" b/w/r 200x200
 //#include <GxGDEW0154Z17/GxGDEW0154Z17.h>  // 1.54" b/w/r 152x152
+//#include <GxGDEH0154Z90/GxGDEH0154Z90.h>  // 1.54" b/w/r 200x200 SSD1681
 //#include <GxGDEW0213I5F/GxGDEW0213I5F.h>  // 2.13" b/w 104x212 flexible
 //#include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w
 //#include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w new panel
 //#include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w newer panel
+//#include <GxGDEM0213B74/GxGDEM0213B74.h>  // 2.13" b/w 128x250 SSD1680
 //#include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r
 //#include <GxGDEH0213Z19/GxGDEH0213Z19.h>  // 2.13" b/w/r UC8151D
 //#include <GxGDEW0213T5D/GxGDEW0213T5D.h>  // 2.13" b/w 104x212 UC8151D
@@ -229,6 +234,40 @@ void showBitmapExample()
 }
 #endif
 
+#if defined(_GxGDEW0154T8_H_) || defined(_GxGDEW0154M10_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(5000);
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+}
+#endif
+
+#if defined(_GxGDEW0154M09_H_)
+void showBitmapExample()
+{
+  display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
+  delay(2000);
+  display.drawExampleBitmap(BitmapExample2, sizeof(BitmapExample2));
+  delay(5000);
+#if !defined(__AVR)
+  display.drawExampleBitmap(BitmapExample3, sizeof(BitmapExample3));
+  delay(5000);
+#endif
+  display.fillScreen(GxEPD_WHITE);
+  display.drawExampleBitmap(BitmapExample1, 0, 0, GxEPD_WIDTH, GxEPD_HEIGHT, GxEPD_BLACK);
+  display.update();
+  delay(5000);
+}
+#endif
+
 #if defined(_GxGDEW0154Z04_H_)
 #define HAS_RED_COLOR
 void showBitmapExample()
@@ -249,6 +288,16 @@ void showBitmapExample()
   display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
   delay(5000);
   display.drawExamplePicture(BitmapExample3, BitmapExample4, sizeof(BitmapExample1), sizeof(BitmapExample2));
+  delay(5000);
+  //display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
+}
+#endif
+
+#if defined(_GxGDEH0154Z90_H_)
+#define HAS_RED_COLOR
+void showBitmapExample()
+{
+  display.drawExamplePicture(BitmapExample1, BitmapExample2, sizeof(BitmapExample1), sizeof(BitmapExample2));
   delay(5000);
   //display.drawBitmap(BitmapExample2, sizeof(BitmapExample2));
 }
@@ -277,7 +326,7 @@ void showBitmapExample()
 }
 #endif
 
-#if defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_) || defined(_GxDEPG0213BN_H_)
+#if defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_) || defined(_GxGDEM0213B74_H_) || defined(_GxDEPG0213BN_H_)
 void showBitmapExample()
 {
   display.drawExampleBitmap(BitmapExample1, sizeof(BitmapExample1));
@@ -728,8 +777,8 @@ void drawCornerTest()
   display.setRotation(rotation); // restore
 }
 
-#if defined(_GxGDEP015OC1_H_) || defined(_GxGDEH0154D67_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_)|| defined(_GxGDEH029A1_H_) \
-|| defined(_GxDEPG0150BN_H_) || defined(_GxDEPG0213BN_H_)
+#if defined(_GxGDEP015OC1_H_) || defined(_GxGDEH0154D67_H_) || defined(_GxGDE0213B1_H_) || defined(_GxGDEH0213B72_H_) || defined(_GxGDEH0213B73_H_) || defined(_GxGDEM0213B74_H_) \
+|| defined(_GxGDEH029A1_H_) || defined(_GxDEPG0150BN_H_) || defined(_GxDEPG0213BN_H_) || defined(_GxGDEW0154M09_H_)
 #include "IMG_0001.h"
 void showBoat()
 {

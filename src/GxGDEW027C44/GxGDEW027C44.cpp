@@ -379,25 +379,7 @@ void GxGDEW027C44::eraseDisplay(bool using_partial_update)
 void GxGDEW027C44::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool using_rotation)
 {
   if (_current_page != -1) return;
-  if (using_rotation)
-  {
-    switch (getRotation())
-    {
-      case 1:
-        swap(x, y);
-        swap(w, h);
-        x = GxGDEW027C44_WIDTH - x - w - 1;
-        break;
-      case 2:
-        x = GxGDEW027C44_WIDTH - x - w - 1;
-        y = GxGDEW027C44_HEIGHT - y - h - 1;
-        break;
-      case 3:
-        swap(x, y);
-        swap(w, h);
-        y = GxGDEW027C44_HEIGHT - y  - h - 1;
-        break;
-    }
+  if (using_rotation) _rotate(x, y, w, h);
   }
   //fillScreen(0x0);
   if (!_using_partial_mode) _wakeUp();
@@ -417,21 +399,21 @@ void GxGDEW027C44::updateToWindow(uint16_t xs, uint16_t ys, uint16_t xd, uint16_
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        xs = GxGDEW027C44_WIDTH - xs - w - 1;
-        xd = GxGDEW027C44_WIDTH - xd - w - 1;
+        xs = GxGDEW027C44_WIDTH - xs - w;
+        xd = GxGDEW027C44_WIDTH - xd - w;
         break;
       case 2:
-        xs = GxGDEW027C44_WIDTH - xs - w - 1;
-        ys = GxGDEW027C44_HEIGHT - ys - h - 1;
-        xd = GxGDEW027C44_WIDTH - xd - w - 1;
-        yd = GxGDEW027C44_HEIGHT - yd - h - 1;
+        xs = GxGDEW027C44_WIDTH - xs - w;
+        ys = GxGDEW027C44_HEIGHT - ys - h;
+        xd = GxGDEW027C44_WIDTH - xd - w;
+        yd = GxGDEW027C44_HEIGHT - yd - h;
         break;
       case 3:
         swap(xs, ys);
         swap(xd, yd);
         swap(w, h);
-        ys = GxGDEW027C44_HEIGHT - ys  - h - 1;
-        yd = GxGDEW027C44_HEIGHT - yd  - h - 1;
+        ys = GxGDEW027C44_HEIGHT - ys  - h;
+        yd = GxGDEW027C44_HEIGHT - yd  - h;
         break;
     }
   }
@@ -837,16 +819,16 @@ void GxGDEW027C44::_rotate(uint16_t& x, uint16_t& y, uint16_t& w, uint16_t& h)
     case 1:
       swap(x, y);
       swap(w, h);
-      x = GxGDEW027C44_WIDTH - x - w - 1;
+      x = GxGDEW027C44_WIDTH - x - w;
       break;
     case 2:
-      x = GxGDEW027C44_WIDTH - x - w - 1;
-      y = GxGDEW027C44_HEIGHT - y - h - 1;
+      x = GxGDEW027C44_WIDTH - x - w;
+      y = GxGDEW027C44_HEIGHT - y - h;
       break;
     case 3:
       swap(x, y);
       swap(w, h);
-      y = GxGDEW027C44_HEIGHT - y - h - 1;
+      y = GxGDEW027C44_HEIGHT - y - h;
       break;
   }
 }
