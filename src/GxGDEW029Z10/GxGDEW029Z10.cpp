@@ -298,7 +298,6 @@ void GxGDEW029Z10::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
 {
   if (_current_page != -1) return;
   if (using_rotation) _rotate(x, y, w, h);
-  }
   if (x >= GxGDEW029Z10_WIDTH) return;
   if (y >= GxGDEW029Z10_HEIGHT) return;
   // x &= 0xFFF8; // byte boundary, not here, use encompassing rectangle
@@ -834,4 +833,3 @@ void GxGDEW029Z10::drawCornerTest(uint8_t em)
   _waitWhileBusy("drawCornerTest");
   _sleep();
 }
-

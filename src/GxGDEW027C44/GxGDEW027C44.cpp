@@ -380,7 +380,6 @@ void GxGDEW027C44::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
 {
   if (_current_page != -1) return;
   if (using_rotation) _rotate(x, y, w, h);
-  }
   //fillScreen(0x0);
   if (!_using_partial_mode) _wakeUp();
   _using_partial_mode = true;
@@ -969,4 +968,3 @@ void GxGDEW027C44::drawCornerTest(uint8_t em)
   _waitWhileBusy("drawCornerTest");
   _sleep();
 }
-

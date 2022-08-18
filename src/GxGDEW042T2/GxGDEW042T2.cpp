@@ -298,7 +298,6 @@ void GxGDEW042T2::updateWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h, b
 {
   if (_current_page != -1) return;
   if (using_rotation) _rotate(x, y, w, h);
-  }
   //fillScreen(0x0);
   if (x >= GxGDEW042T2_WIDTH) return;
   if (y >= GxGDEW042T2_HEIGHT) return;
